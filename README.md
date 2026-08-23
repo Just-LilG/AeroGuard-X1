@@ -1,31 +1,35 @@
 # AeroGuard-X1
 
-Smart gas leak detection system built around an Arduino Uno. Dual-zone gas sensing with flame fast-track, multi-stage escalation (LOW → MEDIUM → CRITICAL / EMERGENCY), GSM call/SMS alerts, SD logging, and automatic vent control.
+LPG leak + fire early-warning **product** for Ghanaian homes, hostels, chop bars, and cylinder areas. Competition prototype with a clear path to a market device + phone app.
 
-## Repository contents
+## What it does
 
-| File | Description |
-|------|-------------|
-| [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) | Arduino firmware (sensors, LCD, servo, SIM800L, SD log) |
-| [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad) | OpenSCAD enclosure (base, lid, mounts, vent) |
-| [`AeroGuard-X1_Build_Guide.md`](AeroGuard-X1_Build_Guide.md) | Full build guide: parts, pin map, wiring, calibration |
-| [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html) | Visual assembly guide (open in a browser) |
+| Stage | LED | Action |
+|-------|-----|--------|
+| LOW | Green | Quiet early warning |
+| MEDIUM | Yellow | Buzzer + SMS; app opens linked smart vents/windows |
+| CRITICAL | Red | Alarm + **call + SMS** to owner |
+| FIRE | Red | Alarm + **call + SMS** (fire-service SMS = Phase 2) |
 
-## Firmware (Arduino)
+**Demo button** simulates a leak on stage (no real gas). **Reset** mutes, exits demo, recalibrates.  
+**No on-device servo** — ventilation is an app / smart-vent feature.
 
-1. Install [Arduino IDE](https://www.arduino.cc/en/software) (or PictoBlox).
-2. Install libraries: **LiquidCrystal I2C**, **Servo** (built-in), **SD** (built-in).
-3. Open `aeroguard_x1-1.ino`, select **Arduino Uno**, then upload.
-4. Follow the build guide for wiring, SIM800L power/voltage notes, and contact numbers before deploying.
+## Repo files
 
-## Case (OpenSCAD)
+| File | Role |
+|------|------|
+| [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) | Arduino firmware |
+| [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad) | 3D-printed case |
+| [`AeroGuard-X1_Build_Guide.md`](AeroGuard-X1_Build_Guide.md) | BOM, pin map, demo pitch outline |
+| [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html) | Visual assembly |
 
-1. Install [OpenSCAD](https://openscad.org/downloads.html).
-2. Open `aeroguard_x1_case.scad`.
-3. Set `part = "all_export"` (default), press **F6** to render, then **File → Export → Export as STL**.
-4. Slice and 3D-print.
+## Quick start
 
-## Docs
+1. Wire per the build guide (set owner phone numbers in the sketch).
+2. Upload `aeroguard_x1-1.ino` to an Arduino Uno.
+3. Open Serial Monitor at 9600 baud; press **Demo** to walk stages.
+4. Print the case from OpenSCAD (`part = "all_export"`).
 
-- Start with [`AeroGuard-X1_Build_Guide.md`](AeroGuard-X1_Build_Guide.md) for parts and wiring.
-- Open [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html) in a browser for the visual walkthrough.
+## Next
+
+Mobile app: live status, contacts, smart vent/window control, cloud incident log.
