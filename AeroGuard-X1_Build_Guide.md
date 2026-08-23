@@ -30,26 +30,32 @@ AeroGuard-X1 sits near an LPG stove or cylinder area. It learns a normal air bas
 
 ## 2. Parts list (buy / pack)
 
-| # | Item | Qty | Notes |
-|---|------|-----|-------|
-| 1 | Arduino Uno | 1 | |
-| 2 | MQ-2 or MQ-5 gas sensor | 1 | Kitchen / cylinder area |
-| 3 | Flame sensor (analog IR) | 1 | |
-| 4 | 16×2 LCD + I2C backpack | 1 | Address usually `0x27` or `0x3F` |
-| 5 | LED green, yellow, red | 1 each | + 220Ω ×3 |
-| 6 | Buzzer | 1 | |
-| 7 | Push buttons | 2 | Demo + Reset |
-| 8 | SIM800L GSM module | 1 | |
-| 9 | Buck converter (~4V for SIM800L) | 1 | **Do not** power SIM from Uno 5V |
-| 10 | MicroSD module + FAT32 card | 1 | Local incident history |
-| 11 | HM-10 (or HC-05) BLE module | 1 | Phone app link (reserved pins) |
-| 12 | Li-ion pack + 5V regulator | 1 | Backup / portable demo power |
-| 13 | Breadboard + jumpers | 1 set | Or proto shield inside case |
-| 14 | Voltage divider resistors for SIM RX | 1 pair | e.g. 10k + 20k |
-| 15 | Active SIM with call + SMS credit | 1 | |
-| 16 | 3D-printed case (this repo’s SCAD) | 1 | |
+Use these **module names** when shopping (exact PCB silkscreen may vary by seller).
 
-**Removed vs old draft:** servo motor, vent flap mechanism, second required gas sensor, orange LED.
+| # | Role | Module / part name | Qty | Notes |
+|---|------|--------------------|-----|-------|
+| 1 | Controller | **Arduino Uno R3** (ATmega328P) | 1 | Official or compatible (CH340 OK) |
+| 2 | Gas sensor | **MQ-2 Gas Sensor Module** *or* **MQ-5 LPG Gas Sensor Module** | 1 | Prefer **MQ-5** for LPG; breakout with AO/DO |
+| 3 | Flame sensor | **IR Flame Sensor Module** (often sold as **KY-026**) | 1 | Use **analog (A0)** output |
+| 4 | Display | **LCD 1602 I2C** (16×2 + **PCF8574** backpack) | 1 | I2C address usually `0x27` or `0x3F` |
+| 5 | Status LEDs | **5mm LED** green, yellow, red + **220Ω** resistors | 1 each | Or **KY-011** dual LED modules if preferred |
+| 6 | Alarm | **Active Buzzer Module** (e.g. **KY-012**) | 1 | Passive buzzer OK if wired to D8 |
+| 7 | Buttons | **6×6mm tactile push button** (momentary) *or* **KY-004** button module | 2 | Demo + Reset |
+| 8 | GSM | **SIM800L V2.0 GSM/GPRS Module** (with antenna) | 1 | Needs strong 4V supply |
+| 9 | SIM power | **LM2596 DC-DC Buck Converter** (adjust to ~4.0V) | 1 | **Do not** power SIM from Uno 5V |
+| 10 | Logging | **Micro SD Card Module (SPI)** (often **HW-125**) + **microSD** FAT32 | 1 | Local incident history |
+| 11 | App link | **HM-10 BLE 4.0 Module** (CC2541) | 1 | Prefer BLE over **HC-05** for phones |
+| 12 | Battery | **18650 cell(s)** + **TP4056** charger *and/or* **5V USB power bank** / **MT3608** boost to 5V | 1 | Portable demo power |
+| 13 | Wiring | **MB-102 breadboard** + ** Dupont jumper wires** | 1 set | Or Uno proto shield |
+| 14 | SIM RX protect | **Resistors 10kΩ + 20kΩ** (voltage divider) | 1 pair | Uno D6 → SIM800L RX |
+| 15 | Network | **Nano-SIM** with call + SMS credit (MTN/Vodafone/AirtelTigo etc.) | 1 | Must fit SIM800L slot (adapter if needed) |
+| 16 | Enclosure | **AeroGuard-X1 3D-printed case** (this repo’s SCAD → STL) | 1 | |
+
+**Optional (not required for v1 demo):** second **MQ-5** for multi-zone expansion later.
+
+**Removed vs old draft:** SG90 servo, vent flap parts, second required gas sensor, orange LED.
+
+**Shopping tip:** If a seller lists “MQ-2 smoke sensor,” it still detects LPG/smoke mix; for a cleaner LPG story ask for **MQ-5**. For Bluetooth, buy **HM-10** (BLE), not classic **HC-05**, if the app targets modern phones.
 
 ---
 
