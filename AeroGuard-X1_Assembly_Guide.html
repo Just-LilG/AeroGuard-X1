@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Field Manual — AeroGuard-X1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Archivo:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #EDE6D6;
+    --paper-dark: #E2D9C4;
+    --ink: #2B2620;
+    --ink-soft: #5C5142;
+    --ink-faint: #8B7F6B;
+    --line: #C9BC9E;
+    --line-heavy: #2B2620;
+
+    /* status colors - the whole page shifts through these */
+    --safe: #4C6B4F;
+    --low: #B08D2E;
+    --medium: #C46A25;
+    --critical: #A8341F;
+    --emergency: #7A1B1B;
+
+    --stamp-red: #9E2B25;
+    --font-display: 'Archivo', sans-serif;
+    --font-condensed: 'Oswald', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-display);
+    line-height: 1.6;
+    position: relative;
+  }
+
+  /* paper grain texture via layered noise-ish gradients */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(0,0,0,0.02) 0%, transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(0,0,0,0.02) 0%, transparent 40%),
+      repeating-linear-gradient(0deg, rgba(43,38,32,0.015) 0px, transparent 1px, transparent 2px);
+    opacity: 0.8;
+  }
+
+  .wrap { position: relative; z-index: 1; max-width: 940px; margin: 0 auto; padding: 0 28px; }
+
+  /* ============ STATUS STRIP (signature element) ============ */
+  .status-strip {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0;
+    overflow: hidden;
+    border-bottom: 3px solid var(--line-heavy);
+    transition: background 0.6s ease;
+  }
+  .status-strip-inner {
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 10px 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+  .status-dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+    animation: pulse 1.4s infinite ease-in-out;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 currentColor; }
+    50% { opacity: 0.6; }
+  }
+  .status-label { letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; }
+  .status-detail { color: rgba(237,230,214,0.55); }
+  .status-ladder {
+    margin-left: auto;
+    display: flex;
+    gap: 3px;
+  }
+  .status-ladder span {
+    width: 24px; height: 4px;
+    background: rgba(237,230,214,0.15);
+    transition: background 0.3s ease;
+  }
+  .status-ladder span.lit { background: currentColor; }
+
+  @media (max-width: 640px) {
+    .status-detail { display: none; }
+  }
+
+  /* ============ HEADER ============ */
+  header {
+    padding: 64px 0 48px;
+    border-bottom: 4px double var(--line-heavy);
+  }
+  .doc-stamp {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    border: 1.5px solid var(--ink-soft);
+    padding: 5px 10px;
+    margin-bottom: 28px;
+    transform: rotate(-1deg);
+  }
+  h1 {
+    font-family: var(--font-condensed);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: clamp(38px, 6vw, 64px);
+    letter-spacing: 0.01em;
+    line-height: 0.98;
+    color: var(--ink);
+  }
+  h1 .sub {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.28em;
+    letter-spacing: 0.15em;
+    color: var(--stamp-red);
+    margin-top: 10px;
+    text-transform: uppercase;
+  }
+  .lede {
+    margin-top: 24px;
+    max-width: 58ch;
+    font-size: 17px;
+    color: var(--ink-soft);
+  }
+
+  .spec-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    margin-top: 36px;
+    border-top: 1.5px solid var(--line-heavy);
+    border-bottom: 1.5px solid var(--line-heavy);
+  }
+  .spec-cell {
+    flex: 1;
+    min-width: 130px;
+    padding: 14px 20px;
+    border-right: 1.5px solid var(--line-heavy);
+  }
+  .spec-cell:last-child { border-right: none; }
+  .spec-num {
+    font-family: var(--font-condensed);
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--stamp-red);
+    line-height: 1;
+  }
+  .spec-word {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+
+  /* ============ HAZARD NOTICE (stamped) ============ */
+  .hazard-block {
+    margin: 48px 0;
+    position: relative;
+    border: 2.5px solid var(--stamp-red);
+    padding: 26px 28px;
+    background: rgba(158,43,37,0.04);
+  }
+  .hazard-stamp-mark {
+    position: absolute;
+    top: -16px;
+    left: 24px;
+    background: var(--paper);
+    padding: 0 12px;
+    font-family: var(--font-condensed);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--stamp-red);
+    font-size: 15px;
+    transform: rotate(-1deg);
+  }
+  .hazard-block ul { list-style: none; margin-top: 6px; }
+  .hazard-block li {
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    padding: 8px 0 8px 22px;
+    position: relative;
+    border-top: 1px dashed var(--line);
+  }
+  .hazard-block li:first-child { border-top: none; }
+  .hazard-block li::before {
+    content: "▲";
+    position: absolute;
+    left: 0;
+    top: 8px;
+    color: var(--stamp-red);
+    font-size: 10px;
+  }
+  .hazard-block li strong { color: var(--ink); }
+
+  /* ============ NAV ============ */
+  nav.stepnav {
+    padding: 18px 0;
+    border-bottom: 1.5px solid var(--line-heavy);
+  }
+  .stepnav-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-faint);
+    margin-bottom: 10px;
+  }
+  .stepnav-inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .stepnav-btn {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: transparent;
+    border: 1px solid var(--line-heavy);
+    color: var(--ink-soft);
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .stepnav-btn:hover { background: var(--ink); color: var(--paper); }
+  .stepnav-btn.active { background: var(--stamp-red); border-color: var(--stamp-red); color: var(--paper); }
+
+  /* ============ SECTION: PIN MAP ============ */
+  section.pinmap { padding: 56px 0; border-bottom: 4px double var(--line-heavy); }
+  .section-kicker {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--stamp-red);
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-family: var(--font-condensed);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 30px;
+    letter-spacing: 0.01em;
+    margin-bottom: 10px;
+  }
+  .section-desc { color: var(--ink-soft); max-width: 60ch; margin-bottom: 36px; font-size: 14.5px; }
+
+  .pinmap-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 36px; align-items: start; }
+  @media (max-width: 760px) { .pinmap-grid { grid-template-columns: 1fr; } }
+
+  .board-panel {
+    background: var(--ink);
+    padding: 26px;
+    position: relative;
+  }
+  .board-panel::before {
+    content: "FIG. 1 — UNO PINOUT";
+    position: absolute;
+    top: -11px;
+    left: 20px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 0 8px;
+    letter-spacing: 0.08em;
+  }
+
+  .pin-list { display: flex; flex-direction: column; }
+  .pin-row {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 9px 4px;
+    border-bottom: 1px dashed var(--line);
+    cursor: default;
+  }
+  .pin-row:first-child { border-top: 1px dashed var(--line); }
+  .pin-row:hover { background: rgba(158,43,37,0.06); }
+  .pin-tag {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--paper);
+    background: var(--ink);
+    padding: 3px 0;
+    text-align: center;
+  }
+  .pin-row:hover .pin-tag { background: var(--stamp-red); }
+  .pin-desc { font-size: 13px; color: var(--ink); }
+  .pin-note { font-size: 10.5px; color: var(--ink-faint); font-family: var(--font-mono); text-transform: uppercase; }
+
+  /* ============ STEPS AS INDEX CARDS ============ */
+  section.steps { padding: 20px 0 40px; }
+
+  .step-card {
+    background: #F5F0E4;
+    border: 1.5px solid var(--line-heavy);
+    box-shadow: 5px 5px 0 rgba(43,38,32,0.08);
+    margin: 56px 0;
+    padding: 0;
+    scroll-margin-top: 70px;
+    position: relative;
+  }
+  .step-card:nth-child(odd) { transform: rotate(-0.35deg); }
+  .step-card:nth-child(even) { transform: rotate(0.35deg); }
+
+  .step-head {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    padding: 20px 26px;
+    border-bottom: 1.5px solid var(--line-heavy);
+    background: var(--paper-dark);
+  }
+  .step-num {
+    font-family: var(--font-condensed);
+    font-size: 34px;
+    font-weight: 700;
+    color: var(--stamp-red);
+    line-height: 1;
+  }
+  .step-title-group { flex: 1; }
+  .step-title {
+    font-family: var(--font-condensed);
+    text-transform: uppercase;
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .step-pins {
+    margin-top: 4px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .step-pins span {
+    border: 1px solid var(--ink-soft);
+    padding: 1px 6px;
+  }
+
+  .step-content { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  @media (max-width: 720px) { .step-content { grid-template-columns: 1fr; } }
+
+  .step-diagram {
+    padding: 22px;
+    border-right: 1.5px dashed var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 15px, rgba(43,38,32,0.025) 15px, rgba(43,38,32,0.025) 16px);
+  }
+  @media (max-width: 720px) { .step-diagram { border-right: none; border-bottom: 1.5px dashed var(--line); } }
+  .step-diagram svg { max-width: 100%; height: auto; }
+
+  .step-instructions { padding: 22px 26px; }
+  .step-instructions p { color: var(--ink-soft); font-size: 14.5px; margin-bottom: 12px; }
+  .step-instructions strong { color: var(--ink); font-weight: 600; }
+
+  .step-warn {
+    margin-top: 14px;
+    border-left: 3px solid var(--stamp-red);
+    padding: 8px 12px;
+    background: rgba(158,43,37,0.05);
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+  .step-warn strong { color: var(--stamp-red); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
+
+  /* washi-tape corner accents */
+  .step-card::before {
+    content: "";
+    position: absolute;
+    top: -8px; left: 30px;
+    width: 46px; height: 16px;
+    background: rgba(196, 106, 37, 0.35);
+    transform: rotate(-4deg);
+  }
+
+  /* ============ WIRE KEY ============ */
+  .wire-key {
+    display: flex; flex-wrap: wrap; gap: 18px;
+    margin-top: 32px; padding-top: 20px;
+    border-top: 1.5px solid var(--line-heavy);
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft);
+  }
+  .wire-key .item { display: flex; align-items: center; gap: 7px; }
+  .wire-key .swatch { width: 16px; height: 3px; }
+
+  /* ============ CHECKLIST ============ */
+  section.checklist { padding: 56px 0 100px; }
+
+  .check-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 26px; }
+  @media (max-width: 640px) { .check-grid { grid-template-columns: 1fr; } }
+
+  .check-item {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 13px 16px;
+    background: #F5F0E4;
+    border: 1.5px solid var(--line-heavy);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 13.5px;
+  }
+  .check-item.done { background: rgba(76,107,79,0.1); border-color: var(--safe); }
+  .check-item.done .check-text { color: var(--ink-faint); text-decoration: line-through; }
+  .check-box {
+    width: 16px; height: 16px; border: 1.5px solid var(--ink);
+    flex-shrink: 0; margin-top: 2px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 11px; color: transparent;
+  }
+  .check-item.done .check-box { background: var(--safe); border-color: var(--safe); color: var(--paper); }
+  .check-text { color: var(--ink); }
+
+  .progress-track {
+    margin-top: 28px; height: 8px;
+    background: var(--paper-dark);
+    border: 1.5px solid var(--line-heavy);
+    overflow: hidden;
+  }
+  .progress-fill { height: 100%; background: var(--stamp-red); width: 0%; transition: width 0.3s ease; }
+  .progress-label { font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft); margin-top: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  footer {
+    padding: 32px 0 60px;
+    border-top: 4px double var(--line-heavy);
+    font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-faint);
+    text-align: center; text-transform: uppercase; letter-spacing: 0.08em;
+  }
+</style>
+</head>
+<body>
+
+<div class="status-strip" id="status-strip">
+  <div class="status-strip-inner" id="status-strip-inner">
+    <div class="status-dot"></div>
+    <div class="status-label" id="status-label">SYSTEM: SAFE</div>
+    <div class="status-detail" id="status-detail">baseline holding · both zones nominal</div>
+    <div class="status-ladder" id="status-ladder"></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <header>
+    <div class="doc-stamp">Group 1 · Field Reference · Rev. A</div>
+    <h1>AeroGuard-X1<span class="sub">Assembly Manual — Smart Gas Leak Detection System</span></h1>
+    <p class="lede">Wiring, calibration, and field-assembly instructions — from bare Arduino Uno to a fully cased, two-zone gas and fire safety unit.</p>
+
+    <div class="spec-strip">
+      <div class="spec-cell"><div class="spec-num">12</div><div class="spec-word">Build Steps</div></div>
+      <div class="spec-cell"><div class="spec-num">16</div><div class="spec-word">Pins In Use</div></div>
+      <div class="spec-cell"><div class="spec-num">02</div><div class="spec-word">Gas Zones</div></div>
+      <div class="spec-cell"><div class="spec-num">05</div><div class="spec-word">Risk Stages</div></div>
+    </div>
+
+    <div class="hazard-block">
+      <div class="hazard-stamp-mark">Read Before Power-On</div>
+      <ul>
+        <li><strong>SIM800L power:</strong> never draw from the Uno's 5V pin. It needs a stable ~4V supply and can spike to 2A while calling — this will brown out the board mid-alert.</li>
+        <li><strong>SIM800L RX line:</strong> the module runs at ~2.8V logic. Step the Uno's 5V TX signal down with a voltage divider before it reaches SIM800L RX.</li>
+        <li><strong>Common ground:</strong> every part — sensors, LCD, servo, SD module, SIM800L, battery pack — shares one ground with the Arduino. No exceptions.</li>
+      </ul>
+    </div>
+  </header>
+
+  <nav class="stepnav">
+    <div class="stepnav-label">Jump to step —</div>
+    <div class="stepnav-inner" id="stepnav"></div>
+  </nav>
+
+  <section class="pinmap">
+    <div class="section-kicker">Reference · Fig. 1</div>
+    <div class="section-title">Pin Assignment</div>
+    <p class="section-desc">Every connection used in this build. Hover a row to trace it on the pinout — treat this table as ground truth while wiring.</p>
+
+    <div class="pinmap-grid">
+      <div class="board-panel">
+        <svg id="board-svg" viewBox="0 0 320 460" width="100%">
+          <rect x="20" y="20" width="280" height="420" fill="none" stroke="#EDE6D6" stroke-width="1.5"/>
+          <text x="160" y="55" text-anchor="middle" fill="#EDE6D6" font-family="Oswald" font-size="15" font-weight="600" letter-spacing="1">ARDUINO UNO</text>
+          <rect x="130" y="20" width="60" height="16" fill="none" stroke="#8B7F6B"/>
+          <text x="160" y="32" text-anchor="middle" fill="#8B7F6B" font-family="Space Mono" font-size="8">USB</text>
+          <g id="right-pins"></g>
+          <g id="left-pins"></g>
+        </svg>
+      </div>
+
+      <div class="pin-list" id="pin-list"></div>
+    </div>
+
+    <div class="wire-key">
+      <div class="item"><span class="swatch" style="background:#C46A25"></span> Signal / Data</div>
+      <div class="item"><span class="swatch" style="background:#A8341F"></span> Power (5V)</div>
+      <div class="item"><span class="swatch" style="background:#5C5142"></span> Ground</div>
+      <div class="item"><span class="swatch" style="background:#4C6B4F"></span> SPI Bus (fixed)</div>
+    </div>
+  </section>
+
+  <section class="steps">
+
+    <div class="step-card" id="step-1">
+      <div class="step-head">
+        <div class="step-num">01</div>
+        <div class="step-title-group">
+          <div class="step-title">Power Rails</div>
+          <div class="step-pins"><span>5V</span><span>GND</span></div>
+        </div>
+      </div>
+      <div class="step-content">
+        <div class="step-diagram">
+          <svg viewBox="0 0 260 160" width="100%">
+            <rect x="10" y="10" width="240" height="140" fill="none" stroke="#C9BC9E"/>
+            <line x1="20" y1="30" x2="240" y2="30" stroke="#A8341F" stroke-width="3"/>
+            <text x="20" y="24" fill="#A8341F" font-family="Space Mono" font-size="10">5V RAIL</text>
+            <line x1="20" y1="120" x2="240" y2="120" stroke="#5C5142" stroke-width="3"/>
+            <text x="20" y="140" fill="#5C5142" font-family="Space Mono" font-size="10">GND RAIL</text>
+            <rect x="100" y="60" width="60" height="30" fill="none" stroke="#2B2620" stroke-width="1.5"/>
+            <text x="130" y="79" text-anchor="middle" fill="#2B2620" font-family="Oswald" font-size="11">UNO</text>
+            <line x1="130" y1="30" x2="130" y2="60" stroke="#A8341F" stroke-width="2"/>
+            <line x1="130" y1="90" x2="130" y2="120" stroke="#5C5142" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="step-instructions">
+          <p>Set up your breadboard with a <strong>5V rail</strong> and a <strong>GND rail</strong>, both fed from the Arduino's 5V and GND pins.</p>
+          <p>Keep the battery pack and SIM800L's regulated 4V supply on a <strong>separate</strong> section, tied back only by a shared ground wire.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- steps 2-12 and script omitted in this truncated push attempt - use file from disk -->
+  </section>
+</div>
+</body>
+</html>
