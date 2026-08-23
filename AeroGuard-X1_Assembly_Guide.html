@@ -3,1014 +3,169 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Field Manual — AeroGuard-X1</title>
+<title>AeroGuard-X1 — Assembly Manual</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Archivo:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Space+Mono:wght@400;700&family=Archivo:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --paper: #EDE6D6;
-    --paper-dark: #E2D9C4;
-    --ink: #2B2620;
-    --ink-soft: #5C5142;
-    --ink-faint: #8B7F6B;
-    --line: #C9BC9E;
-    --line-heavy: #2B2620;
-
-    /* status colors - the whole page shifts through these */
-    --safe: #4C6B4F;
-    --low: #B08D2E;
-    --medium: #C46A25;
-    --critical: #A8341F;
-    --emergency: #7A1B1B;
-
-    --stamp-red: #9E2B25;
-    --font-display: 'Archivo', sans-serif;
-    --font-condensed: 'Oswald', sans-serif;
-    --font-mono: 'Space Mono', monospace;
+    --paper: #EDE6D6; --ink: #2B2620; --soft: #5C5142; --line: #C9BC9E;
+    --green: #3F6B45; --yellow: #C4A035; --red: #A8341F; --stamp: #9E2B25;
+    --font-d: 'Archivo', sans-serif; --font-c: 'Oswald', sans-serif; --font-m: 'Space Mono', monospace;
   }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--paper);
-    color: var(--ink);
-    font-family: var(--font-display);
-    line-height: 1.6;
-    position: relative;
-  }
-
-  /* paper grain texture via layered noise-ish gradients */
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    background-image:
-      radial-gradient(circle at 20% 30%, rgba(0,0,0,0.02) 0%, transparent 40%),
-      radial-gradient(circle at 80% 70%, rgba(0,0,0,0.02) 0%, transparent 40%),
-      repeating-linear-gradient(0deg, rgba(43,38,32,0.015) 0px, transparent 1px, transparent 2px);
-    opacity: 0.8;
-  }
-
-  .wrap { position: relative; z-index: 1; max-width: 940px; margin: 0 auto; padding: 0 28px; }
-
-  /* ============ STATUS STRIP (signature element) ============ */
-  .status-strip {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background: var(--ink);
-    color: var(--paper);
-    padding: 0;
-    overflow: hidden;
-    border-bottom: 3px solid var(--line-heavy);
-    transition: background 0.6s ease;
-  }
-  .status-strip-inner {
-    max-width: 940px;
-    margin: 0 auto;
-    padding: 10px 28px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-  }
-  .status-dot {
-    width: 9px; height: 9px;
-    border-radius: 50%;
-    background: currentColor;
-    flex-shrink: 0;
-    animation: pulse 1.4s infinite ease-in-out;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 currentColor; }
-    50% { opacity: 0.6; }
-  }
-  .status-label { letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; }
-  .status-detail { color: rgba(237,230,214,0.55); }
-  .status-ladder {
-    margin-left: auto;
-    display: flex;
-    gap: 3px;
-  }
-  .status-ladder span {
-    width: 24px; height: 4px;
-    background: rgba(237,230,214,0.15);
-    transition: background 0.3s ease;
-  }
-  .status-ladder span.lit { background: currentColor; }
-
-  @media (max-width: 640px) {
-    .status-detail { display: none; }
-  }
-
-  /* ============ HEADER ============ */
-  header {
-    padding: 64px 0 48px;
-    border-bottom: 4px double var(--line-heavy);
-  }
-  .doc-stamp {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-    border: 1.5px solid var(--ink-soft);
-    padding: 5px 10px;
-    margin-bottom: 28px;
-    transform: rotate(-1deg);
-  }
-  h1 {
-    font-family: var(--font-condensed);
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: clamp(38px, 6vw, 64px);
-    letter-spacing: 0.01em;
-    line-height: 0.98;
-    color: var(--ink);
-  }
-  h1 .sub {
-    display: block;
-    font-family: var(--font-mono);
-    font-size: 0.28em;
-    letter-spacing: 0.15em;
-    color: var(--stamp-red);
-    margin-top: 10px;
-    text-transform: uppercase;
-  }
-  .lede {
-    margin-top: 24px;
-    max-width: 58ch;
-    font-size: 17px;
-    color: var(--ink-soft);
-  }
-
-  .spec-strip {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0;
-    margin-top: 36px;
-    border-top: 1.5px solid var(--line-heavy);
-    border-bottom: 1.5px solid var(--line-heavy);
-  }
-  .spec-cell {
-    flex: 1;
-    min-width: 130px;
-    padding: 14px 20px;
-    border-right: 1.5px solid var(--line-heavy);
-  }
-  .spec-cell:last-child { border-right: none; }
-  .spec-num {
-    font-family: var(--font-condensed);
-    font-size: 28px;
-    font-weight: 600;
-    color: var(--stamp-red);
-    line-height: 1;
-  }
-  .spec-word {
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--ink-soft);
-    margin-top: 4px;
-  }
-
-  /* ============ HAZARD NOTICE (stamped) ============ */
-  .hazard-block {
-    margin: 48px 0;
-    position: relative;
-    border: 2.5px solid var(--stamp-red);
-    padding: 26px 28px;
-    background: rgba(158,43,37,0.04);
-  }
-  .hazard-stamp-mark {
-    position: absolute;
-    top: -16px;
-    left: 24px;
-    background: var(--paper);
-    padding: 0 12px;
-    font-family: var(--font-condensed);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--stamp-red);
-    font-size: 15px;
-    transform: rotate(-1deg);
-  }
-  .hazard-block ul { list-style: none; margin-top: 6px; }
-  .hazard-block li {
-    font-size: 14.5px;
-    color: var(--ink-soft);
-    padding: 8px 0 8px 22px;
-    position: relative;
-    border-top: 1px dashed var(--line);
-  }
-  .hazard-block li:first-child { border-top: none; }
-  .hazard-block li::before {
-    content: "▲";
-    position: absolute;
-    left: 0;
-    top: 8px;
-    color: var(--stamp-red);
-    font-size: 10px;
-  }
-  .hazard-block li strong { color: var(--ink); }
-
-  /* ============ NAV ============ */
-  nav.stepnav {
-    padding: 18px 0;
-    border-bottom: 1.5px solid var(--line-heavy);
-  }
-  .stepnav-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--ink-faint);
-    margin-bottom: 10px;
-  }
-  .stepnav-inner {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .stepnav-btn {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    background: transparent;
-    border: 1px solid var(--line-heavy);
-    color: var(--ink-soft);
-    padding: 6px 10px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-  .stepnav-btn:hover { background: var(--ink); color: var(--paper); }
-  .stepnav-btn.active { background: var(--stamp-red); border-color: var(--stamp-red); color: var(--paper); }
-
-  /* ============ SECTION: PIN MAP ============ */
-  section.pinmap { padding: 56px 0; border-bottom: 4px double var(--line-heavy); }
-  .section-kicker {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--stamp-red);
-    margin-bottom: 8px;
-  }
-  .section-title {
-    font-family: var(--font-condensed);
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 30px;
-    letter-spacing: 0.01em;
-    margin-bottom: 10px;
-  }
-  .section-desc { color: var(--ink-soft); max-width: 60ch; margin-bottom: 36px; font-size: 14.5px; }
-
-  .pinmap-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 36px; align-items: start; }
-  @media (max-width: 760px) { .pinmap-grid { grid-template-columns: 1fr; } }
-
-  .board-panel {
-    background: var(--ink);
-    padding: 26px;
-    position: relative;
-  }
-  .board-panel::before {
-    content: "FIG. 1 — UNO PINOUT";
-    position: absolute;
-    top: -11px;
-    left: 20px;
-    background: var(--paper);
-    color: var(--ink);
-    font-family: var(--font-mono);
-    font-size: 10px;
-    padding: 0 8px;
-    letter-spacing: 0.08em;
-  }
-
-  .pin-list { display: flex; flex-direction: column; }
-  .pin-row {
-    display: grid;
-    grid-template-columns: 48px 1fr auto;
-    align-items: center;
-    gap: 14px;
-    padding: 9px 4px;
-    border-bottom: 1px dashed var(--line);
-    cursor: default;
-  }
-  .pin-row:first-child { border-top: 1px dashed var(--line); }
-  .pin-row:hover { background: rgba(158,43,37,0.06); }
-  .pin-tag {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--paper);
-    background: var(--ink);
-    padding: 3px 0;
-    text-align: center;
-  }
-  .pin-row:hover .pin-tag { background: var(--stamp-red); }
-  .pin-desc { font-size: 13px; color: var(--ink); }
-  .pin-note { font-size: 10.5px; color: var(--ink-faint); font-family: var(--font-mono); text-transform: uppercase; }
-
-  /* ============ STEPS AS INDEX CARDS ============ */
-  section.steps { padding: 20px 0 40px; }
-
-  .step-card {
-    background: #F5F0E4;
-    border: 1.5px solid var(--line-heavy);
-    box-shadow: 5px 5px 0 rgba(43,38,32,0.08);
-    margin: 56px 0;
-    padding: 0;
-    scroll-margin-top: 70px;
-    position: relative;
-  }
-  .step-card:nth-child(odd) { transform: rotate(-0.35deg); }
-  .step-card:nth-child(even) { transform: rotate(0.35deg); }
-
-  .step-head {
-    display: flex;
-    align-items: baseline;
-    gap: 16px;
-    padding: 20px 26px;
-    border-bottom: 1.5px solid var(--line-heavy);
-    background: var(--paper-dark);
-  }
-  .step-num {
-    font-family: var(--font-condensed);
-    font-size: 34px;
-    font-weight: 700;
-    color: var(--stamp-red);
-    line-height: 1;
-  }
-  .step-title-group { flex: 1; }
-  .step-title {
-    font-family: var(--font-condensed);
-    text-transform: uppercase;
-    font-size: 19px;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-  }
-  .step-pins {
-    margin-top: 4px;
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    color: var(--ink-soft);
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  .step-pins span {
-    border: 1px solid var(--ink-soft);
-    padding: 1px 6px;
-  }
-
-  .step-content { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
-  @media (max-width: 720px) { .step-content { grid-template-columns: 1fr; } }
-
-  .step-diagram {
-    padding: 22px;
-    border-right: 1.5px dashed var(--line);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background:
-      repeating-linear-gradient(0deg, transparent, transparent 15px, rgba(43,38,32,0.025) 15px, rgba(43,38,32,0.025) 16px);
-  }
-  @media (max-width: 720px) { .step-diagram { border-right: none; border-bottom: 1.5px dashed var(--line); } }
-  .step-diagram svg { max-width: 100%; height: auto; }
-
-  .step-instructions { padding: 22px 26px; }
-  .step-instructions p { color: var(--ink-soft); font-size: 14.5px; margin-bottom: 12px; }
-  .step-instructions strong { color: var(--ink); font-weight: 600; }
-
-  .step-warn {
-    margin-top: 14px;
-    border-left: 3px solid var(--stamp-red);
-    padding: 8px 12px;
-    background: rgba(158,43,37,0.05);
-    font-size: 12.5px;
-    color: var(--ink-soft);
-  }
-  .step-warn strong { color: var(--stamp-red); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
-
-  /* washi-tape corner accents */
-  .step-card::before {
-    content: "";
-    position: absolute;
-    top: -8px; left: 30px;
-    width: 46px; height: 16px;
-    background: rgba(196, 106, 37, 0.35);
-    transform: rotate(-4deg);
-  }
-
-  /* ============ WIRE KEY ============ */
-  .wire-key {
-    display: flex; flex-wrap: wrap; gap: 18px;
-    margin-top: 32px; padding-top: 20px;
-    border-top: 1.5px solid var(--line-heavy);
-    font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft);
-  }
-  .wire-key .item { display: flex; align-items: center; gap: 7px; }
-  .wire-key .swatch { width: 16px; height: 3px; }
-
-  /* ============ CHECKLIST ============ */
-  section.checklist { padding: 56px 0 100px; }
-
-  .check-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 26px; }
-  @media (max-width: 640px) { .check-grid { grid-template-columns: 1fr; } }
-
-  .check-item {
-    display: flex; gap: 12px; align-items: flex-start;
-    padding: 13px 16px;
-    background: #F5F0E4;
-    border: 1.5px solid var(--line-heavy);
-    cursor: pointer;
-    transition: all 0.15s ease;
-    font-size: 13.5px;
-  }
-  .check-item.done { background: rgba(76,107,79,0.1); border-color: var(--safe); }
-  .check-item.done .check-text { color: var(--ink-faint); text-decoration: line-through; }
-  .check-box {
-    width: 16px; height: 16px; border: 1.5px solid var(--ink);
-    flex-shrink: 0; margin-top: 2px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: var(--font-mono); font-size: 11px; color: transparent;
-  }
-  .check-item.done .check-box { background: var(--safe); border-color: var(--safe); color: var(--paper); }
-  .check-text { color: var(--ink); }
-
-  .progress-track {
-    margin-top: 28px; height: 8px;
-    background: var(--paper-dark);
-    border: 1.5px solid var(--line-heavy);
-    overflow: hidden;
-  }
-  .progress-fill { height: 100%; background: var(--stamp-red); width: 0%; transition: width 0.3s ease; }
-  .progress-label { font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft); margin-top: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
-
-  footer {
-    padding: 32px 0 60px;
-    border-top: 4px double var(--line-heavy);
-    font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-faint);
-    text-align: center; text-transform: uppercase; letter-spacing: 0.08em;
-  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-d); line-height: 1.55; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 24px 64px; }
+  .strip { position: sticky; top: 0; z-index: 20; background: var(--green); color: var(--paper); padding: 10px 24px; font-family: var(--font-m); font-size: 12px; letter-spacing: 0.08em; display: flex; gap: 12px; align-items: center; transition: background 0.5s; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 1.4s infinite; }
+  @keyframes pulse { 50% { opacity: 0.5; } }
+  header { padding: 48px 0 28px; border-bottom: 4px double var(--ink); }
+  h1 { font-family: var(--font-c); text-transform: uppercase; font-size: clamp(32px, 6vw, 52px); line-height: 1; }
+  h1 span { display: block; font-family: var(--font-m); font-size: 0.28em; color: var(--stamp); margin-top: 10px; letter-spacing: 0.12em; }
+  .lede { margin-top: 16px; color: var(--soft); max-width: 58ch; }
+  .specs { display: flex; flex-wrap: wrap; margin-top: 28px; border: 1.5px solid var(--ink); }
+  .specs div { flex: 1; min-width: 110px; padding: 12px 16px; border-right: 1.5px solid var(--ink); }
+  .specs div:last-child { border-right: none; }
+  .specs strong { font-family: var(--font-c); font-size: 26px; color: var(--stamp); display: block; }
+  .specs span { font-family: var(--font-m); font-size: 10px; text-transform: uppercase; color: var(--soft); }
+  .hazard { margin: 32px 0; border: 2.5px solid var(--stamp); padding: 20px 22px; background: rgba(158,43,37,0.04); }
+  .hazard h2 { font-family: var(--font-c); color: var(--stamp); text-transform: uppercase; font-size: 15px; margin-bottom: 10px; }
+  .hazard li { margin: 8px 0 8px 18px; color: var(--soft); font-size: 14px; }
+  h2.sec { font-family: var(--font-c); text-transform: uppercase; font-size: 26px; margin: 40px 0 8px; }
+  .kicker { font-family: var(--font-m); font-size: 11px; color: var(--stamp); letter-spacing: 0.1em; text-transform: uppercase; }
+  .desc { color: var(--soft); font-size: 14px; margin-bottom: 20px; max-width: 60ch; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-bottom: 28px; }
+  th, td { border-bottom: 1px dashed var(--line); padding: 9px 8px; text-align: left; }
+  th { font-family: var(--font-m); font-size: 11px; text-transform: uppercase; color: var(--soft); }
+  .pin { font-family: var(--font-m); font-weight: 700; background: var(--ink); color: var(--paper); padding: 2px 8px; }
+  .card { background: #F5F0E4; border: 1.5px solid var(--ink); margin: 18px 0; padding: 18px 20px; }
+  .card h3 { font-family: var(--font-c); text-transform: uppercase; font-size: 17px; }
+  .card .meta { font-family: var(--font-m); font-size: 11px; color: var(--soft); margin: 4px 0 10px; }
+  .card p { color: var(--soft); font-size: 14px; }
+  .warn { margin-top: 10px; border-left: 3px solid var(--stamp); padding: 6px 10px; font-size: 12.5px; color: var(--soft); background: rgba(158,43,37,0.05); }
+  .check { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  @media (max-width: 640px) { .check { grid-template-columns: 1fr; } }
+  .item { display: flex; gap: 10px; padding: 12px; border: 1.5px solid var(--ink); background: #F5F0E4; cursor: pointer; font-size: 13.5px; }
+  .item.done { border-color: var(--green); background: rgba(63,107,69,0.12); text-decoration: line-through; color: var(--soft); }
+  .box { width: 16px; height: 16px; border: 1.5px solid var(--ink); flex-shrink: 0; }
+  .item.done .box { background: var(--green); border-color: var(--green); }
+  footer { margin-top: 48px; padding-top: 20px; border-top: 4px double var(--ink); text-align: center; font-family: var(--font-m); font-size: 10px; color: var(--soft); letter-spacing: 0.08em; text-transform: uppercase; }
+  .stages { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 24px; }
+  .stages span { font-family: var(--font-m); font-size: 11px; padding: 6px 10px; border: 1.5px solid var(--ink); }
+  .stages .g { border-color: var(--green); color: var(--green); }
+  .stages .y { border-color: var(--yellow); color: #8a7020; }
+  .stages .r { border-color: var(--red); color: var(--red); }
 </style>
 </head>
 <body>
-
-<div class="status-strip" id="status-strip">
-  <div class="status-strip-inner" id="status-strip-inner">
-    <div class="status-dot"></div>
-    <div class="status-label" id="status-label">SYSTEM: SAFE</div>
-    <div class="status-detail" id="status-detail">baseline holding · both zones nominal</div>
-    <div class="status-ladder" id="status-ladder"></div>
-  </div>
-</div>
-
+<div class="strip" id="strip"><div class="dot"></div><div id="stripLabel">SYSTEM: SAFE</div><div id="stripDetail" style="opacity:0.6">baseline holding</div></div>
 <div class="wrap">
   <header>
-    <div class="doc-stamp">Group 1 · Field Reference · Rev. A</div>
-    <h1>AeroGuard-X1<span class="sub">Assembly Manual — Smart Gas Leak Detection System</span></h1>
-    <p class="lede">Wiring, calibration, and field-assembly instructions — from bare Arduino Uno to a fully cased, two-zone gas and fire safety unit.</p>
-
-    <div class="spec-strip">
-      <div class="spec-cell"><div class="spec-num">12</div><div class="spec-word">Build Steps</div></div>
-      <div class="spec-cell"><div class="spec-num">16</div><div class="spec-word">Pins In Use</div></div>
-      <div class="spec-cell"><div class="spec-num">02</div><div class="spec-word">Gas Zones</div></div>
-      <div class="spec-cell"><div class="spec-num">05</div><div class="spec-word">Risk Stages</div></div>
+    <h1>AeroGuard-X1<span>Assembly Manual — LPG Leak + Fire Early Warning</span></h1>
+    <p class="lede">Wire and case the competition product: one gas zone, flame sense, green/yellow/red stages, demo button for simulated leaks, real GSM alerts. Smart vents live in the app — not a servo on this box.</p>
+    <div class="specs">
+      <div><strong>11</strong><span>Build steps</span></div>
+      <div><strong>01</strong><span>Gas zone (v1)</span></div>
+      <div><strong>02</strong><span>Buttons</span></div>
+      <div><strong>05</strong><span>Risk stages</span></div>
     </div>
-
-    <div class="hazard-block">
-      <div class="hazard-stamp-mark">Read Before Power-On</div>
+    <div class="stages">
+      <span class="g">LOW = Green</span>
+      <span class="y">MEDIUM = Yellow</span>
+      <span class="r">CRITICAL / FIRE = Red</span>
+    </div>
+    <div class="hazard">
+      <h2>Read before power-on</h2>
       <ul>
-        <li><strong>SIM800L power:</strong> never draw from the Uno's 5V pin. It needs a stable ~4V supply and can spike to 2A while calling — this will brown out the board mid-alert.</li>
-        <li><strong>SIM800L RX line:</strong> the module runs at ~2.8V logic. Step the Uno's 5V TX signal down with a voltage divider before it reaches SIM800L RX.</li>
-        <li><strong>Common ground:</strong> every part — sensors, LCD, servo, SD module, SIM800L, battery pack — shares one ground with the Arduino. No exceptions.</li>
+        <li>SIM800L needs its own ~4V high-current supply — never the Uno 5V pin.</li>
+        <li>Level-shift Uno TX → SIM800L RX with a voltage divider.</li>
+        <li>Common ground for every module including battery and SIM.</li>
+        <li>Set real phone numbers in firmware before any call/SMS demo.</li>
       </ul>
     </div>
   </header>
 
-  <nav class="stepnav">
-    <div class="stepnav-label">Jump to step —</div>
-    <div class="stepnav-inner" id="stepnav"></div>
-  </nav>
+  <p class="kicker">Reference</p>
+  <h2 class="sec">Pin map</h2>
+  <p class="desc">Matches <code>aeroguard_x1-1.ino</code>. A1/A3 reserved for HM-10 BLE (app).</p>
+  <table>
+    <thead><tr><th>Pin</th><th>Connection</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pin">A0</span></td><td>Gas sensor</td><td>MQ-2 / MQ-5</td></tr>
+      <tr><td><span class="pin">A1</span></td><td>BLE RX (reserved)</td><td>HM-10 → app</td></tr>
+      <tr><td><span class="pin">A2</span></td><td>Flame sensor</td><td>Calibrate threshold</td></tr>
+      <tr><td><span class="pin">A3</span></td><td>BLE TX (reserved)</td><td>HM-10 → app</td></tr>
+      <tr><td><span class="pin">A4/A5</span></td><td>LCD SDA / SCL</td><td>I2C</td></tr>
+      <tr><td><span class="pin">D2</span></td><td>Green LED</td><td>LOW</td></tr>
+      <tr><td><span class="pin">D3</span></td><td>Yellow LED</td><td>MEDIUM</td></tr>
+      <tr><td><span class="pin">D4</span></td><td>Red LED</td><td>CRITICAL / FIRE</td></tr>
+      <tr><td><span class="pin">D5/D6</span></td><td>SIM800L</td><td>D6 via divider</td></tr>
+      <tr><td><span class="pin">D7</span></td><td>Reset button</td><td>Mute + recalibrate</td></tr>
+      <tr><td><span class="pin">D8</span></td><td>Buzzer</td><td></td></tr>
+      <tr><td><span class="pin">D9</span></td><td>Demo button</td><td>Simulate leak stages</td></tr>
+      <tr><td><span class="pin">D10–13</span></td><td>SD card SPI</td><td>Fixed SPI pins</td></tr>
+    </tbody>
+  </table>
 
-  <section class="pinmap">
-    <div class="section-kicker">Reference · Fig. 1</div>
-    <div class="section-title">Pin Assignment</div>
-    <p class="section-desc">Every connection used in this build. Hover a row to trace it on the pinout — treat this table as ground truth while wiring.</p>
+  <p class="kicker">Build</p>
+  <h2 class="sec">Steps</h2>
 
-    <div class="pinmap-grid">
-      <div class="board-panel">
-        <svg id="board-svg" viewBox="0 0 320 460" width="100%">
-          <rect x="20" y="20" width="280" height="420" fill="none" stroke="#EDE6D6" stroke-width="1.5"/>
-          <text x="160" y="55" text-anchor="middle" fill="#EDE6D6" font-family="Oswald" font-size="15" font-weight="600" letter-spacing="1">ARDUINO UNO</text>
-          <rect x="130" y="20" width="60" height="16" fill="none" stroke="#8B7F6B"/>
-          <text x="160" y="32" text-anchor="middle" fill="#8B7F6B" font-family="Space Mono" font-size="8">USB</text>
-          <g id="right-pins"></g>
-          <g id="left-pins"></g>
-        </svg>
-      </div>
+  <div class="card"><h3>01 — Power rails</h3><div class="meta">5V · GND · separate 4V</div><p>Breadboard 5V/GND from Uno. Keep SIM800L on a separate regulated ~4V rail with shared ground only.</p></div>
+  <div class="card"><h3>02 — Gas sensor</h3><div class="meta">A0 · 5V · GND</div><p>One MQ sensor for kitchen/cylinder area. Warm-up a few minutes on first power is normal.</p></div>
+  <div class="card"><h3>03 — Flame sensor</h3><div class="meta">A2</div><p>Analog out to A2. Test briefly with a lighter (no gas nearby) and note Serial readings.</p></div>
+  <div class="card"><h3>04 — LCD</h3><div class="meta">A4 SDA · A5 SCL</div><p>If blank, I2C-scan and set address in code (<code>0x27</code> or <code>0x3F</code>).</p></div>
+  <div class="card"><h3>05 — Status LEDs</h3><div class="meta">D2 green · D3 yellow · D4 red</div><p>Anode via 220Ω to pin, cathode to GND. Green = LOW, yellow = MEDIUM, red = CRITICAL/FIRE.</p></div>
+  <div class="card"><h3>06 — Buzzer</h3><div class="meta">D8</div><p>Positive to D8, negative to GND.</p></div>
+  <div class="card"><h3>07 — Buttons</h3><div class="meta">D7 reset · D9 demo</div><p>Each button: one leg to pin, other to GND (internal pull-ups). Label the lid: <strong>RESET</strong> and <strong>DEMO</strong>.</p></div>
+  <div class="card"><h3>08 — SD module</h3><div class="meta">D10–D13</div><p>Local incident history for demos and landlords — not marketed as fire-proof storage.</p></div>
+  <div class="card"><h3>09 — SIM800L</h3><div class="meta">4V · D5 · D6</div><p>TX→D5, RX←D6 via divider. Active SIM with credit. Slow blink ≈ registered.</p><div class="warn"><strong>Demo:</strong> CRITICAL/FIRE will place a real call — warn the owner phone holder.</div></div>
+  <div class="card"><h3>10 — BLE (app)</h3><div class="meta">A1 / A3 · HM-10</div><p>Can be left for the app phase. Firmware already prints <code>STATUS</code> / <code>APP_CMD:VENT_OPEN</code> on Serial for bridging.</p></div>
+  <div class="card"><h3>11 — Case + verify</h3><div class="meta">Print · upload · Serial 9600</div><p>Print SCAD case. Upload sketch. Press DEMO: LOW → MEDIUM → CRITICAL → FIRE. RESET clears and recalibrates.</p></div>
 
-      <div class="pin-list" id="pin-list"></div>
-    </div>
+  <p class="kicker">Before you present</p>
+  <h2 class="sec">Checklist</h2>
+  <p class="desc">Tap to mark done during rehearsal.</p>
+  <div class="check" id="checklist"></div>
 
-    <div class="wire-key">
-      <div class="item"><span class="swatch" style="background:#C46A25"></span> Signal / Data</div>
-      <div class="item"><span class="swatch" style="background:#A8341F"></span> Power (5V)</div>
-      <div class="item"><span class="swatch" style="background:#5C5142"></span> Ground</div>
-      <div class="item"><span class="swatch" style="background:#4C6B4F"></span> SPI Bus (fixed)</div>
-    </div>
-  </section>
-
-  <section class="steps">
-
-    <div class="step-card" id="step-1">
-      <div class="step-head">
-        <div class="step-num">01</div>
-        <div class="step-title-group">
-          <div class="step-title">Power Rails</div>
-          <div class="step-pins"><span>5V</span><span>GND</span></div>
-        </div>
-      </div>
-      <div class="step-content">
-        <div class="step-diagram">
-          <svg viewBox="0 0 260 160" width="100%">
-            <rect x="10" y="10" width="240" height="140" fill="none" stroke="#C9BC9E"/>
-            <line x1="20" y1="30" x2="240" y2="30" stroke="#A8341F" stroke-width="3"/>
-            <text x="20" y="24" fill="#A8341F" font-family="Space Mono" font-size="10">5V RAIL</text>
-            <line x1="20" y1="120" x2="240" y2="120" stroke="#5C5142" stroke-width="3"/>
-            <text x="20" y="140" fill="#5C5142" font-family="Space Mono" font-size="10">GND RAIL</text>
-            <rect x="100" y="60" width="60" height="30" fill="none" stroke="#2B2620" stroke-width="1.5"/>
-            <text x="130" y="79" text-anchor="middle" fill="#2B2620" font-family="Oswald" font-size="11">UNO</text>
-            <line x1="130" y1="30" x2="130" y2="60" stroke="#A8341F" stroke-width="2"/>
-            <line x1="130" y1="90" x2="130" y2="120" stroke="#5C5142" stroke-width="2"/>
-          </svg>
-        </div>
-        <div class="step-instructions">
-          <p>Set up your breadboard with a <strong>5V rail</strong> and a <strong>GND rail</strong>, both fed from the Arduino's 5V and GND pins.</p>
-          <p>Keep the battery pack and SIM800L's regulated 4V supply on a <strong>separate</strong> section, tied back only by a shared ground wire.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="step-card" id="step-2">
-      <div class="step-head">
-        <div class="step-num">02</div>
-        <div class="step-title-group">
-          <div class="step-title">Gas Sensors — Zone 1 &amp; 2</div>
-          <div class="step-pins"><span>A0</span><span>A1</span><span>5V</span><span>GND</span></div>
-        </div>
-      </div>
-      <div class="step-content">
-        <div class="step-diagram">
-          <svg viewBox="0 0 260 160" width="100%">
-            <rect x="20" y="50" width="50" height="40" fill="none" stroke="#C46A25" stroke-width="1.5"/>
-            <circle cx="45" cy="55" r="10" fill="none" stroke="#C46A25"/>
-            <text x="45" y="105" text-anchor="middle" fill="#5C5142" font-family="Space Mono" font-size="8">MQ ZONE 1</text>
-            <rect x="20" y="120" width="50" height="30" fill="none" stroke="#C46A25" stroke-width="1.5"/>
-            <text x="45" y="140" text-anchor="middle" fill="#5C5142" font-family="Space Mono" font-size="8">MQ ZONE 2</text>
-            <rect x="170" y="60" width="70" height="50" fill="none" stroke="#2B2620" stroke-width="1.5"/>
-            <text x="205" y="88" text-anchor="middle" fill="#2B2620" font-family="Oswald" font-size="11">UNO</text>
-            <line x1="70" y1="70" x2="170" y2="75" stroke="#C46A25" stroke-width="2"/>
-            <text x="120" y="65" fill="#C46A25" font-family="Space Mono" font-size="8">A0</text>
-            <line x1="70" y1="135" x2="170" y2="95" stroke="#C46A25" stroke-width="2"/>
-            <text x="120" y="128" fill="#C46A25" font-family="Space Mono" font-size="8">A1</text>
-          </svg>
-        </div>
-        <div class="step-instructions">
-          <p>VCC to <strong>5V</strong>, GND to ground rail, analog output (AOUT) to <strong>A0</strong> (Zone 1) and <strong>A1</strong> (Zone 2).</p>
-          <p>Mount each sensor in its intended zone. MQ-series sensors need a few minutes' warm-up on first power — normal behavior, not a fault.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="step-card" id="step-3">
-      <div class="step-head">
-        <div class="step-num">03</div>
-        <div class="step-title-group">
-          <div class="step-title">Flame Sensor</div>
-          <div class="step-pins"><span>A2</span><span>5V</span><span>GND</span></div>
-        </div>
-      </div>
-      <div class="step-content">
-        <div class="step-diagram">
-          <svg viewBox="0 0 260 160" width="100%">
-            <rect x="30" y="65" width="55" height="30" fill="none" stroke="#C46A25" stroke-width="1.5"/>
-            <text x="57" y="84" text-anchor="middle" fill="#5C5142" font-family="Space Mono" font-size="8">FLAME</text>
-            <path d="M180 90 q8 -20 0 -30 q-8 10 -4 20 q-8 -6 -4 -16 q-6 14 0 22 q4 6 8 4z" fill="#B08D2E" opacity="0.6"/>
-            <line x1="85" y1="80" x2="170" y2="80" stroke="#C46A25" stroke-width="2" stroke-dasharray="4 2"/>
-            <text x="120" y="72" fill="#C46A25" font-family="Space Mono" font-size="8">A2</text>
-          </svg>
-        </div>
-        <div class="step-instructions">
-          <p>VCC to 5V, GND to ground, analog output to <strong>A2</strong>.</p>
-          <div class="step-warn"><strong>Calibrate before final assembly</strong> — trigger briefly and safely with a lighter, away from any gas source, and confirm the reading in Serial Monitor.</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="step-card" id="step-4">
-      <div class="step-head">
-        <div class="step-num">04</div>
-        <div class="step-title-group">
-          <div class="step-title">LCD Display (I2C)</div>
-          <div class="step-pins"><span>A4 SDA</span><span>A5 SCL</span></div>
-        </div>
-      </div>
-      <div class="step-content">
-        <div class="step-diagram">
-          <svg viewBox="0 0 260 160" width="100%">
-            <rect x="20" y="55" width="90" height="40" fill="none" stroke="#C46A25" stroke-width="1.5"/>
-            <text x="65" y="79" text-anchor="middle" fill="#5C5142" font-family="Space Mono" font-size="9">16x2 LCD</text>
-            <rect x="180" y="60" width="60" height="40" fill="none" stroke="#2B2620" stroke-width="1.5"/>
-            <text x="210" y="83" text-anchor="middle" fill="#2B2620" font-family="Oswald" font-size="11">UNO</text>
-            <line x1="110" y1="65" x2="180" y2="70" stroke="#C46A25" stroke-width="2"/>
-            <text x="140" y="60" fill="#C46A25" font-family="Space Mono" font-size="8">SDA→A4</text>
-            <line x1="110" y1="85" x2="180" y2="90" stroke="#C46A25" stroke-width="2"/>
-            <text x="140" y="103" fill="#C46A25" font-family="Space Mono" font-size="8">SCL→A5</text>
-          </svg>
-        </div>
-        <div class="step-instructions">
-          <p>VCC to 5V, GND to ground, <strong>SDA to A4</strong>, <strong>SCL to A5</strong>.</p>
-          <p>Blank screen once running? Run an I2C scanner sketch to confirm the address — commonly <code>0x27</code> or <code>0x3F</code>.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="step-card" id="step-5">
-      <div class="step-head">
-        <div class="step-num">05</div>
-        <div class="step-title-group">
-          <div class="step-title">Status LEDs</div>
-          <div class="step-pins"><span>D2</span><span>D3</span><span>D4</span></div>
-        </div>
-      </div>
-      <div class="step-content">
-        <div class="step-diagram">
-          <svg viewBox="0 0 260 160" width="100%">
-            <circle cx="50" cy="50" r="12" fill="none" stroke="#B08D2E" stroke-width="2"/>
-            <text x="50" y="75" text-anchor="middle" fill="#5C5142" font-family="Space Mono" font-size="8">D2 LOW</text>
-            <circle cx="120" cy="50" r="12" fill="none" stroke="#C46A25" stroke-width="2"/>
-            <text x="120" y="75" text-anchor="middle" fill="#5C5142" font-family="Space Mono" font-size="8">D3 MED</text>
-            <circle cx="190" cy="50" r="12" fill="none" stroke="#A8341F" stroke-width="2"/>
-            <text x="190" y="75" text-anchor="middle" fill="#5C5142" font-family="Space Mono" font-size="8">D4 CRIT</text>
-            <text x="120" y="120" text-anchor="middle" fill="#8B7F6B" font-family="Space Mono" font-size="9">220Ω resistor on each anode leg</text>
-          </svg>
-        </div>
-        <div class="step-instructions">
-          <p>Yellow→D2, Orange→D3, Red→D4. Long leg (anode) through a <strong>220Ω resistor</strong> to its pin, short leg (cathode) to ground.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="step-card" id="step-6">
-      <div class="step-head">
-        <div class="step-num">06</div>
-        <div class="step-title-group">
-          <div class="step-title">Buzzer</div>
-          <div class="step-pins"><span>D8</span></div>
-        </div>
-      </div>
-      <div class="step-content">
-        <div class="step-diagram">
-          <svg viewBox="0 0 260 160" width="100%">
-            <circle cx="130" cy="75" r="22" fill="none" stroke="#C46A25" stroke-width="2"/>
-            <text x="130" y="80" text-anchor="middle" fill="#5C5142" font-family="Space Mono" font-size="9">BUZZ</text>
-            <text x="130" y="115" text-anchor="middle" fill="#8B7F6B" font-family="Space Mono" font-size="9">+ → D8　− → GND</text>
-          </svg>
-        </div>
-        <div class="step-instructions">
-          <p>Positive lead to <strong>D8</strong>, negative lead to ground.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="step-card" id="step-7">
-      <div class="step-head">
-        <div class="step-num">07</div>
-        <div class="step-title-group">
-          <div class="step-title">Reset / Recalibrate Button</div>
-          <div class="step-pins"><span>D7</span></div>
-        </div>
-      </div>
-      <div class="step-content">
-        <div class="step-diagram">
-          <svg viewBox="0 0 260 160" width="100%">
-            <rect x="100" y="55" width="60" height="40" rx="4" fill="none" stroke="#C46A25" stroke-width="2"/>
-            <circle cx="130" cy="75" r="10" fill="none" stroke="#C46A25"/>
-            <text x="130" y="115" text-anchor="middle" fill="#8B7F6B" font-family="Space Mono" font-size="9">leg 1 → D7　leg 2 → GND</text>
-          </svg>
-        </div>
-        <div class="step-instructions">
-          <p>One leg to <strong>D7</strong>, other leg to ground. Code uses the Uno's internal pull-up — no external resistor needed.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="step-card" id="step-8">
-      <div class="step-head">
-        <div class="step-num">08</div>
-        <div class="step-title-group">
-          <div class="step-title">Vent Servo</div>
-          <div class="step-pins"><span>D9</span><span>5V</span><span>GND</span></div>
-        </div>
-      </div>
-      <div class="step-content">
-        <div class="step-diagram">
-          <svg viewBox="0 0 260 160" width="100%">
-            <rect x="90" y="55" width="40" height="50" fill="none" stroke="#C46A25" stroke-width="2"/>
-            <line x1="130" y1="60" x2="165" y2="45" stroke="#2B2620" stroke-width="3"/>
-            <text x="110" y="120" text-anchor="middle" fill="#8B7F6B" font-family="Space Mono" font-size="9">SG90 servo</text>
-            <text x="110" y="135" text-anchor="middle" fill="#8B7F6B" font-family="Space Mono" font-size="9">signal → D9</text>
-          </svg>
-        </div>
-        <div class="step-instructions">
-          <p>Brown/black to ground, red to 5V, signal (orange/yellow) to <strong>D9</strong>. Mount so the arm can physically open the vent flap.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="step-card" id="step-9">
-      <div class="step-head">
-        <div class="step-num">09</div>
-        <div class="step-title-group">
-          <div class="step-title">SD Card Logging Module</div>
-          <div class="step-pins"><span>D10 CS</span><span>D11</span><span>D12</span><span>D13</span></div>
-        </div>
-      </div>
-      <div class="step-content">
-        <div class="step-diagram">
-          <svg viewBox="0 0 260 160" width="100%">
-            <rect x="80" y="55" width="60" height="45" fill="none" stroke="#4C6B4F" stroke-width="2"/>
-            <text x="110" y="80" text-anchor="middle" fill="#4C6B4F" font-family="Space Mono" font-size="8">SD CARD</text>
-            <text x="110" y="120" text-anchor="middle" fill="#8B7F6B" font-family="Space Mono" font-size="9">CS→D10 (fixed: D11/12/13)</text>
-          </svg>
-        </div>
-        <div class="step-instructions">
-          <p>VCC to 5V, GND to ground, CS to <strong>D10</strong>, MOSI to <strong>D11</strong>, MISO to <strong>D12</strong>, SCK to <strong>D13</strong>.</p>
-          <div class="step-warn"><strong>Fixed pins</strong> — D11–D13 are claimed automatically by the SD library. Nothing else goes there.</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="step-card" id="step-10">
-      <div class="step-head">
-        <div class="step-num">10</div>
-        <div class="step-title-group">
-          <div class="step-title">SIM800L GSM Module</div>
-          <div class="step-pins"><span>D5 RX</span><span>D6 TX</span><span>4V (separate)</span></div>
-        </div>
-      </div>
-      <div class="step-content">
-        <div class="step-diagram">
-          <svg viewBox="0 0 260 160" width="100%">
-            <rect x="80" y="45" width="70" height="50" fill="none" stroke="#A8341F" stroke-width="2"/>
-            <text x="115" y="74" text-anchor="middle" fill="#A8341F" font-family="Space Mono" font-size="8">SIM800L</text>
-            <rect x="80" y="110" width="70" height="20" fill="none" stroke="#B08D2E" stroke-dasharray="3 2"/>
-            <text x="115" y="123" text-anchor="middle" fill="#B08D2E" font-family="Space Mono" font-size="8">4V reg — NOT Uno 5V</text>
-          </svg>
-        </div>
-        <div class="step-instructions">
-          <p>VCC to regulated ~4V — <strong>never</strong> the Uno's 5V pin. TX to <strong>D5</strong>. RX to <strong>D6</strong> through a voltage divider.</p>
-          <div class="step-warn"><strong>Power warning</strong> — calling/SMS spikes to ~2A. A shared, unregulated supply will brown out the Uno mid-alert.</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="step-card" id="step-11">
-      <div class="step-head">
-        <div class="step-num">11</div>
-        <div class="step-title-group">
-          <div class="step-title">Battery Backup</div>
-          <div class="step-pins"><span>5V parallel</span><span>GND</span></div>
-        </div>
-      </div>
-      <div class="step-content">
-        <div class="step-diagram">
-          <svg viewBox="0 0 260 160" width="100%">
-            <rect x="30" y="60" width="50" height="30" fill="none" stroke="#4C6B4F" stroke-width="2"/>
-            <text x="55" y="79" text-anchor="middle" fill="#4C6B4F" font-family="Space Mono" font-size="8">Li-ion</text>
-            <rect x="170" y="60" width="60" height="30" fill="none" stroke="#2B2620" stroke-width="2"/>
-            <text x="200" y="79" text-anchor="middle" fill="#2B2620" font-family="Oswald" font-size="11">UNO</text>
-            <line x1="80" y1="75" x2="170" y2="75" stroke="#A8341F" stroke-width="2"/>
-          </svg>
-        </div>
-        <div class="step-instructions">
-          <p>Wire the battery pack's regulated output in parallel with your main 5V supply, ground shared with everything else. Keeps the system alive through a power outage.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="step-card" id="step-12">
-      <div class="step-head">
-        <div class="step-num">12</div>
-        <div class="step-title-group">
-          <div class="step-title">Power On &amp; Verify</div>
-          <div class="step-pins"><span>Serial Monitor · 9600 baud</span></div>
-        </div>
-      </div>
-      <div class="step-content">
-        <div class="step-diagram">
-          <svg viewBox="0 0 260 160" width="100%">
-            <rect x="50" y="40" width="160" height="80" fill="none" stroke="#4C6B4F" stroke-width="1.5"/>
-            <text x="65" y="60" fill="#4C6B4F" font-family="Space Mono" font-size="9">&gt; Calibrating Kitchen...</text>
-            <text x="65" y="76" fill="#4C6B4F" font-family="Space Mono" font-size="9">&gt; Baseline = 312.4</text>
-            <text x="65" y="92" fill="#4C6B4F" font-family="Space Mono" font-size="9">&gt; System ready.</text>
-          </svg>
-        </div>
-        <div class="step-instructions">
-          <p>Upload the code, open Serial Monitor at <strong>9600 baud</strong>, confirm every component initializes before a full live test.</p>
-        </div>
-      </div>
-    </div>
-
-  </section>
-
-  <section class="checklist">
-    <div class="section-kicker">Before You Demo</div>
-    <div class="section-title">Testing Checklist</div>
-    <p class="section-desc">Mark each item off as your team completes it during a build session.</p>
-
-    <div class="check-grid" id="checklist"></div>
-
-    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
-    <div class="progress-label" id="progress-label">0 / 8 COMPLETE</div>
-  </section>
-
-  <footer>Group 1 — AeroGuard-X1 — Field Assembly Manual</footer>
+  <footer>AeroGuard-X1 · Product assembly · Vents via app · Fire-service SMS = Phase 2</footer>
 </div>
-
 <script>
-  const statusColors = {
-    SAFE: "#4C6B4F", LOW: "#B08D2E", MEDIUM: "#C46A25", CRITICAL: "#A8341F", EMERGENCY: "#7A1B1B"
-  };
-  const statusSeq = [
-    { label: "SYSTEM: SAFE", detail: "baseline holding · both zones nominal", level: 0, key: "SAFE" },
-    { label: "SYSTEM: LOW", detail: "zone 1 — 22% above baseline, confirming...", level: 1, key: "LOW" },
-    { label: "SYSTEM: MEDIUM", detail: "zone 1 — vent opened · buzzer intermittent", level: 2, key: "MEDIUM" },
-    { label: "SYSTEM: CRITICAL", detail: "primary contact called + texted", level: 3, key: "CRITICAL" },
-    { label: "SYSTEM: EMERGENCY", detail: "flame confirmed — fast-track triggered", level: 4, key: "EMERGENCY" },
+  const seq = [
+    { l: "SYSTEM: SAFE", d: "baseline holding", c: "#2B2620" },
+    { l: "SYSTEM: LOW", d: "green LED · early warning", c: "#3F6B45" },
+    { l: "SYSTEM: MEDIUM", d: "yellow · SMS + app vent intent", c: "#C4A035" },
+    { l: "SYSTEM: CRITICAL", d: "red · real call + SMS", c: "#A8341F" },
+    { l: "SYSTEM: FIRE", d: "flame path · evacuate", c: "#7A1B1B" },
   ];
-  const ladderEl = document.getElementById('status-ladder');
-  statusSeq.forEach((_, i) => {
-    const span = document.createElement('span');
-    ladderEl.appendChild(span);
-  });
-  const ladderSpans = ladderEl.querySelectorAll('span');
-  const stripEl = document.getElementById('status-strip');
-  const labelEl = document.getElementById('status-label');
-  const detailEl = document.getElementById('status-detail');
-
-  let statusIdx = 0;
-  function renderStatus() {
-    const s = statusSeq[statusIdx];
-    labelEl.textContent = s.label;
-    detailEl.textContent = s.detail;
-    const color = statusColors[s.key];
-    stripEl.style.background = color;
-    stripEl.style.color = "#EDE6D6";
-    ladderSpans.forEach((span, i) => {
-      span.classList.toggle('lit', i <= s.level);
-      span.style.color = color;
-    });
+  let i = 0;
+  const strip = document.getElementById("strip");
+  function tick() {
+    const s = seq[i];
+    strip.style.background = s.c;
+    document.getElementById("stripLabel").textContent = s.l;
+    document.getElementById("stripDetail").textContent = s.d;
+    i = (i + 1) % seq.length;
   }
-  renderStatus();
-  setInterval(() => {
-    statusIdx = (statusIdx + 1) % statusSeq.length;
-    renderStatus();
-  }, 3200);
+  tick();
+  setInterval(tick, 2800);
 
-  const pins = [
-    { tag: "A0", desc: "Gas Sensor — Zone 1", note: "Kitchen" },
-    { tag: "A1", desc: "Gas Sensor — Zone 2", note: "Storage" },
-    { tag: "A2", desc: "Flame Sensor", note: "" },
-    { tag: "A4", desc: "LCD — SDA", note: "I2C" },
-    { tag: "A5", desc: "LCD — SCL", note: "I2C" },
-    { tag: "D2", desc: "Yellow LED", note: "LOW" },
-    { tag: "D3", desc: "Orange LED", note: "MEDIUM" },
-    { tag: "D4", desc: "Red LED", note: "CRIT/EMERG" },
-    { tag: "D5", desc: "SIM800L TX → Uno RX", note: "" },
-    { tag: "D6", desc: "SIM800L RX ← Uno TX", note: "via divider" },
-    { tag: "D7", desc: "Reset / recalibrate", note: "pull-up" },
-    { tag: "D8", desc: "Buzzer", note: "" },
-    { tag: "D9", desc: "Vent servo signal", note: "PWM" },
-    { tag: "D10", desc: "SD card — CS", note: "" },
-    { tag: "D11", desc: "SD card — MOSI", note: "fixed SPI" },
-    { tag: "D12", desc: "SD card — MISO", note: "fixed SPI" },
-    { tag: "D13", desc: "SD card — SCK", note: "fixed SPI" },
+  const items = [
+    "Phone numbers set in firmware",
+    "Demo button cycles LOW→MED→CRIT→FIRE",
+    "Reset exits demo and recalibrates",
+    "MEDIUM sends owner SMS",
+    "CRITICAL places real call",
+    "LEDs are green / yellow / red",
+    "No servo — vents explained as app",
+    "Case fitted and buttons labeled",
   ];
-  const pinListEl = document.getElementById('pin-list');
-  pins.forEach(p => {
-    const row = document.createElement('div');
-    row.className = 'pin-row';
-    row.innerHTML = `<div class="pin-tag">${p.tag}</div><div class="pin-desc">${p.desc}</div><div class="pin-note">${p.note}</div>`;
-    pinListEl.appendChild(row);
+  const el = document.getElementById("checklist");
+  items.forEach(t => {
+    const d = document.createElement("div");
+    d.className = "item";
+    d.innerHTML = `<div class="box"></div><div>${t}</div>`;
+    d.onclick = () => d.classList.toggle("done");
+    el.appendChild(d);
   });
-
-  const rightPins = document.getElementById('right-pins');
-  const digitalOrder = ["D13","D12","D11","D10","D9","D8","D7","D6","D5","D4","D3","D2"];
-  digitalOrder.forEach((label, i) => {
-    const y = 70 + i * 28;
-    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    g.innerHTML = `
-      <line x1="300" y1="${y}" x2="320" y2="${y}" stroke="#8B7F6B" stroke-width="2"/>
-      <circle cx="300" cy="${y}" r="3" fill="#2B2620" stroke="#8B7F6B"/>
-      <text x="292" y="${y+3}" text-anchor="end" fill="#C9BC9E" font-family="Space Mono" font-size="9">${label}</text>
-    `;
-    g.setAttribute('data-pin', label);
-    rightPins.appendChild(g);
-  });
-  const leftPins = document.getElementById('left-pins');
-  const leftOrder = ["A5","A4","A3","A2","A1","A0","5V","GND"];
-  leftOrder.forEach((label, i) => {
-    const y = 90 + i * 28;
-    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    g.innerHTML = `
-      <line x1="20" y1="${y}" x2="0" y2="${y}" stroke="#8B7F6B" stroke-width="2"/>
-      <circle cx="20" cy="${y}" r="3" fill="#2B2620" stroke="#8B7F6B"/>
-      <text x="28" y="${y+3}" text-anchor="start" fill="#C9BC9E" font-family="Space Mono" font-size="9">${label}</text>
-    `;
-    g.setAttribute('data-pin', label);
-    leftPins.appendChild(g);
-  });
-
-  document.querySelectorAll('.pin-row').forEach((row, idx) => {
-    const tag = pins[idx].tag;
-    row.addEventListener('mouseenter', () => {
-      document.querySelectorAll(`[data-pin="${tag}"] circle`).forEach(c => { c.setAttribute('fill', '#A8341F'); c.setAttribute('r', 5); });
-      document.querySelectorAll(`[data-pin="${tag}"] text`).forEach(t => t.setAttribute('fill', '#EDE6D6'));
-    });
-    row.addEventListener('mouseleave', () => {
-      document.querySelectorAll(`[data-pin="${tag}"] circle`).forEach(c => { c.setAttribute('fill', '#2B2620'); c.setAttribute('r', 3); });
-      document.querySelectorAll(`[data-pin="${tag}"] text`).forEach(t => t.setAttribute('fill', '#C9BC9E'));
-    });
-  });
-
-  const stepMeta = [
-    ["step-1","01 Power"],["step-2","02 Gas"],["step-3","03 Flame"],
-    ["step-4","04 LCD"],["step-5","05 LEDs"],["step-6","06 Buzzer"],
-    ["step-7","07 Button"],["step-8","08 Servo"],["step-9","09 SD"],
-    ["step-10","10 SIM800L"],["step-11","11 Battery"],["step-12","12 Verify"]
-  ];
-  const navEl = document.getElementById('stepnav');
-  stepMeta.forEach(([id, label]) => {
-    const btn = document.createElement('button');
-    btn.className = 'stepnav-btn';
-    btn.textContent = label;
-    btn.addEventListener('click', () => document.getElementById(id).scrollIntoView({behavior:'smooth', block:'start'}));
-    btn.dataset.target = id;
-    navEl.appendChild(btn);
-  });
-  const stepEls = stepMeta.map(([id]) => document.getElementById(id));
-  const navBtns = navEl.querySelectorAll('.stepnav-btn');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        navBtns.forEach(b => b.classList.remove('active'));
-        const btn = navEl.querySelector(`[data-target="${entry.target.id}"]`);
-        if (btn) btn.classList.add('active');
-      }
-    });
-  }, { rootMargin: '-40% 0px -50% 0px' });
-  stepEls.forEach(el => observer.observe(el));
-
-  const checklistItems = [
-    "Serial Monitor confirms calibration for both gas zones",
-    "LCD alternates between status and trend view every ~2.5s",
-    "Reset button silences buzzer and triggers recalibration",
-    "Flame sensor tested with a lighter — reading confirmed",
-    "SIM800L registered on network (slow-blink LED)",
-    "SD card logs entries — verified on a computer",
-    "Critical stage confirmed to trigger call + SMS",
-    "Secondary contact only notified after response window"
-  ];
-  const checklistEl = document.getElementById('checklist');
-  const fillEl = document.getElementById('progress-fill');
-  const labelEl2 = document.getElementById('progress-label');
-  function updateProgress() {
-    const total = checklistItems.length;
-    const done = checklistEl.querySelectorAll('.check-item.done').length;
-    fillEl.style.width = (done / total * 100) + '%';
-    labelEl2.textContent = `${done} / ${total} COMPLETE`;
-  }
-  checklistItems.forEach(text => {
-    const item = document.createElement('div');
-    item.className = 'check-item';
-    item.innerHTML = `<div class="check-box">✓</div><div class="check-text">${text}</div>`;
-    item.addEventListener('click', () => { item.classList.toggle('done'); updateProgress(); });
-    checklistEl.appendChild(item);
-  });
-  updateProgress();
 </script>
-
 </body>
 </html>
