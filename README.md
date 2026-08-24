@@ -1,8 +1,6 @@
 # AeroGuard-X1
 
-LPG leak + fire early-warning **product** for Ghanaian homes, hostels, chop bars, and cylinder areas. Competition prototype with a clear path to a market device + phone app.
-
-## What it does
+LPG leak + fire early-warning **product** for Ghanaian homes, hostels, chop bars, and cylinder areas.
 
 | Stage | LED | Action |
 |-------|-----|--------|
@@ -11,25 +9,29 @@ LPG leak + fire early-warning **product** for Ghanaian homes, hostels, chop bars
 | CRITICAL | Red | Alarm + **call + SMS** to owner |
 | FIRE | Red | Alarm + **call + SMS** (fire-service SMS = Phase 2) |
 
-**Demo button** simulates a leak on stage (no real gas). **Reset** mutes, exits demo, recalibrates.  
+**Demo button** on the box (and in the app) simulates a leak. **Reset** mutes, exits demo, recalibrates.  
 **No on-device servo** — ventilation is an app / smart-vent feature.
 
-## Repo files
+## Repo
 
-| File | Role |
+| Path | Role |
 |------|------|
 | [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) | Arduino firmware |
 | [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad) | 3D-printed case |
-| [`AeroGuard-X1_Build_Guide.md`](AeroGuard-X1_Build_Guide.md) | BOM, pin map, demo pitch outline |
+| [`AeroGuard-X1_Build_Guide.md`](AeroGuard-X1_Build_Guide.md) | BOM, pin map, pitch outline |
 | [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html) | Visual assembly |
+| [`companion/`](companion/) | Android-style companion app (pair → setup → per-device tabs) |
 
-## Quick start
+## Hardware
 
-1. Wire per the build guide (set owner phone numbers in the sketch).
-2. Upload `aeroguard_x1-1.ino` to an Arduino Uno.
-3. Open Serial Monitor at 9600 baud; press **Demo** to walk stages.
-4. Print the case from OpenSCAD (`part = "all_export"`).
+See the build guide. Upload `aeroguard_x1-1.ino` to an Arduino Uno. Serial 9600.
 
-## Next
+## Companion app
 
-Mobile app: live status, contacts, smart vent/window control, cloud incident log.
+```bash
+cd companion
+npm install
+npm run dev -- --hostname 127.0.0.1 --port 43123
+```
+
+Pair a simulated AeroGuard, finish setup (name, place, owner number), then use **Device** for contacts / unpair and **Vents** to link smart windows.

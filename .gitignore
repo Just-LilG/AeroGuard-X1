@@ -1,0 +1,4 @@
+companion/node_modules
+companion/.next
+companion/tsconfig.tsbuildinfo
+.DS_Store
