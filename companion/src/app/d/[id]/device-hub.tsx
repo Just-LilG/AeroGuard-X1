@@ -178,14 +178,14 @@ function PairedHub({ device }: { device: AeroDevice }) {
         style={{ background: meta.color, opacity: 0.85 }}
       />
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-3">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-8">
         {tab === "status" && <StatusPane device={device} />}
         {tab === "activity" && <ActivityPane device={device} />}
         {tab === "vents" && <VentsPane device={device} />}
         {tab === "device" && <SettingsPane device={device} />}
       </div>
 
-      <nav className="grid grid-cols-4 border-t border-[#3a3428] bg-[#120f0c] px-1 py-2">
+      <nav className="grid grid-cols-4 border-t border-[#3a3428] bg-[#120f0c] px-2 py-3">
         {(
           [
             ["status", "Status", Gauge],
@@ -198,8 +198,10 @@ function PairedHub({ device }: { device: AeroDevice }) {
             key={id}
             type="button"
             onClick={() => setTab(id)}
-            className={`flex flex-col items-center gap-1 py-1 text-[10px] ${
-              tab === id ? "text-primary" : "text-muted-foreground"
+            className={`flex h-12 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[11px] ${
+              tab === id
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground/90"
             }`}
           >
             <Icon className="h-4 w-4" />
@@ -220,7 +222,7 @@ function StatusPane({ device }: { device: AeroDevice }) {
   );
 
   return (
-    <div className="flex flex-col gap-4 pb-4">
+    <div className="flex flex-col gap-4 pb-2">
       <div className="rounded-[1.6rem] border border-[#3a3428] bg-[#161410] p-5 text-center">
         <p className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
           {device.demoMode ? "Demo sync" : "Live"}
