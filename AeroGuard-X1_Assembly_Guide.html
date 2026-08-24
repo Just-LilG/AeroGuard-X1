@@ -86,14 +86,14 @@
 
   <p class="kicker">Reference</p>
   <h2 class="sec">Pin map</h2>
-  <p class="desc">Matches <code>aeroguard_x1-1.ino</code>. A1/A3 reserved for HM-10 BLE (app).</p>
+  <p class="desc">Matches <code>aeroguard_x1-1.ino</code>. A1/A3 = ESP32 WiFi bridge UART.</p>
   <table>
     <thead><tr><th>Pin</th><th>Connection</th><th>Notes</th></tr></thead>
     <tbody>
       <tr><td><span class="pin">A0</span></td><td>Gas sensor</td><td>MQ-2 / MQ-5</td></tr>
-      <tr><td><span class="pin">A1</span></td><td>BLE RX (reserved)</td><td>HM-10 → app</td></tr>
+      <tr><td><span class="pin">A1</span></td><td>ESP32 TX → Uno RX</td><td>App UART</td></tr>
       <tr><td><span class="pin">A2</span></td><td>Flame sensor</td><td>Calibrate threshold</td></tr>
-      <tr><td><span class="pin">A3</span></td><td>BLE TX (reserved)</td><td>HM-10 → app</td></tr>
+      <tr><td><span class="pin">A3</span></td><td>Uno TX → ESP32 RX</td><td>Level-shift to 3.3V</td></tr>
       <tr><td><span class="pin">A4/A5</span></td><td>LCD SDA / SCL</td><td>I2C</td></tr>
       <tr><td><span class="pin">D2</span></td><td>Green LED</td><td>LOW</td></tr>
       <tr><td><span class="pin">D3</span></td><td>Yellow LED</td><td>MEDIUM</td></tr>
@@ -118,7 +118,7 @@
   <div class="card"><h3>07 — Buttons</h3><div class="meta">D7 reset · D9 demo</div><p>Each button: one leg to pin, other to GND (internal pull-ups). Label the lid: <strong>RESET</strong> and <strong>DEMO</strong>.</p></div>
   <div class="card"><h3>08 — SD module</h3><div class="meta">D10–D13</div><p>Local incident history for demos and landlords — not marketed as fire-proof storage.</p></div>
   <div class="card"><h3>09 — SIM800L</h3><div class="meta">4V · D5 · D6</div><p>TX→D5, RX←D6 via divider. Active SIM with credit. Slow blink ≈ registered.</p><div class="warn"><strong>Demo:</strong> CRITICAL/FIRE will place a real call — warn the owner phone holder.</div></div>
-  <div class="card"><h3>10 — BLE (app)</h3><div class="meta">A1 / A3 · HM-10</div><p>Can be left for the app phase. Firmware already prints <code>STATUS</code> / <code>APP_CMD:VENT_OPEN</code> on Serial for bridging.</p></div>
+  <div class="card"><h3>10 — ESP32 WiFi (app / remote)</h3><div class="meta">A1 / A3 · ESP32 DevKit</div><p>Wire ESP32 UART2 (GPIO16 RX / GPIO17 TX) to Uno A3/A1 with a level shift into the ESP32 RX. Flash <code>esp32_aeroguard_bridge.ino</code>, set WiFi, then open <code>/status</code> on the phone. Firmware already mirrors <code>STATUS</code> / <code>APP_CMD:VENT_OPEN</code> to this link.</p></div>
   <div class="card"><h3>11 — Case + verify</h3><div class="meta">Print · upload · Serial 9600</div><p>Print SCAD case. Upload sketch. Press DEMO: LOW → MEDIUM → CRITICAL → FIRE. RESET clears and recalibrates.</p></div>
 
   <p class="kicker">Before you present</p>
