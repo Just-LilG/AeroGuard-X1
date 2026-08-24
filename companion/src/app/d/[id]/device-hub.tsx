@@ -1,58 +1,30 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  ArrowLeft,
-  Check,
-  Flame,
-  Phone,
-  Plus,
-  Radio,
-  Settings2,
-  ShieldAlert,
-  Trash2,
-  Wind,
-  AppWindow,
-} from "lucide-react";
-import { BrandMark } from "@/components/brand-mark";
+import { ArrowLeft } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { StatusRing } from "@/components/status-ring";
 import { PhoneShell } from "@/components/phone-shell";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useDevices } from "@/lib/store";
-import {
-  PLACES,
-  STAGE_META,
-  type AeroDevice,
-  type DeviceTab,
-  type PlaceKind,
-  type SmartVent,
-  type VentKind,
-} from "@/lib/types";
+import { type AeroDevice, type DeviceTab as DeviceTabId } from "@/lib/types";
+import { SetupFlow } from "./device-hub-setup";
+import { StatusTab } from "./device-hub-status";
+import { ActivityTab } from "./device-hub-activity";
+import { VentsTab } from "./device-hub-vents";
+import { DeviceTab } from "./device-hub-settings";
 
-const TABS: { id: DeviceTab; label: string }[] = [
+const TABS: { id: DeviceTabId; label: string }[] = [
   { id: "status", label: "Status" },
   { id: "activity", label: "Activity" },
   { id: "vents", label: "Vents" },
   { id: "device", label: "Device" },
 ];
 
-const STAGE_HINT: Record<string, string> = {
-  SAFE: "Sensors quiet. Green path idle — monitoring only.",
-  LOW: "Slight rise above baseline. Green LED on the box.",
-  MEDIUM: "Owner SMS + vent open intent. Yellow LED.",
-  CRITICAL: "Owner call + SMS. Red LED. Clear the kitchen.",
-  FIRE: "Flame path active. Evacuate and call for help.",
-};
-
 export function DeviceHub({ device }: { device: AeroDevice }) {
   const router = useRouter();
   const store = useDevices();
-  const [tab, setTab] = useState<DeviceTab>("status");
+  const [tab, setTab] = useState<DeviceTabId>("status");
   const [toast, setToast] = useState<string | null>(null);
 
   function flash(msg: string) {
@@ -173,9 +145,3 @@ export function DeviceHub({ device }: { device: AeroDevice }) {
     </PhoneShell>
   );
 }
-
-export { SetupFlow } from "./device-hub-setup";
-export { StatusTab } from "./device-hub-status";
-export { ActivityTab } from "./device-hub-activity";
-export { VentsTab } from "./device-hub-vents";
-export { DeviceTab } from "./device-hub-settings";
