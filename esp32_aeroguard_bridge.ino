@@ -130,17 +130,20 @@ void handleRoot() {
 }
 
 void handleStatus() {
-  String json = "{";
-  json += "\"level\":"\" + lastLevel + "\",";
-  json += "\"demo\":" + String(lastDemo ? "true" : "false") + ",";
-  json += "\"gas\":" + String(lastGas) + ",";
-  json += "\"raw\":"\" + lastStatus + "\",";
-  json += "\"remote\":true";
-  json += "}";
+  // Build JSON without nested quote-escapes (keeps sketch transport-safe).
+  String q = String((char)34);
+  String json = String("{") + q + "level" + q + ":" + q + lastLevel + q + ",";
+  json += q + "demo" + q + ":" + String(lastDemo ? "true" : "false") + ",";
+  json += q + "gas" + q + ":" + String(lastGas) + ",";
+  json += q + "raw" + q + ":" + q + lastStatus + q + ",";
+  json += q + "remote" + q + ":true}";
   server.send(200, "application/json", json);
 }
 
 void handleVentOpen() {
   UnoSerial.println("APP_CMD:VENT_OPEN");
-  server.send(200, "application/json", "{\"ok\":true,\"cmd\":\"APP_CMD:VENT_OPEN\"}");
+  String q = String((char)34);
+  String body = String("{") + q + "ok" + q + ":true," + q + "cmd" + q + ":" + q
+                + "APP_CMD:VENT_OPEN" + q + "}";
+  server.send(200, "application/json", body);
 }
