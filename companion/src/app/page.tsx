@@ -29,7 +29,7 @@ export default function HomePage() {
         </span>
       </header>
 
-      <main className="flex flex-1 flex-col gap-4 px-5 pb-6">
+      <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 pb-6">
         {!ready ? (
           <p className="text-sm text-muted-foreground">Loading…</p>
         ) : devices.length === 0 ? (
