@@ -25,7 +25,7 @@ uno_L = 68.6; uno_W = 53.4;
 lcd_L = 80;   lcd_W = 36;
 sd_L = 28;    sd_W = 24;
 sim_L = 25;   sim_W = 24;
-ble_L = 27;   ble_W = 13;   // HM-10 footprint (approx)
+ble_L = 52;   ble_W = 28;   // ESP32 DevKit footprint (approx)
 led_d = 5;
 button_d = 12;
 buzzer_d = 12;
@@ -70,9 +70,9 @@ module base_tray() {
         // SIM antenna notch (front)
         translate([60, -1, case_H - 10])
             cube([16, wall + 2, 5]);
-        // BLE antenna notch (front)
+        // WiFi antenna notch (front) — ESP32
         translate([100, -1, case_H - 10])
-            cube([12, wall + 2, 5]);
+            cube([18, wall + 2, 5]);
     }
 
     // Uno standoffs
@@ -90,8 +90,8 @@ module base_tray() {
     translate([105, 8, wall]) cube([sd_L + 4, sd_W + 4, 3]);
     // SIM800L platform
     translate([105, 40, wall]) cube([sim_L + 4, sim_W + 4, 3]);
-    // HM-10 BLE platform
-    translate([8, 70, wall]) cube([ble_L + 4, ble_W + 4, 3]);
+    // ESP32 WiFi bridge platform
+    translate([8, 68, wall]) cube([ble_L + 4, ble_W + 4, 3]);
 }
 
 module lid() {
