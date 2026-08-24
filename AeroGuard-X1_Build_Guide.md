@@ -44,18 +44,31 @@ Use these **module names** when shopping (exact PCB silkscreen may vary by selle
 | 8 | GSM | **SIM800L V2.0 GSM/GPRS Module** (with antenna) | 1 | Needs strong 4V supply |
 | 9 | SIM power | **LM2596 DC-DC Buck Converter** (adjust to ~4.0V) | 1 | **Do not** power SIM from Uno 5V |
 | 10 | Logging | **Micro SD Card Module (SPI)** (often **HW-125**) + **microSD** FAT32 | 1 | Local incident history |
-| 11 | App link | **HM-10 BLE 4.0 Module** (CC2541) | 1 | Prefer BLE over **HC-05** for phones |
+| 11 | App link (remote) | **ESP32 DevKit** (WiFi) | 1 | Bridges Uno ↔ phone over WiFi; replaces HM-10 |
 | 12 | Battery | **18650 cell(s)** + **TP4056** charger *and/or* **5V USB power bank** / **MT3608** boost to 5V | 1 | Portable demo power |
 | 13 | Wiring | **MB-102 breadboard** + ** Dupont jumper wires** | 1 set | Or Uno proto shield |
 | 14 | SIM RX protect | **Resistors 10kΩ + 20kΩ** (voltage divider) | 1 pair | Uno D6 → SIM800L RX |
-| 15 | Network | **Nano-SIM** with call + SMS credit (MTN/Vodafone/AirtelTigo etc.) | 1 | Must fit SIM800L slot (adapter if needed) |
-| 16 | Enclosure | **AeroGuard-X1 3D-printed case** (this repo’s SCAD → STL) | 1 | |
+| 15 | ESP32 RX protect | **Resistors ~10kΩ + 20kΩ** (optional divider) | 1 pair | Uno A3 (5V TX) → ESP32 RX if no shifter |
+| 16 | Network | **Nano-SIM** with call + SMS credit (MTN/Vodafone/AirtelTigo etc.) | 1 | Must fit SIM800L slot (adapter if needed) |
+| 17 | Enclosure | **AeroGuard-X1 3D-printed case** (this repo’s SCAD → STL) | 1 | |
 
 **Optional (not required for v1 demo):** second **MQ-5** for multi-zone expansion later.
 
-**Removed vs old draft:** SG90 servo, vent flap parts, second required gas sensor, orange LED.
+**Removed vs old draft:** SG90 servo, vent flap parts, second required gas sensor, orange LED, **HM-10 BLE** (ESP32 covers local + remote WiFi).
 
-**Shopping tip:** If a seller lists “MQ-2 smoke sensor,” it still detects LPG/smoke mix; for a cleaner LPG story ask for **MQ-5**. For Bluetooth, buy **HM-10** (BLE), not classic **HC-05**, if the app targets modern phones.
+**Shopping tip:** If a seller lists “MQ-2 smoke sensor,” it still detects LPG/smoke mix; for a cleaner LPG story ask for **MQ-5**. Use an **ESP32 DevKit** for the app link so users can open status off-site on the home network (cloud tunnel later).
+
+---
+
+## 2b. How remote access works
+
+| Path | Who | What |
+|------|-----|------|
+| **GSM (SIM800L)** | Always | SMS / call when you are away — emergency alerts |
+| **ESP32 WiFi** | Home network / remote | Live status + vent commands in the AeroGuard app |
+| **USB Serial** | Bench | Same `STATUS` / `APP_CMD` lines for debugging |
+
+**Architecture:** Uno keeps sensors, LEDs, buzzer, SD, and GSM. ESP32 only bridges those lines to WiFi (`esp32_aeroguard_bridge.ino`). Contest companion can still simulate the link until WiFi credentials are set.
 
 ---
 
@@ -64,9 +77,9 @@ Use these **module names** when shopping (exact PCB silkscreen may vary by selle
 | Pin | Function |
 |-----|----------|
 | A0 | Gas sensor analog |
-| A1 | **Reserved** — HM-10 BLE RX (app) |
+| A1 | **ESP32 TX → Uno RX** (app UART) |
 | A2 | Flame sensor analog |
-| A3 | **Reserved** — HM-10 BLE TX (app) |
+| A3 | **Uno TX → ESP32 RX** (app UART; level-shift to 3.3V) |
 | A4 | LCD SDA |
 | A5 | LCD SCL |
 | D2 | Green LED (LOW) |
@@ -81,7 +94,8 @@ Use these **module names** when shopping (exact PCB silkscreen may vary by selle
 | D11 | SD MOSI (fixed SPI) |
 | D12 | SD MISO (fixed SPI) |
 | D13 | SD SCK (fixed SPI) |
-| 5V / GND | Sensors, LCD, LEDs, buzzer, buttons, SD, BLE VCC as specified |
+| 5V / GND | Sensors, LCD, LEDs, buzzer, buttons, SD |
+| 3.3V / 5V | ESP32 per board (USB OK for demo) |
 | ~4V rail | SIM800L VCC only (shared GND with Uno) |
 
 ---
@@ -90,10 +104,12 @@ Use these **module names** when shopping (exact PCB silkscreen may vary by selle
 
 1. **SIM800L power:** separate ~3.7–4.2V capable of ~2A peaks — never Uno 5V.  
 2. **SIM800L RX:** level-shift Uno 5V TX down (~2.8V logic).  
-3. **One common GND** for Uno, SIM, battery, sensors.  
-4. **SPI pins D11–D13** are taken by SD — leave free otherwise.  
-5. **Flame threshold:** test your module; adjust `FLAME_DETECT_THRESHOLD` in code.  
-6. **Set phone numbers** in firmware before any live GSM demo.
+3. **ESP32 RX:** Uno A3 is 5V — use a divider / level shifter into ESP32 RX (3.3V max).  
+4. **One common GND** for Uno, ESP32, SIM, battery, sensors.  
+5. **SPI pins D11–D13** are taken by SD — leave free otherwise.  
+6. **Flame threshold:** test your module; adjust `FLAME_DETECT_THRESHOLD` in code.  
+7. **Set phone numbers** in firmware before any live GSM demo.  
+8. **Set WiFi SSID/password** in [`esp32_aeroguard_bridge.ino`](esp32_aeroguard_bridge.ino) for remote access.
 
 ---
 
@@ -108,9 +124,9 @@ Use these **module names** when shopping (exact PCB silkscreen may vary by selle
 7. Reset button → D7; Demo button → D9  
 8. SD module → D10–D13  
 9. SIM800L on 4V + D5/D6 (divider)  
-10. HM-10 on A1/A3 (app phase — can leave unwired for GSM-only rehearsal)  
+10. ESP32 on A1/A3 (WiFi bridge — see [`esp32_aeroguard_bridge.ino`](esp32_aeroguard_bridge.ino); can leave unwired for GSM-only rehearsal)  
 11. Fit into printed case; label Demo vs Reset on the lid  
-12. Upload [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino), Serial 9600, test demo button
+12. Upload Uno sketch + ESP32 bridge; Serial 9600 (Uno) / 115200 (ESP32); test demo button
 
 Open [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html) in a browser for the visual walkthrough.
 
@@ -121,11 +137,12 @@ Open [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html) in a
 - **Calibration:** 45s average on A0 at boot and on Reset.  
 - **Live mode:** % above baseline with 8s confirmation window.  
 - **Demo mode:** Demo button forces stages without gas.  
-- **MEDIUM:** SMS owner + `APP_CMD:VENT_OPEN` on Serial (app listens later).  
+- **MEDIUM:** SMS owner + `APP_CMD:VENT_OPEN` on USB Serial **and** ESP32 UART.  
 - **CRITICAL / FIRE:** call + SMS owner.  
 - **Secondary contact:** SMS only after 3 minutes if still CRITICAL/FIRE — backup check-in, **not** “enter and fix a leak.”  
 - **Fire service voice call:** not used (unrealistic silent ring). Phase 2 = verified address SMS / partner.  
-- **SD `gaslog.txt`:** timestamps for demos, landlords, insurance narrative — **not** claimed fire-proof. Primary history will live in the app.
+- **SD `gaslog.txt`:** timestamps for demos, landlords, insurance narrative — **not** claimed fire-proof. Primary history will live in the app.  
+- **ESP32:** publishes `/status` JSON over WiFi; can forward vent open to the Uno.
 
 ---
 
@@ -149,9 +166,9 @@ Libraries: `LiquidCrystal_I2C`, `SD`, `SoftwareSerial` (built-in).
 2. **Buyer** — lead with **hostel wardens / multi-tenant housing**; chop bars & homes as expansion.  
 3. **Show device** — cased unit, green/yellow/red meaning.  
 4. **Live demo** — press Demo: LOW → MEDIUM (SMS) → CRITICAL (**real call**).  
-5. **App story** — phone shows status; smart vents/windows open together (mock OK if BLE not finished).  
+5. **App story** — phone shows status over **ESP32 WiFi** (remote on the home network); smart vents/windows open together. GSM still calls when you are away.  
 6. **Cost + market** — BOM honesty; who pays.  
-7. **Q&A ready** — SD = history not fire vault; neighbor = SMS check-in not first responder; fire service = Phase 2 with address text.
+7. **Q&A ready** — SD = history not fire vault; neighbor = SMS check-in not first responder; fire service = Phase 2 with address text; BLE not required when ESP32 is fitted.
 
 ---
 
@@ -164,4 +181,6 @@ Prints: base, lid, sensor mount(s). No vent flap / servo parts.
 
 ## 10. Next (after this hardware pack)
 
-Plan and build the **AeroGuard mobile app**: live status, contacts, smart vent/window links, incident log sync.
+1. Flash [`esp32_aeroguard_bridge.ino`](esp32_aeroguard_bridge.ino) and join WiFi.  
+2. Point the AeroGuard companion at the ESP32 `/status` endpoint (contest UI can stay simulated until that hook is live).  
+3. Optional Phase 2: cloud tunnel / MQTT so the phone works off the home LAN.
