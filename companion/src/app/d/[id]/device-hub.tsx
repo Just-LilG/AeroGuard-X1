@@ -55,11 +55,12 @@ function SetupWizard({ device }: { device: AeroDevice }) {
         </p>
       </header>
       <form
-        className="flex flex-1 flex-col gap-4 px-5 pb-8"
+        className="flex min-h-0 flex-1 flex-col"
         onSubmit={(e) => {
           e.preventDefault();
-          if (!name.trim() || owner.replace(/\s/g, "").length < 9) {
-            setErr("Give it a name and a real owner number.");
+          const digits = owner.replace(/\D/g, "");
+          if (!name.trim() || digits.length < 9) {
+            setErr("Give it a name and a real owner number (at least 9 digits).");
             return;
           }
           completeSetup(device.id, {
@@ -70,62 +71,77 @@ function SetupWizard({ device }: { device: AeroDevice }) {
           });
         }}
       >
-        <div className="space-y-1.5">
-          <Label>Display name</Label>
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Kitchen, Block A, Cylinder bay…"
-            className="h-11 border-[#3a3428] bg-[#161410]"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Where it sits</Label>
-          <div className="flex flex-wrap gap-1.5">
-            {PLACES.map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setPlace(p)}
-                className={`rounded-full px-3 py-1.5 text-xs ${
-                  place === p
-                    ? "bg-primary text-primary-foreground"
-                    : "border border-[#3a3428] text-muted-foreground"
-                }`}
-              >
-                {p}
-              </button>
-            ))}
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 pb-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="ag-name">Display name</Label>
+            <Input
+              id="ag-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Kitchen, Block A, Cylinder bay…"
+              className="h-12 border-[#3a3428] bg-[#161410]"
+            />
           </div>
+          <div className="space-y-1.5">
+            <Label>Where it sits</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {PLACES.map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPlace(p)}
+                  className={`min-h-11 rounded-xl px-3 text-sm ${
+                    place === p
+                      ? "bg-primary text-primary-foreground"
+                      : "border border-[#3a3428] text-muted-foreground"
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="ag-owner">Owner number (call + SMS)</Label>
+            <Input
+              id="ag-owner"
+              name="owner"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              value={owner}
+              onChange={(e) => setOwner(e.target.value)}
+              placeholder="+233…"
+              className="h-12 border-[#3a3428] bg-[#161410]"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="ag-backup">Backup SMS (optional)</Label>
+            <Input
+              id="ag-backup"
+              name="backup"
+              type="tel"
+              inputMode="tel"
+              value={backup}
+              onChange={(e) => setBackup(e.target.value)}
+              placeholder="Roommate / warden"
+              className="h-12 border-[#3a3428] bg-[#161410]"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Backup gets a text if the alarm is still up after 3 minutes — not
+              asked to walk into a leak.
+            </p>
+          </div>
+          {err && <p className="text-sm text-destructive">{err}</p>}
         </div>
-        <div className="space-y-1.5">
-          <Label>Owner number (call + SMS)</Label>
-          <Input
-            inputMode="tel"
-            value={owner}
-            onChange={(e) => setOwner(e.target.value)}
-            placeholder="+233…"
-            className="h-11 border-[#3a3428] bg-[#161410]"
-          />
+        <div className="border-t border-[#3a3428] bg-[#0e0d0b] p-4">
+          <Button
+            type="submit"
+            className="h-12 w-full rounded-full font-semibold"
+          >
+            Save and open unit
+          </Button>
         </div>
-        <div className="space-y-1.5">
-          <Label>Backup SMS (optional)</Label>
-          <Input
-            inputMode="tel"
-            value={backup}
-            onChange={(e) => setBackup(e.target.value)}
-            placeholder="Roommate / warden"
-            className="h-11 border-[#3a3428] bg-[#161410]"
-          />
-          <p className="text-[11px] text-muted-foreground">
-            Backup gets a text if the alarm is still up after 3 minutes — not
-            asked to walk into a leak.
-          </p>
-        </div>
-        {err && <p className="text-sm text-destructive">{err}</p>}
-        <Button type="submit" className="mt-auto h-12 rounded-full font-semibold">
-          Save and open unit
-        </Button>
       </form>
     </PhoneShell>
   );
@@ -162,7 +178,7 @@ function PairedHub({ device }: { device: AeroDevice }) {
         style={{ background: meta.color, opacity: 0.85 }}
       />
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-3">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-3">
         {tab === "status" && <StatusPane device={device} />}
         {tab === "activity" && <ActivityPane device={device} />}
         {tab === "vents" && <VentsPane device={device} />}
