@@ -68,7 +68,7 @@ export default function PairPage() {
               {scanning ? "Scanning nearby…" : "Select a unit"}
             </p>
             <p className="text-xs text-muted-foreground">
-              Contest mode simulates HM-10 BLE discovery.
+              Contest mode simulates discovery. On hardware, the ESP32 serves WiFi status for remote access.
             </p>
           </div>
         </div>

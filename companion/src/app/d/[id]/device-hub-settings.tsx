@@ -112,10 +112,10 @@ export function DeviceTab({
       </div>
 
       <div className="glass rounded-[1.35rem] px-4 py-1">
-        <InfoRow icon={Radio} label="Link" value="Bluetooth (contest sim)" />
-        <InfoRow icon={Phone} label="GSM" value="SIM800L path" />
+        <InfoRow icon={Radio} label="Link" value="ESP32 WiFi (remote)" />
+        <InfoRow icon={Phone} label="GSM" value="SIM800L alerts" />
         <InfoRow icon={Flame} label="Sensors" value="Gas + flame" />
-        <InfoRow icon={Check} label="Firmware" value="AeroGuard-X1 v1" last />
+        <InfoRow icon={Check} label="Firmware" value="Uno + ESP32 bridge" last />
       </div>
 
       {!confirmRemove ? (
