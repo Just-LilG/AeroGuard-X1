@@ -1,4 +1,4 @@
-"use client";
+use client";
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -185,7 +185,7 @@ function PairedHub({ device }: { device: AeroDevice }) {
         {tab === "device" && <SettingsPane device={device} />}
       </div>
 
-      <nav className="grid grid-cols-4 border-t border-[#3a3428] bg-[#120f0c] px-2 py-3">
+      <nav className="relative z-20 grid grid-cols-4 border-t border-[#3a3428] bg-[#120f0c] px-2 py-3">
         {(
           [
             ["status", "Status", Gauge],
@@ -200,8 +200,8 @@ function PairedHub({ device }: { device: AeroDevice }) {
             onClick={() => setTab(id)}
             className={`flex h-12 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[11px] ${
               tab === id
-                ? "text-primary"
-                : "text-muted-foreground hover:text-foreground/90"
+                ? "bg-primary/15 text-primary"
+                : "text-muted-foreground"
             }`}
           >
             <Icon className="h-4 w-4" />
@@ -223,9 +223,13 @@ function StatusPane({ device }: { device: AeroDevice }) {
 
   return (
     <div className="flex flex-col gap-4 pb-2">
-      <div className="rounded-[1.6rem] border border-[#3a3428] bg-[#161410] p-5 text-center">
+      <button
+        type="button"
+        onClick={() => advanceDemo(device.id)}
+        className="w-full rounded-[1.6rem] border border-[#3a3428] bg-[#161410] p-5 text-center"
+      >
         <p className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
-          {device.demoMode ? "Demo sync" : "Live"}
+          {device.demoMode ? "Demo sync · tap to advance" : "Tap to demo leak"}
         </p>
         <div
           className="mx-auto mt-4 flex h-36 w-36 items-center justify-center rounded-full border-[6px]"
@@ -247,22 +251,23 @@ function StatusPane({ device }: { device: AeroDevice }) {
         <p className="mt-4 font-mono text-xs text-muted-foreground">
           Gas {device.gasReading} · baseline {device.baseline} · {pct}% over
         </p>
-      </div>
+      </button>
 
-      <div className="grid grid-cols-2 gap-2">
-        <Button
-          className="h-12 rounded-2xl font-semibold"
+      <div className="relative z-10 grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          className="h-12 rounded-2xl bg-primary px-3 text-sm font-semibold text-primary-foreground"
           onClick={() => advanceDemo(device.id)}
         >
           Demo next stage
-        </Button>
-        <Button
-          variant="outline"
-          className="h-12 rounded-2xl border-[#3a3428]"
+        </button>
+        <button
+          type="button"
+          className="h-12 rounded-2xl border border-[#3a3428] px-3 text-sm font-semibold"
           onClick={() => resetDevice(device.id)}
         >
           Reset / mute
-        </Button>
+        </button>
       </div>
       <p className="text-[11px] leading-relaxed text-muted-foreground">
         Matches the hardware demo button: Low (green) → Medium (yellow, SMS +
