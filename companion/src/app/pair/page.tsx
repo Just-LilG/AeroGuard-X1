@@ -53,7 +53,7 @@ export default function PairPage() {
         </div>
       </header>
 
-      <main className="flex flex-1 flex-col px-5 pb-8">
+      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pb-8">
         <div className="mb-5 flex items-center gap-2 rounded-2xl border border-[#3a3428] bg-[#14120e] px-3 py-3 text-sm text-muted-foreground">
           <Bluetooth className={`h-4 w-4 text-primary ${scanning ? "animate-pulse" : ""}`} />
           {scanning
