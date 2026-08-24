@@ -1,8 +1,15 @@
-# AeroGuard companion (Android pitch UI)
+# AeroGuard companion
 
-Phone-first web app for the contest: pair units, first-run setup, then Status / Activity / Vents / Device **inside each AeroGuard**.
+Phone-first web app for the contest pitch: **Mi Home–style device home** with **light/dark liquid-glass** UI (iOS-inspired glass panels).
 
-GSM calls still happen on the hardware. BLE is simulated for this build.
+## What you get
+
+- Home with stats, scenes, and 2-column device cards
+- Pair (simulated BLE) → first-time setup → device hub
+- Per device: **Status** (animated ring + demo), **Activity**, **Vents**, **Device** (contacts / unpair)
+- Theme toggle (persisted)
+
+GSM still runs on the hardware. BLE is simulated here.
 
 ```bash
 cd companion
@@ -10,4 +17,4 @@ npm install
 npm run dev -- --hostname 127.0.0.1 --port 43123
 ```
 
-Open on an Android phone in Chrome (same Wi‑Fi) or Add to Home Screen for a standalone look.
+Open [http://127.0.0.1:43123](http://127.0.0.1:43123) on a phone (same Wi‑Fi) or Add to Home Screen.
