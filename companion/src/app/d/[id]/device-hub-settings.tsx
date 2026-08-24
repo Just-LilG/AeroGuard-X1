@@ -175,8 +175,8 @@ function InfoRow({
       }`}
     >
       <Icon className="h-4 w-4 text-muted-foreground" />
-      <span className="flex-1 text-[14px]">{label}</span>
-      <span className="text-[13px] text-muted-foreground">{value}</span>
+      <span className={'flex-1 text-[14px]'}>{label}</span>
+      <span className={'text-[13px] text-muted-foreground'}>{value}</span>
     </div>
   );
 }
