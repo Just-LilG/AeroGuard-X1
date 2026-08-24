@@ -1,45 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import {
-  ArrowLeft,
-  Check,
-  Flame,
-  Phone,
-  Plus,
-  Radio,
-  Settings2,
-  ShieldAlert,
-  Trash2,
-  Wind,
-  AppWindow,
-} from "lucide-react";
-import { BrandMark } from "@/components/brand-mark";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { ShieldAlert } from "lucide-react";
 import { StatusRing } from "@/components/status-ring";
-import { PhoneShell } from "@/components/phone-shell";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useDevices } from "@/lib/store";
-import {
-  PLACES,
-  STAGE_META,
-  type AeroDevice,
-  type DeviceTab,
-  type PlaceKind,
-  type SmartVent,
-  type VentKind,
-} from "@/lib/types";
-
-const TABS: { id: DeviceTab; label: string }[] = [
-  { id: "status", label: "Status" },
-  { id: "activity", label: "Activity" },
-  { id: "vents", label: "Vents" },
-  { id: "device", label: "Device" },
-];
+import { STAGE_META, type AeroDevice } from "@/lib/types";
 
 const STAGE_HINT: Record<string, string> = {
   SAFE: "Sensors quiet. Green path idle — monitoring only.",
@@ -163,7 +127,7 @@ export function StatusTab({
   );
 }
 
-export function Metric({
+function Metric({
   label,
   value,
   hint,
