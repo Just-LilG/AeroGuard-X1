@@ -12,11 +12,14 @@ LPG leak + fire early-warning **product** for Ghanaian homes, hostels, chop bars
 **Demo button** on the box (and in the app) simulates a leak. **Reset** mutes, exits demo, recalibrates.  
 **No on-device servo** — ventilation is an app / smart-vent feature.
 
+**Connectivity:** Arduino Uno runs sensors + **GSM**. An **ESP32** bridges status/commands over **WiFi** so the phone can reach the unit remotely on the home network (not Bluetooth-only).
+
 ## Repo
 
 | Path | Role |
 |------|------|
-| [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) | Arduino firmware |
+| [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) | Arduino Uno firmware |
+| [`esp32_aeroguard_bridge.ino`](esp32_aeroguard_bridge.ino) | ESP32 WiFi bridge (`/status`, vent command) |
 | [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad) | 3D-printed case |
 | [`AeroGuard-X1_Build_Guide.md`](AeroGuard-X1_Build_Guide.md) | BOM, pin map, pitch outline |
 | [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html) | Visual assembly |
@@ -24,7 +27,7 @@ LPG leak + fire early-warning **product** for Ghanaian homes, hostels, chop bars
 
 ## Hardware
 
-See the build guide. Upload `aeroguard_x1-1.ino` to an Arduino Uno. Serial 9600.
+See the build guide. Upload `aeroguard_x1-1.ino` to an Arduino Uno (Serial 9600) and `esp32_aeroguard_bridge.ino` to the ESP32 (Serial 115200). Set WiFi SSID/password in the ESP32 sketch for remote access.
 
 ## Companion app
 
@@ -34,4 +37,4 @@ npm install
 npm run dev -- --hostname 127.0.0.1 --port 43123
 ```
 
-Pair a simulated AeroGuard, finish setup (name, place, owner number), then use **Device** for contacts / unpair and **Vents** to link smart windows.
+Contest UI can still simulate discovery; on hardware, the ESP32 serves live `/status` over WiFi.
