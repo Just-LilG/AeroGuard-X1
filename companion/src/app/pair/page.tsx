@@ -93,7 +93,7 @@ export default function PairPage() {
                 >
                   <BrandMark size={42} />
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold">{u.bleName}</p>
+                    <p className={'font-semibold'}>{u.bleName}</p>
                     <p className="font-mono text-[11px] text-muted-foreground">
                       {u.serial}
                     </p>
