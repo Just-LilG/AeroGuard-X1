@@ -1,53 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import {
-  ArrowLeft,
-  Check,
-  Flame,
-  Phone,
-  Plus,
-  Radio,
-  Settings2,
-  ShieldAlert,
-  Trash2,
-  Wind,
-  AppWindow,
-} from "lucide-react";
-import { BrandMark } from "@/components/brand-mark";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { StatusRing } from "@/components/status-ring";
-import { PhoneShell } from "@/components/phone-shell";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useDevices } from "@/lib/store";
-import {
-  PLACES,
-  STAGE_META,
-  type AeroDevice,
-  type DeviceTab,
-  type PlaceKind,
-  type SmartVent,
-  type VentKind,
-} from "@/lib/types";
-
-const TABS: { id: DeviceTab; label: string }[] = [
-  { id: "status", label: "Status" },
-  { id: "activity", label: "Activity" },
-  { id: "vents", label: "Vents" },
-  { id: "device", label: "Device" },
-];
-
-const STAGE_HINT: Record<string, string> = {
-  SAFE: "Sensors quiet. Green path idle — monitoring only.",
-  LOW: "Slight rise above baseline. Green LED on the box.",
-  MEDIUM: "Owner SMS + vent open intent. Yellow LED.",
-  CRITICAL: "Owner call + SMS. Red LED. Clear the kitchen.",
-  FIRE: "Flame path active. Evacuate and call for help.",
-};
+import { useMemo } from "react";
+import { Flame, Phone, Radio, Wind } from "lucide-react";
+import { STAGE_META, type AeroDevice } from "@/lib/types";
 
 export function ActivityTab({ device }: { device: AeroDevice }) {
   const logs = useMemo(
@@ -87,11 +42,7 @@ export function ActivityTab({ device }: { device: AeroDevice }) {
             >
               <div
                 className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/12 text-primary"
-                style={
-                  color
-                    ? { background: `${color}22`, color }
-                    : undefined
-                }
+                style={color ? { background: `${color}22`, color } : undefined}
               >
                 {log.stage === "SYSTEM" ? (
                   <Radio className="h-4 w-4" />
