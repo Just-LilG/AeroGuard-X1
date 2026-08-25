@@ -49,7 +49,7 @@ Use these **module names** when shopping (exact PCB silkscreen may vary by selle
 | 13 | Wiring | **MB-102 breadboard** + ** Dupont jumper wires** | 1 set | Or Uno proto shield |
 | 14 | SIM RX protect | **Resistors 10kΩ + 20kΩ** (voltage divider) | 1 pair | Uno D6 → SIM800L RX |
 | 15 | ESP32 RX protect | **Resistors ~10kΩ + 20kΩ** (optional divider) | 1 pair | Uno A3 (5V TX) → ESP32 RX if no shifter |
-| 16 | Network | **Nano-SIM** with call + SMS credit (MTN/Vodafone/AirtelTigo etc.) | 1 | Must fit SIM800L slot (adapter if needed) |
+| 16 | Network | **Nano-SIM** with call + SMS credit (MTN/Vodafome/AirtelTigo etc.) | 1 | Must fit SIM800L slot (adapter if needed) |
 | 17 | Enclosure | **AeroGuard-X1 3D-printed case** (this repo’s SCAD → STL) | 1 | |
 
 **Optional (not required for v1 demo):** second **MQ-5** for multi-zone expansion later.
@@ -172,10 +172,19 @@ Libraries: `LiquidCrystal_I2C`, `SD`, `SoftwareSerial` (built-in).
 
 ---
 
-## 9. Case print
+## 9. Case print (v2 compact)
 
-Open [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad) → `part = "all_export"` → F6 → Export STL.  
-Prints: base, lid, sensor mount(s). No vent flap / servo parts.
+Open [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad) → `part = "all_export"` → F6 → Export STL.
+
+| | v1 | **v2 (current)** |
+|--|----|------------------|
+| Outer size | 150 × 100 × 42 mm | **126 × 90 × 36 mm** |
+| Look | Boxy | Rounded shell, engraved branding |
+| Branding | — | **AeroGuard** on lid + front; **X1** on side; inside lid/floor text |
+
+Prints: **base**, **lid**, **sensor mount** (print a spare for multi-zone story).  
+Mounts inside: Uno standoffs, ESP32 / SIM / SD / 4V platforms, 4 lid screw bosses.  
+No vent flap / servo parts.
 
 ---
 
