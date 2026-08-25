@@ -119,7 +119,7 @@
   <div class="card"><h3>08 — SD module</h3><div class="meta">D10–D13</div><p>Local incident history for demos and landlords — not marketed as fire-proof storage.</p></div>
   <div class="card"><h3>09 — SIM800L</h3><div class="meta">4V · D5 · D6</div><p>TX→D5, RX←D6 via divider. Active SIM with credit. Slow blink ≈ registered.</p><div class="warn"><strong>Demo:</strong> CRITICAL/FIRE will place a real call — warn the owner phone holder.</div></div>
   <div class="card"><h3>10 — ESP32 WiFi (app / remote)</h3><div class="meta">A1 / A3 · ESP32 DevKit</div><p>Wire ESP32 UART2 (GPIO16 RX / GPIO17 TX) to Uno A3/A1 with a level shift into the ESP32 RX. Flash <code>esp32_aeroguard_bridge.ino</code>, set WiFi, then open <code>/status</code> on the phone. Firmware already mirrors <code>STATUS</code> / <code>APP_CMD:VENT_OPEN</code> to this link.</p></div>
-  <div class="card"><h3>11 — Case + verify</h3><div class="meta">Print · upload · Serial 9600</div><p>Print SCAD case. Upload sketch. Press DEMO: LOW → MEDIUM → CRITICAL → FIRE. RESET clears and recalibrates.</p></div>
+  <div class="card"><h3>11 — Case + verify</h3><div class="meta">Print · upload · Serial 9600</div><p>Print the <strong>v2 compact case</strong> (126×90×36 mm) from <code>aeroguard_x1_case.scad</code> — rounded shell with <strong>AeroGuard</strong> engraved on the lid/front and mounts for Uno, ESP32, SIM, SD, and 4V buck. Upload sketches. Press DEMO: LOW → MEDIUM → CRITICAL → FIRE. RESET clears and recalibrates.</p></div>
 
   <p class="kicker">Before you present</p>
   <h2 class="sec">Checklist</h2>
