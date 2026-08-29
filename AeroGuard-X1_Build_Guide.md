@@ -5,6 +5,8 @@ Competition / market prototype — Arduino Uno + AeroGuard app (vents via app)
 
 This guide matches the current firmware ([`aeroguard_x1-1.ino`](aeroguard_x1-1.ino)), case ([`aeroguard_x1_case.scad`](aeroguard_x1_case.scad)), and assembly manual ([`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html)).
 
+**On the bench now:** parts **1–8** and **10–17**. Part **9** (LM2596 buck) is the only missing buy — that blocks powering the SIM800L. Wire everything else using [`AeroGuard-X1_Current_Build_Guide.md`](AeroGuard-X1_Current_Build_Guide.md) and [`AeroGuard-X1_Pin_Map_Wiring_Reference.md`](AeroGuard-X1_Pin_Map_Wiring_Reference.md).
+
 ---
 
 ## 1. What we are building
@@ -32,25 +34,25 @@ AeroGuard-X1 sits near an LPG stove or cylinder area. It learns a normal air bas
 
 Use these **module names** when shopping (exact PCB silkscreen may vary by seller).
 
-| # | Role | Module / part name | Qty | Notes |
+| # | Role | Module / part name | Qty | In pack | Notes |
 |---|------|--------------------|-----|-------|
-| 1 | Controller | **Arduino Uno R3** (ATmega328P) | 1 | Official or compatible (CH340 OK) |
-| 2 | Gas sensor | **MQ-2 Gas Sensor Module** *or* **MQ-5 LPG Gas Sensor Module** | 1 | Prefer **MQ-5** for LPG; breakout with AO/DO |
-| 3 | Flame sensor | **IR Flame Sensor Module** (often sold as **KY-026**) | 1 | Use **analog (A0)** output |
-| 4 | Display | **LCD 1602 I2C** (16×2 + **PCF8574** backpack) | 1 | I2C address usually `0x27` or `0x3F` |
-| 5 | Status LEDs | **5mm LED** green, yellow, red + **220Ω** resistors | 1 each | Or **KY-011** dual LED modules if preferred |
-| 6 | Alarm | **Active Buzzer Module** (e.g. **KY-012**) | 1 | Passive buzzer OK if wired to D8 |
-| 7 | Buttons | **6×6mm tactile push button** (momentary) *or* **KY-004** button module | 2 | Demo + Reset |
-| 8 | GSM | **SIM800L V2.0 GSM/GPRS Module** (with antenna) | 1 | Needs strong 4V supply |
-| 9 | SIM power | **LM2596 DC-DC Buck Converter** (adjust to ~4.0V) | 1 | **Do not** power SIM from Uno 5V |
-| 10 | Logging | **Micro SD Card Module (SPI)** (often **HW-125**) + **microSD** FAT32 | 1 | Local incident history |
-| 11 | App link (remote) | **ESP32 DevKit** (WiFi) | 1 | Bridges Uno ↔ phone over WiFi; replaces HM-10 |
-| 12 | Battery | **18650 cell(s)** + **TP4056** charger *and/or* **5V USB power bank** / **MT3608** boost to 5V | 1 | Portable demo power |
-| 13 | Wiring | **MB-102 breadboard** + ** Dupont jumper wires** | 1 set | Or Uno proto shield |
-| 14 | SIM RX protect | **Resistors 10kΩ + 20kΩ** (voltage divider) | 1 pair | Uno D6 → SIM800L RX |
-| 15 | ESP32 RX protect | **Resistors ~10kΩ + 20kΩ** (optional divider) | 1 pair | Uno A3 (5V TX) → ESP32 RX if no shifter |
-| 16 | Network | **Nano-SIM** with call + SMS credit (MTN/Vodafome/AirtelTigo etc.) | 1 | Must fit SIM800L slot (adapter if needed) |
-| 17 | Enclosure | **AeroGuard-X1 3D-printed case** (this repo’s SCAD → STL) | 1 | |
+| 1 | Controller | **Arduino Uno R3** (ATmega328P) | 1 | Have | Official or compatible (CH340 OK) |
+| 2 | Gas sensor | **MQ-2 Gas Sensor Module** *or* **MQ-5 LPG Gas Sensor Module** | 1 | Have | Prefer **MQ-5** for LPG; breakout with AO/DO |
+| 3 | Flame sensor | **IR Flame Sensor Module** (often sold as **KY-026**) | 1 | Have | Use **analog (A0)** output on the module → Uno A2 |
+| 4 | Display | **LCD 1602 I2C** (16×2 + **PCF8574** backpack) | 1 | Have | I2C address usually `0x27` or `0x3F` |
+| 5 | Status LEDs | **5mm LED** green, yellow, red + **220Ω** resistors | 1 each | Have | Or **KY-011** dual LED modules if preferred |
+| 6 | Alarm | **Active Buzzer Module** (e.g. **KY-012**) | 1 | Have | Passive buzzer OK if wired to D8 |
+| 7 | Buttons | **6×6mm tactile push button** (momentary) *or* **KY-004** button module | 2 | Have | Demo + Reset |
+| 8 | GSM | **SIM800L V2.0 GSM/GPRS Module** (with antenna) | 1 | Have | **Do not power** until #9 is set to ~4.0 V |
+| 9 | SIM power | **LM2596 DC-DC Buck Converter** (adjust to ~4.0V) | 1 | **Missing** | **Do not** power SIM from Uno 5V |
+| 10 | Logging | **Micro SD Card Module (SPI)** (often **HW-125**) + **microSD** FAT32 | 1 | Have | Local incident history |
+| 11 | App link (remote) | **ESP32 DevKit** (WiFi) | 1 | Have | Bridges Uno ↔ phone over WiFi; replaces HM-10 |
+| 12 | Battery | **18650 cell(s)** + **TP4056** charger *and/or* **5V USB power bank** / **MT3608** boost to 5V | 1 | Have | Portable demo power — not SIM VCC |
+| 13 | Wiring | **MB-102 breadboard** + Dupont jumper wires | 1 set | Have | Or Uno proto shield |
+| 14 | SIM RX protect | **Resistors 10kΩ + 20kΩ** (voltage divider) | 1 pair | Have | Hold for Uno D6 → SIM800L RX |
+| 15 | ESP32 RX protect | **Resistors ~10kΩ + 20kΩ** (divider) | 1 pair | Have | Uno A3 (5V TX) → ESP32 RX |
+| 16 | Network | **Nano-SIM** with call + SMS credit (MTN/Vodafone/AirtelTigo etc.) | 1 | Have | Insert when SIM is on 4 V |
+| 17 | Enclosure | **AeroGuard-X1 3D-printed case** (this repo’s SCAD → STL) | 1 | Have | After the bench works |
 
 **Optional (not required for v1 demo):** second **MQ-5** for multi-zone expansion later.
 
@@ -123,7 +125,7 @@ Use these **module names** when shopping (exact PCB silkscreen may vary by selle
 6. Buzzer → D8  
 7. Reset button → D7; Demo button → D9  
 8. SD module → D10–D13  
-9. SIM800L on 4V + D5/D6 (divider)  
+9. SIM800L on 4V + D5/D6 (divider) — **skip until LM2596 (part 9) is set to ~4.0 V**  
 10. ESP32 on A1/A3 (WiFi bridge — see [`esp32_aeroguard_bridge.ino`](esp32_aeroguard_bridge.ino); can leave unwired for GSM-only rehearsal)  
 11. Fit into printed case; label Demo vs Reset on the lid  
 12. Upload Uno sketch + ESP32 bridge; Serial 9600 (Uno) / 115200 (ESP32); test demo button
