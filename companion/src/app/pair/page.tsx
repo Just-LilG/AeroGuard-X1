@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { PhoneShell } from "@/components/phone-shell";
@@ -12,12 +12,15 @@ import { ArrowLeft, Bluetooth, Signal } from "lucide-react";
 
 export default function PairPage() {
   const router = useRouter();
-  const { pair, devices } = useDevices();
+  const { pair, devices, ready } = useDevices();
   const [scanning, setScanning] = useState(true);
   const [visible, setVisible] = useState(0);
+  const [pairingSerial, setPairingSerial] = useState<string | null>(null);
+  const pairingLock = useRef(false);
   const pairedSerials = new Set(devices.map((d) => d.serial));
 
   useEffect(() => {
+    if (!ready) return;
     setScanning(true);
     setVisible(0);
     const t1 = setTimeout(() => setVisible(1), 450);
@@ -31,7 +34,7 @@ export default function PairPage() {
       clearTimeout(t2);
       clearTimeout(t3);
     };
-  }, []);
+  }, [ready]);
 
   const shown = NEARBY_POOL.slice(0, visible);
 
@@ -41,6 +44,7 @@ export default function PairPage() {
         <Link
           href="/"
           className="glass-chip pressable flex h-10 w-10 items-center justify-center rounded-full"
+          aria-label="Back"
         >
           <ArrowLeft className="h-4 w-4" />
         </Link>
@@ -84,8 +88,11 @@ export default function PairPage() {
               >
                 <button
                   type="button"
-                  disabled={already}
+                  disabled={already || !ready || pairingSerial !== null}
                   onClick={() => {
+                    if (!ready || already || pairingLock.current) return;
+                    pairingLock.current = true;
+                    setPairingSerial(u.serial);
                     const d = pair(u.serial, u.bleName);
                     router.push(`/d/${d.id}`);
                   }}
@@ -103,7 +110,7 @@ export default function PairPage() {
                     </p>
                   </div>
                   <span className="rounded-full bg-primary/15 px-2.5 py-1 font-mono text-[10px] font-semibold text-primary">
-                    {already ? "PAIRED" : "PAIR"}
+                    {already ? "PAIRED" : pairingSerial === u.serial ? "…" : "PAIR"}
                   </span>
                 </button>
               </li>

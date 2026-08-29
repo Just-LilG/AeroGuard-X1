@@ -33,6 +33,9 @@ export function StatusRing({
     ["--ring-color" as string]: meta.color,
   } as CSSProperties;
   const className = `relative mx-auto flex items-center justify-center ${onClick ? "pressable" : ""}`;
+  const ariaLabel = onClick
+    ? `Current stage ${meta.label}. Advance demo.`
+    : `Current stage ${meta.label}`;
 
   const inner = (
     <>
@@ -82,7 +85,13 @@ export function StatusRing({
 
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} className={className} style={style}>
+      <button
+        type="button"
+        onClick={onClick}
+        className={className}
+        style={style}
+        aria-label={ariaLabel}
+      >
         {inner}
       </button>
     );

@@ -23,6 +23,8 @@ export function DeviceTab({
   const [owner, setOwner] = useState(device.ownerPhone);
   const [backup, setBackup] = useState(device.backupPhone);
   const [confirmRemove, setConfirmRemove] = useState(false);
+  const canSaveName = name.trim().length >= 2;
+  const canSaveContacts = owner.trim().length >= 9;
 
   return (
     <div className="fade-up space-y-4">
@@ -72,7 +74,8 @@ export function DeviceTab({
         <Button
           type="button"
           className="h-11 w-full rounded-2xl"
-          onClick={() => onRename(name.trim() || device.name, place)}
+          disabled={!canSaveName}
+          onClick={() => onRename(name.trim(), place)}
         >
           Save name & place
         </Button>
@@ -85,6 +88,8 @@ export function DeviceTab({
           <Input
             id="d-owner"
             className="mt-2 h-12 rounded-2xl"
+            inputMode="tel"
+            autoComplete="tel"
             value={owner}
             onChange={(e) => setOwner(e.target.value)}
           />
@@ -94,6 +99,8 @@ export function DeviceTab({
           <Input
             id="d-backup"
             className="mt-2 h-12 rounded-2xl"
+            inputMode="tel"
+            autoComplete="tel"
             value={backup}
             onChange={(e) => setBackup(e.target.value)}
           />
@@ -105,6 +112,7 @@ export function DeviceTab({
           type="button"
           variant="secondary"
           className="h-11 w-full rounded-2xl"
+          disabled={!canSaveContacts}
           onClick={() => onContacts(owner.trim(), backup.trim())}
         >
           Save contacts
