@@ -17,7 +17,7 @@ export function VentsTab({
   onRemove,
 }: {
   device: AeroDevice;
-  onAdd: (name: string, kind: VentKind) => void;
+  onAdd: (name: string, kind: VentKind) => boolean;
   onToggle: (ventId: string) => void;
   onRemove: (ventId: string) => void;
 }) {
@@ -119,8 +119,7 @@ export function VentsTab({
           className="h-11 w-full rounded-2xl"
           disabled={name.trim().length < 2}
           onClick={() => {
-            onAdd(name.trim(), kind);
-            setName("");
+            if (onAdd(name.trim(), kind)) setName("");
           }}
         >
           <Plus className="mr-1.5 h-4 w-4" />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -32,10 +32,19 @@ export function DeviceHub({ device }: { device: AeroDevice }) {
   const store = useDevices();
   const [tab, setTab] = useState<DeviceTabId>("status");
   const [toast, setToast] = useState<string | null>(null);
+  const toastTimer = useRef<number | null>(null);
+
+  useEffect(
+    () => () => {
+      if (toastTimer.current) window.clearTimeout(toastTimer.current);
+    },
+    []
+  );
 
   function flash(msg: string) {
     setToast(msg);
-    window.setTimeout(() => setToast(null), 2200);
+    if (toastTimer.current) window.clearTimeout(toastTimer.current);
+    toastTimer.current = window.setTimeout(() => setToast(null), 2200);
   }
 
   if (!device.setupComplete) {
@@ -92,8 +101,9 @@ export function DeviceHub({ device }: { device: AeroDevice }) {
           <VentsTab
             device={device}
             onAdd={(name, kind) => {
-              store.addVent(device.id, name, kind);
-              flash(`Linked ${kind}`);
+              const linked = store.addVent(device.id, name, kind);
+              flash(linked ? `Linked ${kind}` : "Already linked");
+              return linked;
             }}
             onToggle={(ventId) => store.toggleVent(device.id, ventId)}
             onRemove={(ventId) => {

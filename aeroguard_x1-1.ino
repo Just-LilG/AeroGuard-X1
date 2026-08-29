@@ -139,6 +139,7 @@ void calibrateGas() {
     delay(CALIBRATION_SAMPLE_MS);
   }
   gasBaseline = (float)total / samples;
+  if (gasBaseline < 1) gasBaseline = 1;
   gasReading = gasBaseline;
   gasPrevious = gasBaseline;
 }
