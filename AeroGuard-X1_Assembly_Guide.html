@@ -76,7 +76,7 @@
     <div class="hazard">
       <h2>Read before power-on</h2>
       <ul>
-        <li>SIM800L needs its own ~4V high-current supply — never the Uno 5V pin.</li>
+        <li>SIM800L needs its own ~4V high-current supply (LM2596) — never the Uno 5V pin. If the buck is not here yet, leave the modem unpowered.</li>
         <li>Level-shift Uno TX → SIM800L RX with a voltage divider.</li>
         <li>Common ground for every module including battery and SIM.</li>
         <li>Set real phone numbers in firmware before any call/SMS demo.</li>
@@ -117,7 +117,7 @@
   <div class="card"><h3>06 — Buzzer</h3><div class="meta">D8</div><p>Positive to D8, negative to GND.</p></div>
   <div class="card"><h3>07 — Buttons</h3><div class="meta">D7 reset · D9 demo</div><p>Each button: one leg to pin, other to GND (internal pull-ups). Label the lid: <strong>RESET</strong> and <strong>DEMO</strong>.</p></div>
   <div class="card"><h3>08 — SD module</h3><div class="meta">D10–D13</div><p>Local incident history for demos and landlords — not marketed as fire-proof storage.</p></div>
-  <div class="card"><h3>09 — SIM800L</h3><div class="meta">4V · D5 · D6</div><p>TX→D5, RX←D6 via divider. Active SIM with credit. Slow blink ≈ registered.</p><div class="warn"><strong>Demo:</strong> CRITICAL/FIRE will place a real call — warn the owner phone holder.</div></div>
+  <div class="card"><h3>09 — SIM800L</h3><div class="meta">Wait for part 9 · then 4V · D5 · D6</div><p>You have the modem, SIM, and divider resistors. Do not connect VCC until the LM2596 is metered at ~4.0V. Then TX→D5, RX←D6 via divider. Slow blink ≈ registered.</p><div class="warn"><strong>Until the buck arrives:</strong> skip this step. Demo still works (LEDs, buzzer, LCD, ESP32). <strong>After:</strong> CRITICAL/FIRE will place a real call — warn the owner phone holder.</div></div>
   <div class="card"><h3>10 — ESP32 WiFi (app / remote)</h3><div class="meta">A1 / A3 · ESP32 DevKit</div><p>Wire ESP32 UART2 (GPIO16 RX / GPIO17 TX) to Uno A3/A1 with a level shift into the ESP32 RX. Flash <code>esp32_aeroguard_bridge.ino</code>, set WiFi, then open <code>/status</code> on the phone. Firmware already mirrors <code>STATUS</code> / <code>APP_CMD:VENT_OPEN</code> to this link.</p></div>
   <div class="card"><h3>11 — Case + verify</h3><div class="meta">Print · upload · Serial 9600</div><p>Print the <strong>v2 compact case</strong> (126×90×36 mm) from <code>aeroguard_x1_case.scad</code> — rounded shell with <strong>AeroGuard</strong> engraved on the lid/front and mounts for Uno, ESP32, SIM, SD, and 4V buck. Upload sketches. Press DEMO: LOW → MEDIUM → CRITICAL → FIRE. RESET clears and recalibrates.</p></div>
 
@@ -152,8 +152,8 @@
     "Phone numbers set in firmware",
     "Demo button cycles LOW→MED→CRIT→FIRE",
     "Reset exits demo and recalibrates",
-    "MEDIUM sends owner SMS",
-    "CRITICAL places real call",
+    "MEDIUM sends owner SMS (after 4V buck)",
+    "CRITICAL places real call (after 4V buck)",
     "LEDs are green / yellow / red",
     "No servo — vents explained as app",
     "Case fitted and buttons labeled",
