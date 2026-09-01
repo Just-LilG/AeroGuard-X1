@@ -51,6 +51,7 @@ function createDevice(serial: string, bleName: string): AeroDevice {
       nowLog("SYSTEM", "Paired", `${bleName} ${serial} linked to this phone.`),
     ],
     pairedAt: Date.now(),
+    calibrating: false,
   };
 }
 
@@ -204,11 +205,17 @@ export function DeviceProvider({ children }: { children: React.ReactNode }) {
       patch(id, (d) => ({
         ...applyStage(d, "SAFE", false),
         demoMode: false,
+        calibrating: true,
         log: [
           nowLog("SYSTEM", "Reset", "Alarm muted. Demo off. Recalibrating."),
           ...d.log,
         ],
       }));
+      window.setTimeout(() => {
+        patch(id, (d) =>
+          d.calibrating ? { ...d, calibrating: false } : d
+        );
+      }, 2200);
     },
     [patch]
   );
