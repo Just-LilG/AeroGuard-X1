@@ -1,5 +1,13 @@
 /*
-  AEROGUARD-X1 — Arduino Uno firmware with ESP32 WiFi bridge on A1/A3
+  AEROGUARD-X1 firmware
+
+  Boards:
+    Arduino Uno R3  — default pins + ESP32 SoftwareSerial on A1/A3
+    Arduino Yún     — select Tools → Board → Arduino Yún
+                      I2C on D2/D3, SPI on ICSP, D0/D1 left for Linux
+                      ESP32 not used (on-board Wi‑Fi)
+
+  SIM800L: do not power until LM2596 is set to ~4.0 V.
 */
 
 #include <Wire.h>
@@ -8,6 +16,21 @@
 #include <SPI.h>
 #include <SD.h>
 
+#if defined(ARDUINO_AVR_YUN)
+// Leonardo-class: do not put LEDs on D2/D3 (those are SDA/SCL).
+// Do not use D0/D1 (Serial1 ↔ Linux). SD MOSI/MISO/SCK = ICSP header.
+const int PIN_GAS = A0;
+const int PIN_FLAME = A2;
+const int PIN_LED_GREEN = 4;
+const int PIN_LED_YELLOW = 5;
+const int PIN_LED_RED = 6;
+const int PIN_BUZZER = 7;
+const int PIN_BTN_RESET = 8;
+const int PIN_BTN_DEMO = 9;
+const int PIN_SD_CS = 10;
+const int PIN_SIM_RX = 11;  // SIM800L TX → Yún (leave until 4 V buck)
+const int PIN_SIM_TX = 12;  // Yún → SIM800L RX via 10k/20k (leave until buck)
+#else
 const int PIN_GAS = A0;
 const int PIN_APP_RX = A1;  // Uno RX <- ESP32 TX
 const int PIN_FLAME = A2;
@@ -15,16 +38,19 @@ const int PIN_APP_TX = A3;  // Uno TX -> ESP32 RX
 const int PIN_LED_GREEN = 2;
 const int PIN_LED_YELLOW = 3;
 const int PIN_LED_RED = 4;
-const int PIN_SIM_RX = 5;  // SIM800L TX → Uno (leave unwired until 4V buck)
+const int PIN_SIM_RX = 5;  // SIM800L TX → Uno (leave until 4 V buck)
 const int PIN_SIM_TX = 6;  // Uno → SIM800L RX via 10k/20k (leave until buck)
 const int PIN_BTN_RESET = 7;
 const int PIN_BUZZER = 8;
 const int PIN_BTN_DEMO = 9;
 const int PIN_SD_CS = 10;
+#endif
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 SoftwareSerial simSerial(PIN_SIM_RX, PIN_SIM_TX);
+#if !defined(ARDUINO_AVR_YUN)
 SoftwareSerial appSerial(PIN_APP_RX, PIN_APP_TX);  // ESP32 WiFi bridge
+#endif
 const char* OWNER_CONTACT = "+233XXXXXXXXX";
 const char* SECONDARY_CONTACT = "+233YYYYYYYYY";
 const char* DEVICE_LABEL = "AeroGuard Kitchen";
@@ -70,12 +96,18 @@ void setup() {
   lcd.print("AeroGuard-X1");
   lcd.setCursor(0, 1);
   lcd.print("Starting...");
-  Serial.println(F("=== AeroGuard-X1 v1 ==="));
+#if defined(ARDUINO_AVR_YUN)
+  Serial.println(F("=== AeroGuard-X1 Yún ==="));
+#else
+  Serial.println(F("=== AeroGuard-X1 Uno+ESP32 ==="));
+#endif
   if (SD.begin(PIN_SD_CS)) { sdReady = true; logEvent("SYSTEM", "boot"); }
   simSerial.begin(9600);
   delay(2000);
   initGSM();
-  appSerial.begin(9600);  // ESP32 bridge
+#if !defined(ARDUINO_AVR_YUN)
+  appSerial.begin(9600);
+#endif
   calibrateGas();
   setLevel(SAFE, true);
   lcd.clear();
@@ -250,11 +282,36 @@ const char* levelName(RiskLevel lvl) {
   return "?";
 }
 
-void appPrint(const __FlashStringHelper* s) { Serial.print(s); appSerial.print(s); }
-void appPrint(const char* s) { Serial.print(s); appSerial.print(s); }
-void appPrint(int n) { Serial.print(n); appSerial.print(n); }
-void appPrintln(const __FlashStringHelper* s) { Serial.println(s); appSerial.println(s); }
-void appPrintln() { Serial.println(); appSerial.println(); }
+void appPrint(const __FlashStringHelper* s) {
+  Serial.print(s);
+#if !defined(ARDUINO_AVR_YUN)
+  appSerial.print(s);
+#endif
+}
+void appPrint(const char* s) {
+  Serial.print(s);
+#if !defined(ARDUINO_AVR_YUN)
+  appSerial.print(s);
+#endif
+}
+void appPrint(int n) {
+  Serial.print(n);
+#if !defined(ARDUINO_AVR_YUN)
+  appSerial.print(n);
+#endif
+}
+void appPrintln(const __FlashStringHelper* s) {
+  Serial.println(s);
+#if !defined(ARDUINO_AVR_YUN)
+  appSerial.println(s);
+#endif
+}
+void appPrintln() {
+  Serial.println();
+#if !defined(ARDUINO_AVR_YUN)
+  appSerial.println();
+#endif
+}
 
 void emitAppStatus() {
   static unsigned long last = 0;
@@ -271,6 +328,9 @@ void emitAppStatus() {
 }
 
 void pollAppBridge() {
+#if defined(ARDUINO_AVR_YUN)
+  return;
+#else
   static char buf[48];
   static byte idx = 0;
   while (appSerial.available()) {
@@ -285,13 +345,20 @@ void pollAppBridge() {
     }
     if (idx < sizeof(buf) - 1) buf[idx++] = c;
   }
+#endif
+}
+
+void releaseAppListen() {
+#if !defined(ARDUINO_AVR_YUN)
+  appSerial.listen();
+#endif
 }
 
 void initGSM() {
   simSerial.listen();
   simSerial.println("AT"); delay(800);
   simSerial.println("AT+CMGF=1"); delay(800);
-  appSerial.listen();
+  releaseAppListen();
 }
 
 void sendSMS(const char* number, const char* message) {
@@ -300,14 +367,14 @@ void sendSMS(const char* number, const char* message) {
   simSerial.print("AT+CMGS="); simSerial.write('"');
   simSerial.print(number); simSerial.write('"'); simSerial.println(); delay(400);
   simSerial.print(message); delay(400); simSerial.write(26); delay(2500);
-  appSerial.listen();
+  releaseAppListen();
 }
 
 void callNumber(const char* number) {
   simSerial.listen();
   simSerial.print("ATD"); simSerial.print(number); simSerial.println(";");
   delay(18000); simSerial.println("ATH"); delay(800);
-  appSerial.listen();
+  releaseAppListen();
 }
 
 void logEvent(const char* tag, const char* message) {

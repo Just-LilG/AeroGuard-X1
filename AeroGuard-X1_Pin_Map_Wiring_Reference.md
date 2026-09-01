@@ -1,6 +1,6 @@
 # AeroGuard-X1 — Pin Map & Module Wiring Reference
 
-Module-by-module wiring for every part **in inventory**, excluding SIM800L power (blocked on the missing LM2596 — see [`AeroGuard-X1_Current_Build_Guide.md`](AeroGuard-X1_Current_Build_Guide.md) §6).
+Module-by-module wiring for the **Uno + ESP32** pack. If the **Yún** is the brain, use [`AeroGuard-X1_Yun_Pin_Map.md`](AeroGuard-X1_Yun_Pin_Map.md) instead — pins are different.
 
 Matches [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) and [`esp32_aeroguard_bridge.ino`](esp32_aeroguard_bridge.ino).
 
