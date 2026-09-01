@@ -30,8 +30,8 @@ const char* OWNER_CONTACT = "+233XXXXXXXXX";
 const char* SECONDARY_CONTACT = "+233YYYYYYYYY";
 const char* DEVICE_LABEL = "AeroGuard Kitchen";
 
-const unsigned long CALIBRATION_TIME_MS = 45000;
-const unsigned long CALIBRATION_SAMPLE_MS = 500;
+const unsigned long CALIBRATION_TIME_MS = 6000;
+const unsigned long CALIBRATION_SAMPLE_MS = 80;
 const float THRESHOLD_LOW = 20.0;
 const float THRESHOLD_MEDIUM = 40.0;
 const float THRESHOLD_CRITICAL = 70.0;
@@ -55,7 +55,9 @@ unsigned long criticalSince = 0;
 bool sdReady = false;
 bool gsmReady = false;
 unsigned long lastLcdSwitch = 0;
+unsigned long lastAnimMs = 0;
 bool lcdAltView = false;
+bool lcdBlink = false;
 
 void setup() {
   Serial.begin(9600);
@@ -68,10 +70,11 @@ void setup() {
   pinMode(PIN_FLAME, INPUT);
   lcd.init();
   lcd.backlight();
-  lcd.setCursor(0, 0);
-  lcd.print("AeroGuard-X1");
-  lcd.setCursor(0, 1);
-  lcd.print("Starting...");
+  {
+    byte fill[8] = {0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F};
+    lcd.createChar(0, fill);
+  }
+  bootSplash();
   Serial.println(F("=== AeroGuard-X1 v1 ==="));
   if (SD.begin(PIN_SD_CS)) { sdReady = true; logEvent("SYSTEM", "boot"); }
   simSerial.begin(9600);
@@ -128,19 +131,70 @@ void handleResetButton() {
   setLevel(SAFE, true);
 }
 
+void bootSplash() {
+  lcd.clear();
+  const char title[] = "AeroGuard-X1";
+  for (byte i = 0; i < 12; i++) {
+    lcd.setCursor(i, 0);
+    lcd.print(title[i]);
+    digitalWrite(PIN_LED_GREEN, i % 3 == 0);
+    digitalWrite(PIN_LED_YELLOW, i % 3 == 1);
+    digitalWrite(PIN_LED_RED, i % 3 == 2);
+    delay(45);
+  }
+  digitalWrite(PIN_LED_GREEN, LOW);
+  digitalWrite(PIN_LED_YELLOW, LOW);
+  digitalWrite(PIN_LED_RED, LOW);
+  lcd.setCursor(0, 1);
+  lcd.print("LPG + fire warn");
+  delay(350);
+}
+
 void calibrateGas() {
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Calibrating...");
+  lcd.print("Calibrate");
   long total = 0;
   int samples = 0;
   unsigned long start = millis();
+  const char spin[] = {'|', '/', '-', '\\'};
+  byte frame = 0;
   while (millis() - start < CALIBRATION_TIME_MS) {
     total += analogRead(PIN_GAS);
     samples++;
+    unsigned long el = millis() - start;
+    if (el > CALIBRATION_TIME_MS) el = CALIBRATION_TIME_MS;
+    int filled = (int)((el * 10UL) / CALIBRATION_TIME_MS);
+    int pct = (int)((el * 100UL) / CALIBRATION_TIME_MS);
+    if (filled > 10) filled = 10;
+    if (pct > 99) pct = 99;
+
+    lcd.setCursor(10, 0);
+    lcd.print(spin[frame & 3]);
+    lcd.print(' ');
+    lcd.setCursor(0, 1);
+    lcd.print('[');
+    for (int i = 0; i < 10; i++) {
+      if (i < filled) lcd.write((uint8_t)0);
+      else lcd.print(' ');
+    }
+    lcd.print(']');
+    lcd.print(pct);
+    if (pct < 10) lcd.print(' ');
+    lcd.print('%');
+
+    digitalWrite(PIN_LED_GREEN, (frame % 3) == 0);
+    digitalWrite(PIN_LED_YELLOW, (frame % 3) == 1);
+    digitalWrite(PIN_LED_RED, (frame % 3) == 2);
+    frame++;
     delay(CALIBRATION_SAMPLE_MS);
   }
+  digitalWrite(PIN_LED_GREEN, LOW);
+  digitalWrite(PIN_LED_YELLOW, LOW);
+  digitalWrite(PIN_LED_RED, LOW);
+  if (samples < 1) samples = 1;
   gasBaseline = (float)total / samples;
+  if (gasBaseline < 1) gasBaseline = 1;
   gasReading = gasBaseline;
   gasPrevious = gasBaseline;
 }
@@ -251,14 +305,28 @@ void paintLcd(bool force) {
   }
 
   if (currentLevel == FIRE) {
-    lcdLine(0, demoMode ? "DEMO  FIRE" : "FIRE RISK", 0);
-    lcdLine(1, demoMode ? "Reset to exit" : "EVACUATE", 0);
+    if (lcdBlink) {
+      lcdLine(0, demoMode ? "DEMO  FIRE" : "FIRE RISK", 0);
+      lcdLine(1, demoMode ? "Reset to exit" : "EVACUATE NOW", 0);
+    } else {
+      lcdLine(0, "  !!  FIRE  !! ", 0);
+      lcdLine(1, "              ", 0);
+    }
+    return;
+  }
+
+  if (currentLevel == CRITICAL && lcdBlink && !lcdAltView) {
+    lcdLine(0, demoMode ? "DEMO CRITICAL" : "CRITICAL", 0);
+    lcdLine(1, "GET OUT / CALL", 0);
     return;
   }
 
   if (!lcdAltView || force) {
     char top[17];
-    snprintf(top, sizeof(top), "%s %-8s", demoMode ? "DEMO" : "LIVE", levelName(currentLevel));
+    snprintf(top, sizeof(top), "%s%c %-7s",
+             demoMode ? "DEMO" : "LIVE",
+             (demoMode && lcdBlink) ? '*' : ' ',
+             levelName(currentLevel));
     lcdLine(0, top, 0);
     lcdLine(1, DEVICE_LABEL, 0);
   } else {
@@ -271,6 +339,15 @@ void paintLcd(bool force) {
 }
 
 void updateLCD() {
+  bool hot = (currentLevel == CRITICAL || currentLevel == FIRE);
+  unsigned long now = millis();
+  if (hot || demoMode) {
+    if (now - lastAnimMs < 280) return;
+    lastAnimMs = now;
+    lcdBlink = !lcdBlink;
+    paintLcd(true);
+    return;
+  }
   paintLcd(false);
 }
 
