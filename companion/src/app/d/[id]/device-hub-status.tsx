@@ -60,13 +60,13 @@ export function StatusTab({
         </div>
         <StatusRing
           stage={device.stage}
-          onClick={calibrating ? undefined : onDemo}
+          onClick={onDemo}
           subtitle={
             calibrating ? "Sampling air…" : `LED ${meta.led} · tap to demo`
           }
         />
         {calibrating ? (
-          <div className="mt-4 space-y-3">
+          <div className="pointer-events-none mt-4 space-y-3">
             <div className="led-chase flex justify-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full bg-[#3f8f4a]" />
               <span className="h-2.5 w-2.5 rounded-full bg-[#d4a017]" />
@@ -84,6 +84,23 @@ export function StatusTab({
             {STAGE_HINT[device.stage]}
           </p>
         )}
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <Button
+            type="button"
+            className="h-12 rounded-2xl"
+            onClick={onDemo}
+          >
+            Next: {demoNext}
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            className="h-12 rounded-2xl"
+            onClick={onReset}
+          >
+            Reset Safe
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -131,28 +148,10 @@ export function StatusTab({
           Contest demo
         </p>
         <p className="mt-2 text-[14px] leading-relaxed text-muted-foreground">
-          Tap the ring or Next to cycle Low → Medium → Critical → Fire — same idea
-          as the Demo button on the box. GSM still targets this unit&apos;s contacts.
+          Tap the ring or Next (above) to cycle Low → Medium → Critical → Fire —
+          same idea as the Demo button on the box. GSM still targets this
+          unit&apos;s contacts.
         </p>
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <Button
-            type="button"
-            className="h-12 rounded-2xl"
-            disabled={calibrating}
-            onClick={onDemo}
-          >
-            Next: {demoNext}
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            className="h-12 rounded-2xl"
-            disabled={calibrating}
-            onClick={onReset}
-          >
-            Reset Safe
-          </Button>
-        </div>
       </div>
     </div>
   );

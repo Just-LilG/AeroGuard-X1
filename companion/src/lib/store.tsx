@@ -19,6 +19,13 @@ import {
 
 const KEY = "aeroguard.devices.v1";
 const DEMO_CYCLE: Stage[] = ["LOW", "MEDIUM", "CRITICAL", "FIRE"];
+const CALIBRATE_MS = 2200;
+
+function stripCalibrating(devices: AeroDevice[]): AeroDevice[] {
+  return devices.map((d) =>
+    d.calibrating ? { ...d, calibrating: false } : d
+  );
+}
 
 function uid(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
@@ -141,7 +148,10 @@ export function DeviceProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) setDevices(JSON.parse(raw));
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setDevices(Array.isArray(parsed) ? stripCalibrating(parsed) : []);
+      }
     } catch {
       /* ignore */
     }
@@ -150,7 +160,7 @@ export function DeviceProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!ready) return;
-    localStorage.setItem(KEY, JSON.stringify(devices));
+    localStorage.setItem(KEY, JSON.stringify(stripCalibrating(devices)));
   }, [devices, ready]);
 
   const patch = useCallback((id: string, fn: (d: AeroDevice) => AeroDevice) => {
@@ -212,10 +222,8 @@ export function DeviceProvider({ children }: { children: React.ReactNode }) {
         ],
       }));
       window.setTimeout(() => {
-        patch(id, (d) =>
-          d.calibrating ? { ...d, calibrating: false } : d
-        );
-      }, 2200);
+        patch(id, (d) => ({ ...d, calibrating: false }));
+      }, CALIBRATE_MS);
     },
     [patch]
   );
