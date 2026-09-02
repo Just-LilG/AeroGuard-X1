@@ -1,208 +1,405 @@
-# AeroGuard-X1 — Build Guide (v1 Demo / Pitch Kit)
+# AeroGuard-X1 — Build Guide
 
-**Smart LPG leak + fire early-warning device**  
-Competition prototype — Arduino Uno + GSM alerts + AeroGuard contest app
+**The product you assemble:** a small box that watches for LPG gas leaks and fire, then **calls and texts** the owner.
 
-This guide matches the current firmware ([`aeroguard_x1-1.ino`](aeroguard_x1-1.ino)), case ([`aeroguard_x1_case.scad`](aeroguard_x1_case.scad)), and assembly manual ([`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html)).
+This is the full demo kit. One brain board. One phone chip. Sensors, lights, screen, alarm, buttons, and a case.
 
-**Demo build = no ESP32.** Do not buy, wire, or flash an ESP32 for this pitch kit. The phone app is the contest UI on Vercel. It does **not** talk to the box. Real calls and texts come from the GSM chip (SIM800L) on the Uno.
+Start here. The visual walkthrough is [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html) (open it in a browser). The program you upload is [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino).
 
 ---
 
 ## 1. What we are building
 
-AeroGuard-X1 sits near an LPG stove or cylinder area. It learns a normal air baseline, then escalates:
+Think of a kitchen with an LPG cylinder. Gas should stay in the pipe, like water in a hose. If it leaks, you want a warning **early**, not after someone is already in trouble.
 
-| Stage | LED | Device actions | Who is notified |
-|-------|-----|----------------|-----------------|
-| SAFE | Off | Monitoring | — |
-| LOW | **Green** | Quiet early warning on LCD | App status only (simulated in the contest UI) |
-| MEDIUM | **Yellow** | Intermittent buzzer + SMS | Owner SMS; app shows linked smart vents/windows |
-| CRITICAL | **Red** | Continuous alarm + **call + SMS** | Owner |
-| FIRE | **Red** | Alarm + **call + SMS** | Owner (fire-service SMS = Phase 2) |
+AeroGuard-X1 sits near the stove or cylinder. It sniffs the air. It also watches for flame. When things get worse, it gets louder and it uses a real phone chip to reach people.
 
-**Demo button (presentation):** each press advances LOW → MEDIUM → CRITICAL → FIRE (simulated leak). Everything else is real, including GSM calls/SMS.  
-**Reset button:** mute, exit demo, recalibrate.
+| Stage | Light | What the box does | Who is reached |
+|-------|--------|-------------------|----------------|
+| SAFE | Off | Quiet. Learning / watching. | Nobody |
+| LOW | **Green** | Quiet early warning on the screen | Nobody by phone yet |
+| MEDIUM | **Yellow** | Beep-beep + **SMS** (a text message) | Owner text |
+| CRITICAL | **Red** | Loud alarm + **call + SMS** | Owner phone rings |
+| FIRE | **Red** | Loud alarm + **call + SMS** | Owner (fire-service text comes later, not this kit) |
 
-**Not on this device:** a motorized vent flap. Ventilation is an **app + smart vent/window** feature so the home works together.
+**Demo button:** press it to pretend a leak is getting worse. LOW → MEDIUM → CRITICAL → FIRE. Lights, screen, buzzer, and phone alerts still run for real. You do not need to open a gas valve.
 
-**Multi-zone:** one hub now; extra gas sensors later. Do not buy two full units for the pitch — tell the expansion story.
+**Reset button:** stop the alarm. Leave the pretend-leak. The box sniffs a new “normal air” baseline, like tasting clean water before you judge a muddy stream.
 
----
+**Not on this box:** a motor that opens a window. The contest phone app **shows** smart vents. The box itself does not move a flap.
 
-## 2. Parts list (buy / pack)
-
-Use these **module names** when shopping (exact PCB silkscreen may vary by seller).
-
-This is the **demo packing list**. Buy only what is here.
-
-| # | Role | Module / part name | Qty | Notes |
-|---|------|--------------------|-----|-------|
-| 1 | Controller | **Arduino Uno R3** (ATmega328P) | 1 | The small computer on the box. Official or compatible (CH340 OK). |
-| 2 | Gas sensor | **MQ-2 Gas Sensor Module** *or* **MQ-5 LPG Gas Sensor Module** | 1 | Prefer **MQ-5** for LPG; breakout with AO/DO |
-| 3 | Flame sensor | **IR Flame Sensor Module** (often sold as **KY-026**) | 1 | Use **analog (A0)** output |
-| 4 | Display | **LCD 1602 I2C** (16×2 + **PCF8574** backpack) | 1 | I2C address usually `0x27` or `0x3F` |
-| 5 | Status LEDs | **5mm LED** green, yellow, red + **220Ω** resistors | 1 each | Or **KY-011** dual LED modules if preferred |
-| 6 | Alarm | **Active Buzzer Module** (e.g. **KY-012**) | 1 | Passive buzzer OK if wired to D8 |
-| 7 | Buttons | **6×6mm tactile push button** (momentary) *or* **KY-004** button module | 2 | Demo + Reset |
-| 8 | GSM | **SIM800L V2.0 GSM/GPRS Module** (with antenna) | 1 | Phone chip for real SMS and calls. Needs a strong 4V supply. |
-| 9 | SIM power | **LM2596 DC-DC Buck Converter** (adjust to ~4.0V) | 1 | **Do not** power SIM from Uno 5V |
-| 10 | Logging | **Micro SD Card Module (SPI)** (often **HW-125**) + **microSD** FAT32 | 1 | Local incident history |
-| 11 | Battery | **18650 cell(s)** + **TP4056** charger *and/or* **5V USB power bank** / **MT3608** boost to 5V | 1 | Portable demo power |
-| 12 | Wiring | **MB-102 breadboard** + **Dupont jumper wires** | 1 set | Or Uno proto shield |
-| 13 | SIM RX protect | **Resistors 10kΩ + 20kΩ** (voltage divider) | 1 pair | Uno D6 → SIM800L RX |
-| 14 | Network | **Nano-SIM** with call + SMS credit (MTN/Vodafone/AirtelTigo etc.) | 1 | Must fit SIM800L slot (adapter if needed) |
-| 15 | Enclosure | **AeroGuard-X1 3D-printed case** (this repo’s SCAD → STL) | 1 | |
-
-**Do not add to this shopping list:** an **ESP32** (a second board that can join WiFi). It is not needed for the demo. See [§10](#10-phase-2--later-optional-esp32).
-
-**Optional (not required for v1 demo):** second **MQ-5** for multi-zone expansion later.
-
-**Removed vs old draft:** SG90 servo, vent flap parts, second required gas sensor, orange LED, **HM-10 BLE**, **ESP32** as a required part.
-
-**Shopping tip:** If a seller lists “MQ-2 smoke sensor,” it still detects LPG/smoke mix; for a cleaner LPG story ask for **MQ-5**.
+**One gas zone for the pitch.** Tell judges you can add more noses later. Do not buy two full kits for the demo.
 
 ---
 
-## 2b. How this demo talks to people
+## 2. How the box and the phone app fit together
 
-| Path | Who | What |
-|------|-----|------|
-| **GSM (SIM800L)** | Always, on the box | Real SMS / call when gas or fire is high. This works even if the phone app is just a mock-up. |
-| **Contest phone app** | Vercel website | Simulated discovery and status. Judges tap the UI. It does **not** reach the box. |
-| **USB Serial** | Bench | Same `STATUS` / `APP_CMD` lines for debugging on a computer |
+There are **two** things in the demo. They do different jobs.
 
-**Who does what:** the Uno keeps sensors, LEDs, buzzer, SD, and GSM. The phone app is hosted on Vercel (the contest website host). Vercel cannot see a board on your home WiFi. That is why this demo does not use WiFi.
+| Piece | What it is | What it does |
+|-------|------------|--------------|
+| **The box** | Hardware you wire and case | Sniffs gas, sees flame, lights LEDs, beeps, writes a log, **sends real SMS and makes real calls** |
+| **The contest app** | A website on **Vercel** (a host for the pitch UI) | Looks like a phone app. Pairing and live status are **pretend**. Judges tap it. It does **not** talk to the box. |
 
----
+**Real alerts = GSM.** GSM is the same kind of mobile network your phone uses. The chip is a **SIM800L**. Put a real SIM card in it (the tiny card from MTN, Telecel, AirtelTigo, and so on). Give it airtime. When the box hits MEDIUM it texts. When it hits CRITICAL or FIRE it **calls**, then texts.
 
-## 3. Pin map
+The Vercel app cannot reach a box on a table in Accra. That is fine. You show the app for the product story. You show the box for the real call.
 
-| Pin | Function |
-|-----|----------|
-| A0 | Gas sensor analog |
-| A1 | **Leave empty for demo** (reserved for a later WiFi board) |
-| A2 | Flame sensor analog |
-| A3 | **Leave empty for demo** (reserved for a later WiFi board) |
-| A4 | LCD SDA |
-| A5 | LCD SCL |
-| D2 | Green LED (LOW) |
-| D3 | Yellow LED (MEDIUM) |
-| D4 | Red LED (CRITICAL / FIRE) |
-| D5 | SIM800L TX → Uno RX |
-| D6 | Uno TX → SIM800L RX **via voltage divider** |
-| D7 | Reset / mute / recalibrate button → GND |
-| D8 | Buzzer |
-| D9 | **Demo** button → GND |
-| D10 | SD CS |
-| D11 | SD MOSI (fixed SPI) |
-| D12 | SD MISO (fixed SPI) |
-| D13 | SD SCK (fixed SPI) |
-| 5V / GND | Sensors, LCD, LEDs, buzzer, buttons, SD |
-| ~4V rail | SIM800L VCC only (shared GND with Uno) |
+USB on a computer is only for loading the program and reading debug lines. Serial speed is **9600** (that is just “how fast the chat on the cable runs”).
 
 ---
 
-## 4. Wiring warnings (before power)
+## 3. Shopping list
 
-1. **SIM800L power:** separate ~3.7–4.2V capable of ~2A peaks — never Uno 5V.  
-2. **SIM800L RX:** level-shift Uno 5V TX down (~2.8V logic). Use the 10k + 20k resistors.  
-3. **Leave A1 and A3 empty.** Do not put a WiFi board on them for this demo.  
-4. **One common GND** for Uno, SIM, battery, sensors.  
-5. **SPI pins D11–D13** are taken by SD — leave free otherwise.  
-6. **Flame threshold:** test your module; adjust `FLAME_DETECT_THRESHOLD` in code.  
-7. **Set phone numbers** in firmware before any live GSM demo.
+Buy only what is in this table. Search shops by the **module name**.
 
-You do **not** set a WiFi name or password for this demo. There is no WiFi board to flash.
+| # | Role | What to buy | Qty | Plain words |
+|---|------|-------------|-----|-------------|
+| 1 | Brain | **Arduino Uno R3** (ATmega328P). Clone with CH340 chip is OK. | 1 | The small computer. All other parts plug into it. |
+| 2 | Gas nose | **MQ-5 LPG Gas Sensor Module** (or **MQ-2** if MQ-5 is hard to find). Breakout with **AO** and **DO** pins. | 1 | Sniffs LPG / smoke mix. Prefer MQ-5 for cooking gas. |
+| 3 | Flame eye | **IR Flame Sensor Module** (often **KY-026**) | 1 | Sees a flame’s infrared light. Use the **analog (A0)** pin on the module. |
+| 4 | Screen | **LCD 1602 I2C** — 16 characters × 2 lines with a **PCF8574** backpack | 1 | The little green/blue text screen. I2C means only two data wires. |
+| 5 | Lights | **5mm LED**: 1 green, 1 yellow, 1 red + three **220Ω** resistors | 1 set | Stage lights. Resistors are tiny “speed bumps” so the LEDs do not burn. |
+| 6 | Alarm | **Active buzzer module** (often **KY-012**) | 1 | The beeper. |
+| 7 | Buttons | Two **6×6mm tactile push buttons**, or two **KY-004** button modules | 2 | **Demo** and **Reset**. Momentary = click and it springs back. |
+| 8 | Phone chip | **SIM800L V2.0 GSM/GPRS module** with antenna | 1 | Sends SMS and makes calls. Needs strong ~4V power. |
+| 9 | SIM power | **LM2596 DC-DC buck converter** | 1 | A “pressure reducer” for electricity. You set the output to about **4.0V**. |
+| 10 | Log | **Micro SD card module (SPI)** (often **HW-125**) + a **microSD** card formatted **FAT32** | 1 | Writes a simple event file. Not a fire-proof vault. |
+| 11 | Battery | **5V USB power bank**, *or* **18650** cell + **TP4056** charger + boost to 5V | 1 | Demo power. USB bank is the easy path. |
+| 12 | Wiring | **MB-102 breadboard** + **Dupont jumper wires** (male-male, male-female) | 1 set | Breadboard = plastic hole grid so you can plug wires without soldering. |
+| 13 | SIM protect | **10kΩ** resistor + **20kΩ** resistor | 1 pair | Voltage divider. Drops the Uno’s 5V talk-line so the SIM chip is not hurt. |
+| 14 | Network | **Nano-SIM** with call + SMS credit | 1 | Must fit the SIM800L slot. Use an adapter if your SIM is larger. |
+| 15 | Case | Printed **AeroGuard-X1** case from [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad) | 1 | Lid, base, sensor clip. See [§10](#10-case-print). |
+| 16 | Tools | USB **data** cable (not charge-only), small screwdriver, **multimeter** | 1 | Multimeter = the meter that reads volts. You need it to set 4.0V. |
 
----
+**Optional, not required:** extra MQ-5 for a “second kitchen” story later.
 
-## 5. Assembly order
+**Do not buy for this kit:** a servo motor, a vent flap, a Bluetooth dongle, or a second brain board.
 
-Do these in order. There is no ESP32 step.
-
-1. Power rails (5V + GND; separate 4V for SIM)  
-2. Gas sensor → A0  
-3. Flame sensor → A2  
-4. LCD I2C → A4/A5  
-5. Green / Yellow / Red LEDs → D2 / D3 / D4  
-6. Buzzer → D8  
-7. Reset button → D7; Demo button → D9  
-8. SD module → D10–D13  
-9. SIM800L on 4V + D5/D6 (divider)  
-10. Fit into printed case; label Demo vs Reset on the lid  
-11. Upload **only** the Uno sketch [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino). Serial speed **9600**. Test the demo button.
-
-Open [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html) in a browser for the visual walkthrough.
+**Shop tip:** if a listing says “MQ-2 smoke sensor,” it still sees LPG mixed with smoke. For a cleaner cooking-gas story, ask for **MQ-5**.
 
 ---
 
-## 6. Firmware behaviour (summary)
+## 4. Pin map (Arduino Uno)
 
-- **Calibration:** 45s average on A0 at boot and on Reset.  
-- **Live mode:** % above baseline with 8s confirmation window.  
-- **Demo mode:** Demo button forces stages without gas.  
-- **MEDIUM:** SMS owner + `APP_CMD:VENT_OPEN` on USB Serial.  
-- **CRITICAL / FIRE:** call + SMS owner.  
-- **Secondary contact:** SMS only after 3 minutes if still CRITICAL/FIRE — backup check-in, **not** “enter and fix a leak.”  
-- **Fire service voice call:** not used (unrealistic silent ring). Phase 2 = verified address SMS / partner.  
-- **SD `gaslog.txt`:** timestamps for demos, landlords, insurance narrative — **not** claimed fire-proof. Primary history will live in the app.  
-- **Phone app:** contest UI is simulated. Real alerts are GSM from the box.
+The Uno has rows of holes. **Digital** pins (D2, D3, …) are mostly on/off. **Analog** pins (A0, A1, …) can read a number from a sensor.
 
----
+| Uno pin | Goes to | Leave empty? |
+|---------|---------|--------------|
+| A0 | Gas sensor analog out | No |
+| A1 | — | **Yes. Leave empty.** |
+| A2 | Flame sensor analog out | No |
+| A3 | — | **Yes. Leave empty.** |
+| A4 | LCD **SDA** (data) | No |
+| A5 | LCD **SCL** (clock) | No |
+| D2 | Green LED | No |
+| D3 | Yellow LED | No |
+| D4 | Red LED | No |
+| D5 | SIM800L **TX** (chip talks → Uno listens) | No |
+| D6 | SIM800L **RX** through the two-resistor divider (Uno talks → chip listens) | No |
+| D7 | Reset button, other leg to GND | No |
+| D8 | Buzzer | No |
+| D9 | Demo button, other leg to GND | No |
+| D10 | SD **CS** (chip select) | No |
+| D11 | SD **MOSI** | No |
+| D12 | SD **MISO** | No |
+| D13 | SD **SCK** | No |
+| 5V | Sensors, LCD, LEDs, buzzer, buttons, SD | — |
+| GND | **Every** module, plus the 4V rail | — |
+| ~4V from buck | **SIM800L VCC only** | — |
 
-## 7. Before you upload
-
-Upload **one** file: [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) to the Arduino Uno.
-
-| Setting | Change to |
-|---------|-----------|
-| `OWNER_CONTACT` | Real owner number (`+233…`) |
-| `SECONDARY_CONTACT` | Roommate / landlord (optional) |
-| `DEVICE_LABEL` | e.g. `Hostel Block A Kitchen` |
-| `lcd(0x27,…)` | Match I2C scan |
-| `FLAME_DETECT_THRESHOLD` | From lighter test |
-
-Libraries: `LiquidCrystal_I2C`, `SD`, `SoftwareSerial` (built-in).
-
-Board = **Arduino Uno**. Port = the Uno’s USB port. Serial Monitor speed = **9600**.
-
-Do not open or upload [`esp32_aeroguard_bridge.ino`](esp32_aeroguard_bridge.ino) for this demo.
+A1 and A3 are empty on purpose. Do not put extra wires there.
 
 ---
 
-## 8. Demo script (~10 minutes) — outline
+## 5. Power warnings (read before any power)
 
-1. **Problem** — LPG in homes/hostels/chop bars; delayed response when asleep/away.  
-2. **Buyer** — lead with **hostel wardens / multi-tenant housing**; chop bars & homes as expansion.  
-3. **Show device** — cased unit, green/yellow/red meaning. One board: the Uno.  
-4. **Live demo** — press Demo: LOW → MEDIUM (SMS) → CRITICAL (**real call**).  
-5. **App story** — open the Vercel contest app. Pairing and status are simulated for judges. Smart vents/windows are shown in the app. Real calls and texts still come from the box (GSM).  
-6. **Cost + market** — BOM honesty; who pays.  
-7. **Q&A ready** — SD = history not fire vault; neighbor = SMS check-in not first responder; fire service = Phase 2 with address text; WiFi board is later, not this kit.
-
----
-
-## 9. Case print (v2 compact)
-
-Open [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad) → `part = "all_export"` → F6 → Export STL.
-
-| | v1 | **v2 (current)** |
-|--|----|------------------|
-| Outer size | 150 × 100 × 42 mm | **126 × 90 × 36 mm** |
-| Look | Boxy | Rounded shell, engraved branding |
-| Branding | — | **AeroGuard** on lid + front; **X1** on side; inside lid/floor text |
-
-Prints: **base**, **lid**, **sensor mount** (print a spare for multi-zone story).  
-Mounts inside: Uno standoffs, SIM / SD / 4V platforms, 4 lid screw bosses. There is also an empty shelf that can hold a WiFi board later. Leave it empty for the demo.  
-No vent flap / servo parts.
+1. **The SIM800L is thirsty.** When it calls, it gulps current (around **2A** peaks). Feed it from the **LM2596** set to about **4.0 volts** (3.7–4.2V is the safe window). **Never** take SIM power from the Uno **5V** pin. That pin is a thin hose. The chip will reset or die.
+2. **Measure before you connect the SIM.** Power the buck. Turn the small screw. Read the output with a multimeter. Only then clip SIM VCC to that 4V.
+3. **Common ground.** Uno GND, battery GND, buck GND, SIM GND, and every sensor GND must join. Same drain for every pipe. If grounds do not meet, modules misbehave or the SIM never talks.
+4. **Voltage divider on D6.** The Uno speaks at 5V. The SIM800L listen pin wants about 2.8V. Use **10kΩ** from D6 to the SIM RX pin, and **20kΩ** from that same SIM RX pin down to GND. Do not run a bare wire from D6 to SIM RX.
+5. **SIM TX to D5 is direct.** The chip speaks at ~3.3V. The Uno can hear that. No divider on that wire.
+6. **One USB data cable** for the computer. Charge-only cables look the same and will not upload the program.
+7. **Set owner phone numbers in the program** before you demo a real call. See [§7](#7-set-phone-numbers-and-upload-the-program).
 
 ---
 
-## 10. Phase 2 / later (optional ESP32)
+## 6. Step-by-step assembly
 
-Skip this for the pitch kit.
+Do these in order. Unplug USB and batteries while you move wires. After each step you can plug USB in **without** the SIM powered, to check the screen and lights. Power the SIM only after step 9 is measured and wired.
 
-The file [`esp32_aeroguard_bridge.ino`](esp32_aeroguard_bridge.ino) stays in the repo. An ESP32 is a second small board that can join home WiFi and show a local `/status` page. That only works on the same WiFi. The Vercel contest app still cannot reach it.
+Open the HTML guide beside this page if you want the same steps with bigger cards.
 
-If you add it later: pins A1 and A3, plus a 10k + 20k divider into the ESP32 RX pin. It is not required to buy, wire, or flash that board for this demo.
+### 6.1 Power rails
+
+**Goal:** a 5V strip for the small parts, a separate 4V strip for the phone chip, and one shared GND.
+
+1. Put the Uno on the table. Note **5V**, **GND**, and the numbered pins.
+2. Run a red jumper from Uno **5V** to the breadboard **+** rail.
+3. Run a black jumper from Uno **GND** to the breadboard **−** rail.
+4. Sit the **LM2596** on the side. Input comes from your 5V USB bank (or battery pack). Output will be ~4V.
+5. **Do not** feed the buck output into the Uno 5V pin. Uno drinks 5V from USB. The buck is only for the SIM.
+6. Join buck **GND** to the same breadboard **−** rail.
+
+You now have two “taps” and one drain.
+
+### 6.2 Gas sensor (MQ-5 or MQ-2)
+
+**What it is:** a heated nose. First power-on it can smell “warm electronics” for a few minutes. That is normal.
+
+Module pins (names printed on the board):
+
+| Module pin | To |
+|------------|----|
+| VCC | 5V rail |
+| GND | GND rail |
+| A0 or AO (analog) | Uno **A0** |
+| D0 or DO (digital) | **Leave unconnected** |
+
+Clip the sensor in the printed **MQ** mount later so air from the grill can reach it.
+
+### 6.3 Flame sensor (KY-026)
+
+**What it is:** an eye for flame light, not a heat thermometer.
+
+| Module pin | To |
+|------------|----|
+| VCC | 5V |
+| GND | GND |
+| A0 (analog) | Uno **A2** |
+| D0 | Leave unconnected |
+
+Aim the black LED-looking sensor toward where a flame would be. After the program is loaded you can flick a lighter **far from any gas** and watch the number in Serial. If FIRE never trips, raise or lower `FLAME_DETECT_THRESHOLD` in the program (see §7).
+
+### 6.4 LCD screen (1602 I2C)
+
+**What it is:** a 16×2 character screen. The **backpack** is the small board glued/soldered on the back. That backpack talks **I2C** (a two-wire chat). On the Uno, I2C is always **A4** and **A5**.
+
+| LCD pin | To |
+|---------|----|
+| VCC | 5V |
+| GND | GND |
+| SDA | Uno **A4** |
+| SCL | Uno **A5** |
+
+If the screen stays blank after upload: contrast screw on the backpack, backlight jumper, and I2C address. Address is usually `0x27` or `0x3F`. The program starts at `0x27`. Change that one number if needed.
+
+### 6.5 Status LEDs
+
+**What they are:** three stage lamps. Green = LOW. Yellow = MEDIUM. Red = CRITICAL or FIRE.
+
+For a bare 5mm LED:
+
+1. Long leg = **anode** (plus). Short leg = **cathode** (minus).
+2. Plus → **220Ω** resistor → Uno pin. Minus → GND.
+3. Green to **D2**. Yellow to **D3**. Red to **D4**.
+
+If you bought a 3-pin LED module, use **S** (signal) to the pin, **−** to GND, and **+** to 5V only if the module needs it. Follow the printing on that board.
+
+### 6.6 Buzzer
+
+**What it is:** the beeper. An **active** buzzer makes its own tone when the pin goes high.
+
+| Buzzer | To |
+|--------|----|
+| + or S | Uno **D8** |
+| − | GND |
+
+If it has three pins (S, +, −), put **S** on D8, **−** on GND, and **+** on 5V if the module asks for it.
+
+MEDIUM = short beeps. CRITICAL / FIRE = continuous.
+
+### 6.7 Buttons (Demo and Reset)
+
+The program already turns on an **internal pull-up**. That means the pin sits HIGH until you press. Press connects the pin to GND (LOW).
+
+| Button | One leg | Other leg |
+|--------|---------|-----------|
+| Reset | Uno **D7** | GND |
+| Demo | Uno **D9** | GND |
+
+Do not wire buttons to 5V. Label the lid **RESET** and **DEMO** so you do not mix them in front of judges.
+
+### 6.8 SD card module
+
+**What it is:** a tiny file cabinet. The program writes `gaslog.txt`. Useful for a demo story (landlord, insurance). It is **not** a fire-proof black box.
+
+| SD module | To |
+|-----------|-----|
+| VCC | 5V (if your board is 5V-safe). Some cheap boards want 3.3V — read the print. |
+| GND | GND |
+| CS | **D10** |
+| MOSI | **D11** |
+| MISO | **D12** |
+| SCK | **D13** |
+
+Format the card **FAT32** on a computer first. Slide it in until it clicks. D11–D13 are taken. Do not hang other SPI toys on those pins for this kit.
+
+### 6.9 SIM800L + 4V buck
+
+**What it is:** a mini phone. Antenna on. Nano-SIM in the slot (gold pads down, cut corner matching the drawing on the holder).
+
+**Set 4.0V first** (repeat on purpose):
+
+1. Disconnect SIM VCC.
+2. Power the LM2596 input.
+3. Meter the output pads.
+4. Turn the screw until you see about **4.0V**.
+5. Then connect SIM **VCC** to that output.
+
+| SIM800L | To |
+|---------|-----|
+| VCC | Buck **4V out** (not Uno 5V) |
+| GND | Common GND |
+| TX | Uno **D5** (direct) |
+| RX | Mid-point of the divider from **D6** |
+| RST | Leave unconnected unless your board needs a pull-up |
+| Antenna | Screw / uFL attached |
+
+**Divider (do this exactly):**
+
+```
+Uno D6  --- 10kΩ ---+--- SIM800L RX
+                    |
+                  20kΩ
+                    |
+                   GND
+```
+
+The 10k is the upper resistor (from D6). The 20k is the lower resistor (down to ground). The SIM RX wire comes off the middle.
+
+**Network light:** many SIM800L boards blink fast when hunting, then **slow blink** when they have registered on the network. No slow blink = no SIM, no credit, bad antenna, or weak 4V.
+
+**Caution:** CRITICAL and FIRE place a **real call** to `OWNER_CONTACT`. Warn the person who holds that phone.
+
+### 6.10 Case
+
+Print notes are in [§10](#10-case-print). Fit order that works:
+
+1. Screw or seat the Uno on the standoffs. USB hole faces the cutout.
+2. Seat SIM, SD, and 4V buck on their labeled platforms.
+3. Leave the extra empty shelf empty.
+4. Route the LCD into the lid window. Seat LEDs in G / Y / R holes. Buttons through DEMO and RESET. Buzzer in its hole.
+5. Clip the gas sensor in the MQ mount at the grill. Flame sensor toward the side window.
+6. Antenna wire out the front slot. Close the lid. Four small screws.
+
+---
+
+## 7. Set phone numbers and upload the program
+
+You load **one** file onto the Uno: [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino).
+
+### 7.1 Install Arduino IDE
+
+1. Download **Arduino IDE** from the Arduino website (the desktop app).
+2. Plug the Uno with a **USB data cable**.
+3. In the IDE: **Tools → Board → Arduino Uno**.
+4. **Tools → Port** → pick the port that appears when the cable is in (on Windows it looks like COM3; on Mac/Linux it looks like `/dev/cu.usbserial-…` or `/dev/ttyUSB0`).
+5. If the port never appears, the cable is often charge-only, or you need a CH340 driver for clone boards.
+
+### 7.2 Library
+
+**Sketch → Include Library → Manage Libraries.** Search **LiquidCrystal I2C** (by Frank de Brabander or a well-rated 1602 I2C library). Install it.
+
+`SD` and `SoftwareSerial` are already built into the IDE. You do not install those.
+
+### 7.3 Edit the three lines that are yours
+
+Near the top of `aeroguard_x1-1.ino`:
+
+```c
+const char* OWNER_CONTACT = "+233XXXXXXXXX";
+const char* SECONDARY_CONTACT = "+233YYYYYYYYY";
+const char* DEVICE_LABEL = "AeroGuard Kitchen";
+```
+
+| Name | Put |
+|------|-----|
+| `OWNER_CONTACT` | The owner’s number in international form, like `+23324…` |
+| `SECONDARY_CONTACT` | Roommate or landlord. Gets an SMS only if CRITICAL/FIRE is still on after **3 minutes**. Backup check-in. Not “go inside and fix a leak.” |
+| `DEVICE_LABEL` | Short place name. It is printed on the LCD and inside texts. Example: `Hostel Block A Kitchen`. |
+
+If the LCD is blank, change `LiquidCrystal_I2C lcd(0x27, 16, 2);` so `0x27` matches your backpack (`0x3F` is the other common value).
+
+If the lighter test never hits FIRE, change `FLAME_DETECT_THRESHOLD` a little and try again.
+
+### 7.4 Upload
+
+1. Click **Upload** (the arrow).
+2. Wait until the IDE says **Done uploading**.
+3. **Tools → Serial Monitor.** Set the speed box to **9600**.
+4. You should see `AeroGuard-X1` / `Ready`. The LCD shows **Starting…** then **Calibrating…** for **45 seconds**. Do not press Demo during that wait. It is learning quiet air, like tasting the river before the rain.
+
+Do not upload any other `.ino` file for this demo.
+
+---
+
+## 8. How to test
+
+Do this on a table. No open gas. Tell the owner-phone person that a test call may come.
+
+| Check | What you do | What you should see |
+|-------|-------------|---------------------|
+| Boot | Power USB after upload | LCD: Starting → Calibrating (~45s) → live SAFE / label |
+| Serial | Monitor at 9600 | Lines like `STATUS level=SAFE …` once per second |
+| Demo 1 | Press **Demo** once | **Green** LED. LCD **LOW**. Quiet (no buzzer). |
+| Demo 2 | Press **Demo** again | **Yellow** LED. Short beeps. **SMS** to owner. |
+| Demo 3 | Press **Demo** again | **Red** LED. Loud alarm. **Phone rings**, then SMS. |
+| Demo 4 | Press **Demo** again | Still **red**. LCD **FIRE RISK** / **DEMO MODE**. Call + SMS again. |
+| Reset | Press **Reset** | Alarm stops. Demo ends. Calibrating ~45s. Back to SAFE. |
+| SD | Open `gaslog.txt` on a computer | DEMO / ALERT / SYSTEM lines with times |
+| SIM | Watch the network LED | Slow blink after it finds the network |
+
+**SMS/call caution**
+
+- MEDIUM sends a **real text**.
+- CRITICAL and FIRE place a **real call** (the box rings the owner for a bit, then hangs up) and a **real text**.
+- Put your own number in first if you are alone.
+- Do not surprise a sleeping family member. Do not spam the fire service.
+
+If SMS never arrives: airtime, SIM seated, slow blink, 4V still ~4V under load, divider wired, `OWNER_CONTACT` has `+` and country code.
+
+---
+
+## 9. Demo pitch script (~10 minutes)
+
+Speak in this order. Short. Show the box in your hands.
+
+1. **Problem.** LPG is in homes, hostels, and chop bars. If it leaks at night, people smell it late — or not at all.
+2. **Who pays first.** Lead with **hostel wardens / multi-tenant housing**. Chop bars and family kitchens are the next wave.
+3. **Show the product.** Cased unit. Green / yellow / red. One brain: the Arduino Uno. One phone chip: the SIM800L. This is the kit.
+4. **Live demo.** Press **Demo**: LOW (green, quiet) → MEDIUM (yellow, beep, text) → CRITICAL (red, **the phone rings**). Press **Reset** to clear.
+5. **App story.** Open the Vercel contest app on a phone. Pairing and status are **simulated** for judges. Smart vents live in the app. Real calls still come from the SIM in the box.
+6. **Cost + market.** Be honest about parts cost. Who buys, who installs, who gets the SMS.
+7. **Tough questions, ready answers.**
+   - SD card = history for a demo, not a fire-proof vault.
+   - Secondary number = a delayed SMS check-in, not a first responder.
+   - Fire service voice call is not in this kit (a silent ring with no address is not useful). Phase 2 can be a verified address text with a partner.
+   - The website cannot drive the box. GSM does.
+
+---
+
+## 10. Case print
+
+File: [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad).
+
+1. Install [OpenSCAD](https://openscad.org/downloads.html) (free 3D-shape software).
+2. Open the file. Leave `part = "all_export";`.
+3. Press **F6** (render). **File → Export → Export as STL**.
+4. Slice in your printer app. **PLA** or **PETG**. About **0.2 mm** layers, **20%** infill. Print **base** flat, **lid** flat, **sensor mount** flat.
+
+| | This case |
+|--|-----------|
+| Outer size | **126 × 90 × 36 mm** |
+| Look | Rounded shell |
+| Outside | **AeroGuard** on lid + front; **X1** on the side |
+| Inside | Uno standoffs; platforms for SIM, SD, 4V buck; four lid screws |
+| Extra shelf | Leave **empty** |
+
+You get **base**, **lid**, and **sensor mount** (a spare mount is on the plate for the multi-zone story). No vent-flap parts.
+
+---
+
+## 11. Later — not this kit
+
+A WiFi-board sketch named [`esp32_aeroguard_bridge.ino`](esp32_aeroguard_bridge.ino) sits in the repo for a future phase. **Do not buy, wire, or flash it for this demo.** The pitch product is Uno + SIM800L + the Vercel app.

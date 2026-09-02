@@ -1,7 +1,6 @@
 /*
-  AEROGUARD-X1 — Arduino Uno firmware (demo brain).
-  A1/A3 stay reserved for an optional later ESP32 WiFi bridge.
-  The demo kit does not require an ESP32.
+  AEROGUARD-X1 — Arduino Uno firmware (this is the demo brain).
+  Leave pins A1 and A3 empty.
 */
 
 #include <Wire.h>
@@ -11,9 +10,9 @@
 #include <SD.h>
 
 const int PIN_GAS = A0;
-const int PIN_APP_RX = A1;  // reserved; later ESP32 TX (leave empty for demo)
+const int PIN_APP_RX = A1;  // leave empty
 const int PIN_FLAME = A2;
-const int PIN_APP_TX = A3;  // reserved; later ESP32 RX (leave empty for demo)
+const int PIN_APP_TX = A3;  // leave empty
 const int PIN_LED_GREEN = 2;
 const int PIN_LED_YELLOW = 3;
 const int PIN_LED_RED = 4;
@@ -26,7 +25,7 @@ const int PIN_SD_CS = 10;
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 SoftwareSerial simSerial(PIN_SIM_RX, PIN_SIM_TX);
-SoftwareSerial appSerial(PIN_APP_RX, PIN_APP_TX);  // optional later ESP32
+SoftwareSerial appSerial(PIN_APP_RX, PIN_APP_TX);  // unused in the demo kit
 const char* OWNER_CONTACT = "+233XXXXXXXXX";
 const char* SECONDARY_CONTACT = "+233YYYYYYYYY";
 const char* DEVICE_LABEL = "AeroGuard Kitchen";
@@ -77,7 +76,7 @@ void setup() {
   simSerial.begin(9600);
   delay(2000);
   initGSM();
-  appSerial.begin(9600);  // optional later ESP32
+  appSerial.begin(9600);
   calibrateGas();
   setLevel(SAFE, true);
   lcd.clear();
@@ -281,7 +280,7 @@ void pollAppBridge() {
     if (c == '\n') {
       buf[idx] = 0; idx = 0;
       if (strncmp(buf, "APP_CMD:", 8) == 0) {
-        Serial.print(F("ESP32 cmd: ")); Serial.println(buf); logEvent("APP", buf);
+        Serial.print(F("APP cmd: ")); Serial.println(buf); logEvent("APP", buf);
       }
       continue;
     }

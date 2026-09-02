@@ -4,8 +4,8 @@
 // engraved product branding on the lid + inside the base.
 //
 // Fits: Arduino Uno R3, LCD1602 I2C, MQ gas sensor, KY-026 flame,
-//       SIM800L, LM2596 buck, microSD, ESP32 DevKit, LEDs,
-//       Demo + Reset buttons, buzzer.
+//       SIM800L, LM2596 buck, microSD, LEDs, Demo + Reset buttons,
+//       buzzer. Extra floor shelf is left empty for the demo kit.
 //
 // HOW TO USE:
 // 1. Install OpenSCAD: https://openscad.org/downloads.html
@@ -189,7 +189,7 @@ module base() {
         // SIM antenna exit (front)
         translate([sim_x + 4, -1, case_H - 9])
             cube([14, wall + 2, 4.5]);
-        // ESP32 antenna / USB access (front-left)
+        // Spare-shelf cable / access slot (front-left) — leave empty for demo
         translate([esp_x + 8, case_W - wall - 1, case_H - 10])
             cube([16, wall + 2, 5]);
 
@@ -213,7 +213,7 @@ module base() {
 
     // Labeled platforms
     translate([esp_x, esp_y, wall])
-        platform(esp_L + 2, esp_W + 1.5, 2.4, "ESP32");
+        platform(esp_L + 2, esp_W + 1.5, 2.4, "SPARE");
     translate([sim_x, sim_y, wall])
         platform(sim_L + 3, sim_W + 3, 2.4, "SIM");
     translate([sd_x, sd_y, wall])

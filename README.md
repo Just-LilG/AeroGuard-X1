@@ -1,42 +1,41 @@
 # AeroGuard-X1
 
-LPG leak + fire early-warning **product** for Ghanaian homes, hostels, chop bars, and cylinder areas.
+A small box that watches for **LPG leaks and fire**, then **calls and texts** the owner.
 
-| Stage | LED | Action |
-|-------|-----|--------|
+**Start here:** [`AeroGuard-X1_Build_Guide.md`](AeroGuard-X1_Build_Guide.md)  
+Visual walkthrough: [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html) (open in a browser)
+
+## What you assemble
+
+Arduino Uno (the brain) + MQ gas nose + flame eye + LCD screen + green/yellow/red lights + buzzer + Demo/Reset buttons + SD log + **SIM800L** (the phone chip) + 4V buck + printed case.
+
+Upload **only** [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) to the Uno. USB **data** cable. Serial Monitor **9600**. Put owner numbers in that file before a live demo.
+
+## Box and app
+
+The **Vercel contest app** is a screen for judges. Pairing and status are simulated. It does not talk to the hardware.
+
+**Real alerts** are GSM SMS and calls from the SIM in the box.
+
+| Stage | LED | Box |
+|-------|-----|-----|
 | LOW | Green | Quiet early warning |
-| MEDIUM | Yellow | Buzzer + SMS; app opens linked smart vents/windows |
-| CRITICAL | Red | Alarm + **call + SMS** to owner |
-| FIRE | Red | Alarm + **call + SMS** (fire-service SMS = Phase 2) |
+| MEDIUM | Yellow | Buzzer + SMS |
+| CRITICAL | Red | Alarm + **call + SMS** |
+| FIRE | Red | Alarm + **call + SMS** (fire-service SMS = later) |
 
-**Demo button** on the box (and in the app) simulates a leak. **Reset** mutes, exits demo, recalibrates.  
-**No on-device servo** — ventilation is an app / smart-vent feature.
+**Demo** pretends a leak (LOW → MEDIUM → CRITICAL → FIRE). **Reset** mutes, exits demo, recalibrates. No motorized vent on the box — vents are an app story.
 
-**Connectivity (this demo):** the **Arduino Uno** runs sensors, lights, buzzer, SD log, and **GSM** (the SIM800L chip that sends real SMS and makes real calls). The phone app is the **Vercel contest UI**. Pairing and status in the app are simulated. The app does **not** talk to the box.
-
-An **ESP32** (a second board for WiFi) is **later / optional**. Do not buy, wire, or flash it for the pitch kit. The sketch stays in the repo for Phase 2.
-
-## Repo
+## Files
 
 | Path | Role |
 |------|------|
-| [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) | Arduino Uno firmware (the demo brain) |
-| [`esp32_aeroguard_bridge.ino`](esp32_aeroguard_bridge.ino) | Optional later WiFi sketch — **not** part of the demo packing list |
-| [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad) | Compact 3D-printed case (126×90×36) with AeroGuard engraving |
-| [`AeroGuard-X1_Build_Guide.md`](AeroGuard-X1_Build_Guide.md) | Demo BOM, pin map, pitch outline |
-| [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html) | Visual assembly |
-| [`companion/`](companion/) | Android-style companion app (pair → setup → per-device tabs) |
-
-## Hardware
-
-See the build guide. For the demo, upload **only** `aeroguard_x1-1.ino` to an Arduino Uno (Serial 9600). Set owner phone numbers in that sketch. Do not set WiFi. Do not flash the ESP32 file.
-
-## Companion app
+| [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) | Program for the Uno |
+| [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad) | Case to print (126×90×36 mm) |
+| [`companion/`](companion/) | Contest phone UI |
 
 ```bash
 cd companion
 npm install
 npm run dev -- --hostname 127.0.0.1 --port 43123
 ```
-
-Contest UI simulates discovery and status. Real alerts are GSM call/SMS from the box.
