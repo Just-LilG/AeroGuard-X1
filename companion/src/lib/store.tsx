@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -19,6 +20,13 @@ import {
 
 const KEY = "aeroguard.devices.v1";
 const DEMO_CYCLE: Stage[] = ["LOW", "MEDIUM", "CRITICAL", "FIRE"];
+const CALIBRATE_MS = 2200;
+
+function stripCalibrating(devices: AeroDevice[]): AeroDevice[] {
+  return devices.map((d) =>
+    d.calibrating ? { ...d, calibrating: false } : d
+  );
+}
 
 function uid(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
@@ -51,6 +59,7 @@ function createDevice(serial: string, bleName: string): AeroDevice {
       nowLog("SYSTEM", "Paired", `${bleName} ${serial} linked to this phone.`),
     ],
     pairedAt: Date.now(),
+    calibrating: false,
   };
 }
 
@@ -136,20 +145,25 @@ function applyStage(d: AeroDevice, stage: Stage, demo: boolean): AeroDevice {
 export function DeviceProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [devices, setDevices] = useState<AeroDevice[]>([]);
+  const persist = useRef(false);
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) setDevices(JSON.parse(raw));
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setDevices(Array.isArray(parsed) ? stripCalibrating(parsed) : []);
+      }
     } catch {
       /* ignore */
     }
+    persist.current = true;
     setReady(true);
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
-    localStorage.setItem(KEY, JSON.stringify(devices));
+    if (!ready || !persist.current) return;
+    localStorage.setItem(KEY, JSON.stringify(stripCalibrating(devices)));
   }, [devices, ready]);
 
   const patch = useCallback((id: string, fn: (d: AeroDevice) => AeroDevice) => {
@@ -204,11 +218,15 @@ export function DeviceProvider({ children }: { children: React.ReactNode }) {
       patch(id, (d) => ({
         ...applyStage(d, "SAFE", false),
         demoMode: false,
+        calibrating: true,
         log: [
           nowLog("SYSTEM", "Reset", "Alarm muted. Demo off. Recalibrating."),
           ...d.log,
         ],
       }));
+      window.setTimeout(() => {
+        patch(id, (d) => ({ ...d, calibrating: false }));
+      }, CALIBRATE_MS);
     },
     [patch]
   );

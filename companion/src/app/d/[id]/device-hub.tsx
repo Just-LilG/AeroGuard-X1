@@ -73,7 +73,8 @@ export function DeviceHub({ device }: { device: AeroDevice }) {
         <ThemeToggle />
       </header>
 
-      <main className="min-h-0 flex-1 overflow-y-auto px-5 pb-28">
+      <main className="min-h-0 flex-1 overflow-y-auto px-5 pb-32">
+        <div key={tab} className="tab-in">
         {tab === "status" && (
           <StatusTab
             device={device}
@@ -119,6 +120,7 @@ export function DeviceHub({ device }: { device: AeroDevice }) {
             }}
           />
         )}
+        </div>
       </main>
 
       <nav className="absolute inset-x-3 bottom-3 z-30">

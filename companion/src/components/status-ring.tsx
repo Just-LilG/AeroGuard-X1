@@ -32,7 +32,7 @@ export function StatusRing({
     height: size,
     ["--ring-color" as string]: meta.color,
   } as CSSProperties;
-  const className = `relative mx-auto flex items-center justify-center ${onClick ? "pressable" : ""}`;
+  const className = `relative mx-auto flex items-center justify-center stage-pop ${onClick ? "pressable" : ""}`;
 
   const inner = (
     <>
@@ -82,7 +82,12 @@ export function StatusRing({
 
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} className={className} style={style}>
+      <button
+        type="button"
+        onClick={onClick}
+        className={className}
+        style={style}
+      >
         {inner}
       </button>
     );

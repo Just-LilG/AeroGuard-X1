@@ -21,7 +21,9 @@ LPG leak + fire early-warning **product** for Ghanaian homes, hostels, chop bars
 | [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) | Arduino Uno firmware |
 | [`esp32_aeroguard_bridge.ino`](esp32_aeroguard_bridge.ino) | ESP32 WiFi bridge (`/status`, vent command) |
 | [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad) | Compact 3D-printed case (126×90×36) with AeroGuard engraving |
-| [`AeroGuard-X1_Build_Guide.md`](AeroGuard-X1_Build_Guide.md) | BOM, pin map, pitch outline |
+| [`AeroGuard-X1_Build_Guide.md`](AeroGuard-X1_Build_Guide.md) | Full BOM, pin map, pitch outline |
+| [`AeroGuard-X1_Current_Build_Guide.md`](AeroGuard-X1_Current_Build_Guide.md) | Bench inventory (missing LM2596 / part 9) |
+| [`AeroGuard-X1_Pin_Map_Wiring_Reference.md`](AeroGuard-X1_Pin_Map_Wiring_Reference.md) | Module-by-module wires for parts on hand |
 | [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html) | Visual assembly |
 | [`companion/`](companion/) | Android-style companion app (pair → setup → per-device tabs) |
 

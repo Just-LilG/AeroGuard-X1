@@ -1,8 +1,8 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { ShieldAlert } from "lucide-react";
 import { StatusRing } from "@/components/status-ring";
-import { Button } from "@/components/ui/button";
 import { STAGE_META, type AeroDevice } from "@/lib/types";
 
 const STAGE_HINT: Record<string, string> = {
@@ -35,9 +35,15 @@ export function StatusTab({
             ? "Fire"
             : "Low";
 
+  const calibrating = Boolean(device.calibrating);
+  const hot = device.stage === "CRITICAL" || device.stage === "FIRE";
+
   return (
     <div className="fade-up space-y-4">
-      <div className="glass rounded-[1.7rem] p-5">
+      <div
+        className={`glass rounded-[1.7rem] p-5 ${hot ? "alert-flash" : ""}`}
+        style={hot ? ({ ["--ring-color"]: meta.color } as CSSProperties) : undefined}
+      >
         <div className="mb-3 flex items-center justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
@@ -54,11 +60,45 @@ export function StatusTab({
         <StatusRing
           stage={device.stage}
           onClick={onDemo}
-          subtitle={`LED ${meta.led} · tap to demo`}
+          subtitle={
+            calibrating ? "Sampling air…" : `LED ${meta.led} · tap to demo`
+          }
         />
-        <p className="mt-4 text-center text-[13px] leading-relaxed text-muted-foreground">
-          {STAGE_HINT[device.stage]}
-        </p>
+        {calibrating ? (
+          <div className="pointer-events-none mt-4 space-y-3">
+            <div className="led-chase flex justify-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#3f8f4a]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#d4a017]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#c23b22]" />
+            </div>
+            <div className="cal-track">
+              <div className="cal-fill" />
+            </div>
+            <p className="text-center text-[13px] text-muted-foreground">
+              Recalibrating — about 2 seconds (same idea as the box).
+            </p>
+          </div>
+        ) : (
+          <p className="mt-4 text-center text-[13px] leading-relaxed text-muted-foreground">
+            {STAGE_HINT[device.stage]}
+          </p>
+        )}
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            className="pressable h-12 rounded-2xl bg-primary text-sm font-semibold text-primary-foreground shadow-md shadow-primary/25"
+            onClick={onDemo}
+          >
+            Next: {demoNext}
+          </button>
+          <button
+            type="button"
+            className="pressable h-12 rounded-2xl bg-secondary text-sm font-semibold text-secondary-foreground"
+            onClick={onReset}
+          >
+            Reset Safe
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -106,22 +146,10 @@ export function StatusTab({
           Contest demo
         </p>
         <p className="mt-2 text-[14px] leading-relaxed text-muted-foreground">
-          Tap the ring or Next to cycle Low → Medium → Critical → Fire — same idea
-          as the Demo button on the box. GSM still targets this unit&apos;s contacts.
+          Tap the ring or Next (above) to cycle Low → Medium → Critical → Fire —
+          same idea as the Demo button on the box. GSM still targets this
+          unit&apos;s contacts.
         </p>
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <Button type="button" className="h-12 rounded-2xl" onClick={onDemo}>
-            Next: {demoNext}
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            className="h-12 rounded-2xl"
-            onClick={onReset}
-          >
-            Reset Safe
-          </Button>
-        </div>
       </div>
     </div>
   );

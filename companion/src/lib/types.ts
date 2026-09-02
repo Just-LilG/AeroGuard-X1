@@ -44,6 +44,7 @@ export interface AeroDevice {
   vents: SmartVent[];
   log: LogItem[];
   pairedAt: number;
+  calibrating?: boolean;
 }
 
 export interface NearbyUnit {
