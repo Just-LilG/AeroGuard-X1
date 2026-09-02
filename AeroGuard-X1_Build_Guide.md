@@ -55,9 +55,11 @@ Buy only what is in this table. Search shops by the **module name**.
 
 ### On the table today
 
-You **have** parts **1–7** and **11–16**. You **do not have** the **SIM800L phone chip** (#8) or the **SD card module** (#10). You also still need the **LM2596** (#9) before the phone chip can be powered.
+You **have** almost the full kit. The **only missing part** is **#10**, the **micro SD module**.
 
-Wire the nose, eye, screen, lights, beeper, and buttons now. Leave D5, D6, and D10–D13 empty. Full pin tables: [`AeroGuard-X1_Pin_Map_Wiring_Reference.md`](AeroGuard-X1_Pin_Map_Wiring_Reference.md).
+You **have** the **SIM800L** phone chip (#8). Wire it with the **LM2596** 4V buck (#9) and the **10k + 20k** divider. Leave **D10–D13** empty until the SD board arrives.
+
+Full pin tables: [`AeroGuard-X1_Pin_Map_Wiring_Reference.md`](AeroGuard-X1_Pin_Map_Wiring_Reference.md).
 
 | # | Role | What to buy | Qty | On the table? | Plain words |
 |---|------|-------------|-----|---------------|-------------|
@@ -68,13 +70,13 @@ Wire the nose, eye, screen, lights, beeper, and buttons now. Leave D5, D6, and D
 | 5 | Lights | **5mm LED**: 1 green, 1 yellow, 1 red + three **220Ω** resistors | 1 set | **Have** | Stage lights. Resistors are tiny “speed bumps” so the LEDs do not burn. |
 | 6 | Alarm | **Active buzzer module** (often **KY-012**) | 1 | **Have** | The beeper. |
 | 7 | Buttons | Two **6×6mm tactile push buttons**, or two **KY-004** button modules | 2 | **Have** | **Demo** and **Reset**. Momentary = click and it springs back. |
-| 8 | Phone chip | **SIM800L V2.0 GSM/GPRS module** with antenna | 1 | **Buy later** | Sends SMS and makes calls. Needs strong ~4V power. |
-| 9 | SIM power | **LM2596 DC-DC buck converter** | 1 | **Buy later** | A “pressure reducer” for electricity. You set the output to about **4.0V**. Buy this with the phone chip. |
-| 10 | Log | **Micro SD card module (SPI)** (often **HW-125**) + a **microSD** card formatted **FAT32** | 1 | **Buy later** | Writes a simple event file. Not a fire-proof vault. |
+| 8 | Phone chip | **SIM800L V2.0 GSM/GPRS module** with antenna | 1 | **Have** | Sends SMS and makes calls. Needs strong ~4V power. |
+| 9 | SIM power | **LM2596 DC-DC buck converter** | 1 | **Have** | A “pressure reducer” for electricity. You set the output to about **4.0V**. |
+| 10 | Log | **Micro SD card module (SPI)** (often **HW-125**) + a **microSD** card formatted **FAT32** | 1 | **Buy later — only missing part** | Writes a simple event file. Not a fire-proof vault. |
 | 11 | Battery | **5V USB power bank**, *or* **18650** cell + **TP4056** charger + boost to 5V | 1 | **Have** | Demo power. USB bank is the easy path. |
 | 12 | Wiring | **MB-102 breadboard** + **Dupont jumper wires** (male-male, male-female) | 1 set | **Have** | Breadboard = plastic hole grid so you can plug wires without soldering. |
-| 13 | SIM protect | **10kΩ** resistor + **20kΩ** resistor | 1 pair | Bag until #8 | Voltage divider. Drops the Uno’s 5V talk-line so the SIM chip is not hurt. |
-| 14 | Network | **Nano-SIM** with call + SMS credit | 1 | Bag until #8 | Must fit the SIM800L slot. Use an adapter if your SIM is larger. |
+| 13 | SIM protect | **10kΩ** resistor + **20kΩ** resistor | 1 pair | **Have** | Voltage divider. Drops the Uno’s 5V talk-line so the SIM chip is not hurt. |
+| 14 | Network | **Nano-SIM** with call + SMS credit | 1 | **Have** | Must fit the SIM800L slot. Use an adapter if your SIM is larger. |
 | 15 | Case | Printed **AeroGuard-X1** case from [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad) | 1 | **Have** | Lid, base, sensor clip. See [§10](#10-case-print). |
 | 16 | Tools | USB **data** cable (not charge-only), small screwdriver, **multimeter** | 1 | **Have** | Multimeter = the meter that reads volts. You need it to set 4.0V later. |
 
@@ -103,8 +105,8 @@ Pin-for-pin module tables: [`AeroGuard-X1_Pin_Map_Wiring_Reference.md`](AeroGuar
 | D2 | Green LED | **Yes** |
 | D3 | Yellow LED | **Yes** |
 | D4 | Red LED | **Yes** |
-| D5 | SIM800L **TX** | **No** — no phone chip yet |
-| D6 | SIM800L **RX** | **No** — no phone chip yet |
+| D5 | SIM800L **TX** (chip talks → Uno listens) | **Yes** |
+| D6 | SIM800L **RX** through the two-resistor divider | **Yes** |
 | D7 | Reset button, other leg to GND | **Yes** |
 | D8 | Buzzer | **Yes** |
 | D9 | Demo button, other leg to GND | **Yes** |
@@ -112,11 +114,11 @@ Pin-for-pin module tables: [`AeroGuard-X1_Pin_Map_Wiring_Reference.md`](AeroGuar
 | D11 | SD **MOSI** | **No** |
 | D12 | SD **MISO** | **No** |
 | D13 | SD **SCK** | **No** |
-| 5V | Sensors, LCD, LEDs, buzzer, buttons | **Yes** |
-| GND | **Every** module you plug in | **Yes** |
-| ~4V from buck | **SIM800L VCC only** | **Later** |
+| 5V | Sensors, LCD, LEDs, buzzer, buttons | **Yes** — not SIM VCC |
+| GND | **Every** module, plus the 4V rail | **Yes** |
+| ~4V from buck | **SIM800L VCC only** | **Yes** after you measure ~4.0V |
 
-A1 and A3 stay empty. D5, D6, and D10–D13 stay empty until those parts arrive.
+A1 and A3 stay empty. D10–D13 stay empty until the SD board arrives.
 
 ---
 
@@ -134,21 +136,21 @@ A1 and A3 stay empty. D5, D6, and D10–D13 stay empty until those parts arrive.
 
 ## 6. Step-by-step assembly
 
-Do these in order. Unplug USB and batteries while you move wires. After each step you can plug USB in to check the screen and lights.
-
-**Today, stop after the buttons (step 6.7).** Skip the SD module and the phone chip. They are not on the table.
+Do these in order. Unplug USB and batteries while you move wires. After the lights and screen work on USB, set **4.0V** on the buck, then power the SIM800L. Skip the SD module — it is not on the table.
 
 Open the HTML guide beside this page if you want the same steps with bigger cards. Or use the pin sheet: [`AeroGuard-X1_Pin_Map_Wiring_Reference.md`](AeroGuard-X1_Pin_Map_Wiring_Reference.md).
 
 ### 6.1 Power rails
 
-**Goal:** a 5V strip for the small parts, and one shared GND. No 4V SIM rail until you buy the LM2596 and SIM800L.
+**Goal:** a 5V strip for the small parts, a separate 4V strip for the phone chip, and one shared GND.
 
 1. Put the Uno on the table. Note **5V**, **GND**, and the numbered pins.
 2. Run a red jumper from Uno **5V** to the breadboard **+** rail.
 3. Run a black jumper from Uno **GND** to the breadboard **−** rail.
-4. Power the Uno from USB (computer or 5V power bank).
-5. When the buck and phone chip arrive: sit the **LM2596** on the side. Input from the 5V bank. Output ~4V for **SIM VCC only**. Join buck **GND** to the same **−** rail. **Do not** feed the buck output into the Uno 5V pin.
+4. Sit the **LM2596** on the side. Input comes from your 5V USB bank (or battery pack). Output will be ~4V for the SIM only.
+5. **Do not** feed the buck output into the Uno 5V pin. Uno drinks 5V from USB. The buck is only for the SIM.
+6. Join buck **GND** to the same breadboard **−** rail.
+7. Power the buck. Turn the screw. Read about **4.0V** on a multimeter **before** the SIM VCC wire goes on.
 
 ### 6.2 Gas sensor (MQ-5 or MQ-2)
 
@@ -229,30 +231,54 @@ Do not wire buttons to 5V. Label the lid **RESET** and **DEMO** so you do not mi
 
 ### 6.8 SD card module — skip today
 
-You do **not** have this part. Leave **D10–D13** empty. The program still runs. Serial will say `No SD module (OK for this bench).`
+You do **not** have this part. That is the **only** missing item in the shopping list. Leave **D10–D13** empty. Keep `SD_ENABLED` as **false**. The program still runs. Serial will say `No SD module (OK for this bench).`
 
-When you buy it, wire CS/MOSI/MISO/SCK to D10–D13, VCC per the print on the board, GND to GND. Format the card **FAT32**. The program writes `gaslog.txt`. It is **not** a fire-proof black box.
+When you buy it, wire CS/MOSI/MISO/SCK to D10–D13, VCC per the print on the board, GND to GND. Format the card **FAT32**. Set `SD_ENABLED` to **true** and upload again. The program writes `gaslog.txt`. It is **not** a fire-proof black box.
 
-### 6.9 SIM800L + 4V buck — skip today
+### 6.9 SIM800L + 4V buck — wire today
 
-You do **not** have the phone chip. Leave **D5** and **D6** empty. Keep `GSM_ENABLED` as **false** in [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) so Demo will not try to call (that wait is about 18 seconds and would freeze the demo). Keep `SD_ENABLED` **false** too.
+You **have** the phone chip. This is the mini phone. Antenna on. Nano-SIM in the slot (gold pads down, cut corner matching the drawing on the holder).
 
-When the **SIM800L**, **LM2596**, antenna, SIM, and 10k/20k pair are all on the table, follow the pin sheet § “Leave empty until you buy” and then:
+**Set 4.0V first:**
 
 1. Disconnect SIM VCC.
 2. Power the LM2596 input.
-3. Meter the output pads. Turn the screw until you see about **4.0V**.
-4. Connect SIM **VCC** to that output. Never Uno 5V.
-5. TX → D5. RX → divider from D6. Set `GSM_ENABLED` to **true**. Re-upload.
+3. Meter the output pads.
+4. Turn the screw until you see about **4.0V**.
+5. Then connect SIM **VCC** to that output. Never Uno 5V.
 
-**Caution later:** CRITICAL and FIRE place a **real call** to `OWNER_CONTACT`.
+| SIM800L | To |
+|---------|-----|
+| VCC | Buck **4V out** (not Uno 5V) |
+| GND | Common GND |
+| TX | Uno **D5** (direct) |
+| RX | Mid-point of the divider from **D6** |
+| Antenna | Screw / uFL attached |
+
+**Divider (do this exactly):**
+
+```
+Uno D6  --- 10kΩ ---+--- SIM800L RX
+                    |
+                  20kΩ
+                    |
+                   GND
+```
+
+The 10k is the upper resistor (from D6). The 20k is the lower resistor (down to ground). The SIM RX wire comes off the middle.
+
+Keep `GSM_ENABLED` as **true** in [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino).
+
+**Network light:** many SIM800L boards blink fast when hunting, then **slow blink** when they have registered on the network. No slow blink = no SIM, no credit, bad antenna, or weak 4V.
+
+**Caution:** CRITICAL and FIRE place a **real call** to `OWNER_CONTACT`. Warn the person who holds that phone.
 
 ### 6.10 Case
 
 Print notes are in [§10](#10-case-print). Fit order that works:
 
 1. Screw or seat the Uno on the standoffs. USB hole faces the cutout.
-2. Seat SIM, SD, and 4V buck on their labeled platforms **when those parts arrive**. Today those shelves stay empty.
+2. Seat SIM and 4V buck on their labeled platforms. Leave the **SD** platform empty.
 3. Leave the extra empty shelf empty.
 4. Route the LCD into the lid window. Seat LEDs in G / Y / R holes. Buttons through DEMO and RESET. Buzzer in its hole.
 5. Clip the gas sensor in the MQ mount at the grill. Flame sensor toward the side window.
@@ -298,7 +324,7 @@ If the LCD is blank, change `LiquidCrystal_I2C lcd(0x27, 16, 2);` so `0x27` matc
 
 If the lighter test never hits FIRE, change `FLAME_DETECT_THRESHOLD` a little and try again.
 
-Keep `GSM_ENABLED` as `false` until the SIM800L and 4V buck are wired. Keep `SD_ENABLED` as `false` until the SD module is wired. Then change them to `true` and upload again.
+Keep `GSM_ENABLED` as **true** (the phone chip is on the table). Keep `SD_ENABLED` as **false** until the SD module is wired. Then change `SD_ENABLED` to `true` and upload again.
 
 ### 7.4 Upload
 
@@ -315,17 +341,27 @@ Do not upload any other `.ino` file for this demo.
 
 Do this on a table. No open gas. Tell the owner-phone person that a test call may come.
 
-| Check | What you do | What you should see **today** (no phone chip, no SD) |
+| Check | What you do | What you should see **today** (phone chip yes, no SD) |
 |-------|-------------|---------------------|
-| Boot | Power USB after upload | LCD: Starting → Calibrating (~45s) → live SAFE / label. Serial: `GSM off` and `No SD module`. |
+| Boot | Power USB after upload; SIM on 4V | LCD: Starting → Calibrating (~45s) → live SAFE / label. Serial: `No SD module`. |
 | Serial | Monitor at 9600 | Lines like `STATUS level=SAFE …` once per second |
 | Demo 1 | Press **Demo** once | **Green** LED. LCD **LOW**. Quiet (no buzzer). |
-| Demo 2 | Press **Demo** again | **Yellow** LED. Short beeps. **No SMS** until the phone chip is fitted. |
-| Demo 3 | Press **Demo** again | **Red** LED. Loud alarm. **No call** yet. |
-| Demo 4 | Press **Demo** again | Still **red**. LCD **FIRE RISK** / **DEMO MODE**. No call yet. |
+| Demo 2 | Press **Demo** again | **Yellow** LED. Short beeps. **Real SMS** to owner. |
+| Demo 3 | Press **Demo** again | **Red** LED. Loud alarm. **Phone rings**, then SMS. |
+| Demo 4 | Press **Demo** again | Still **red**. LCD **FIRE RISK** / **DEMO MODE**. Call + SMS again. |
 | Reset | Press **Reset** | Alarm stops. Demo ends. Calibrating ~45s. Back to SAFE. |
+| SIM | Watch the network LED | Slow blink after it finds the network |
 
-**When the SIM800L is on the box** (later): MEDIUM sends a **real text**. CRITICAL and FIRE place a **real call**. Warn the owner-phone person. Put your own number in first if you are alone.
+**SMS/call caution**
+
+- MEDIUM sends a **real text**.
+- CRITICAL and FIRE place a **real call** (the box rings the owner for a bit, then hangs up) and a **real text**.
+- Put your own number in first if you are alone.
+- Do not surprise a sleeping family member. Do not spam the fire service.
+
+If SMS never arrives: airtime, SIM seated, slow blink, 4V still ~4V under load, divider wired, `OWNER_CONTACT` has `+` and country code.
+
+There is **no SD log** until you buy the SD module.
 
 ---
 
@@ -336,7 +372,7 @@ Speak in this order. Short. Show the box in your hands.
 1. **Problem.** LPG is in homes, hostels, and chop bars. If it leaks at night, people smell it late — or not at all.
 2. **Who pays first.** Lead with **hostel wardens / multi-tenant housing**. Chop bars and family kitchens are the next wave.
 3. **Show the product.** Cased unit. Green / yellow / red. One brain: the Arduino Uno. One phone chip: the SIM800L. This is the kit.
-4. **Live demo.** Press **Demo**: LOW (green, quiet) → MEDIUM (yellow, beep) → CRITICAL (red, loud). Press **Reset** to clear. **Today there is no real call** — the phone chip is not on the table yet. Say that to judges. Lights and sound still prove the stages.
+4. **Live demo.** Press **Demo**: LOW (green, quiet) → MEDIUM (yellow, beep, **text**) → CRITICAL (red, **the phone rings**). Press **Reset** to clear. Say the SD log is the one part still on order.
 5. **App story.** Open the Vercel contest app on a phone. Pairing and status are **simulated** for judges. Smart vents live in the app. Real calls still come from the SIM in the box.
 6. **Cost + market.** Be honest about parts cost. Who buys, who installs, who gets the SMS.
 7. **Tough questions, ready answers.**

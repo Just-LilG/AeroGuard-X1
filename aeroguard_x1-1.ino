@@ -1,8 +1,8 @@
 /*
   AEROGUARD-X1 — Arduino Uno firmware (this is the demo brain).
   Leave pins A1 and A3 empty.
-  No SD module and no SIM800L on the table yet:
-  keep GSM_ENABLED false so Demo does not try to call or text.
+  SIM800L is on the table: GSM_ENABLED is true.
+  No SD module yet: keep SD_ENABLED false and leave D10–D13 empty.
 */
 
 #include <Wire.h>
@@ -31,8 +31,8 @@ SoftwareSerial appSerial(PIN_APP_RX, PIN_APP_TX);  // unused in the demo kit
 const char* OWNER_CONTACT = "+233XXXXXXXXX";
 const char* SECONDARY_CONTACT = "+233YYYYYYYYY";
 const char* DEVICE_LABEL = "AeroGuard Kitchen";
-// Set true only after the SIM800L phone chip and ~4V buck are wired.
-const bool GSM_ENABLED = false;
+// SIM800L is wired. Set false only if you unplug the phone chip.
+const bool GSM_ENABLED = true;
 // Set true only after the micro SD module is wired to D10–D13.
 const bool SD_ENABLED = false;
 

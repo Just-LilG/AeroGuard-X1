@@ -3,7 +3,8 @@
 **This page is for the parts on the table today.**  
 It matches [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino).
 
-You **do not have** the **SD card module** (the tiny file cabinet) or the **SIM800L** (the phone chip). Leave those pins empty. The box can still show lights, screen, beeper, and Demo / Reset.
+You **have** the **SIM800L** (the phone chip that texts and calls).  
+You **do not have** the **SD card module** (the tiny file cabinet). Leave **D10–D13** empty. The box still lights, beeps, and can send real SMS/calls.
 
 The full shopping story is in [`AeroGuard-X1_Build_Guide.md`](AeroGuard-X1_Build_Guide.md). Pictures: [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html).
 
@@ -22,18 +23,18 @@ Numbers match the Build Guide shopping list.
 | 5 | Green / yellow / red LEDs + 220Ω resistors | **Have** |
 | 6 | Buzzer (the beeper) | **Have** |
 | 7 | Demo + Reset buttons | **Have** |
-| 8 | SIM800L phone chip + antenna | **Buy later** |
-| 9 | LM2596 buck (4V “pressure reducer” for the phone chip) | **Buy later** (needed with the SIM800L) |
-| 10 | Micro SD module + card | **Buy later** |
+| 8 | SIM800L phone chip + antenna | **Have** |
+| 9 | LM2596 buck (4V “pressure reducer” for the phone chip) | **Have** — must be set to ~4.0V before SIM VCC |
+| 10 | Micro SD module + card | **Buy later — this is the only missing part** |
 | 11 | 5V USB power bank or battery pack | **Have** |
 | 12 | Breadboard + jumper wires | **Have** |
-| 13 | 10kΩ + 20kΩ resistors (SIM protect) | Keep in the bag until the phone chip arrives |
-| 14 | Nano-SIM with airtime | Keep in the bag until the phone chip arrives |
+| 13 | 10kΩ + 20kΩ resistors (SIM protect) | **Have** |
+| 14 | Nano-SIM with airtime | **Have** |
 | 15 | Printed case | **Have** (or print when you are ready) |
 | 16 | USB **data** cable + screwdriver + multimeter | **Have** |
 
-**Wire now:** 1–7, plus 5V / GND.  
-**Do not wire:** SIM800L, SD, 4V buck, D5, D6, D10–D13.
+**Wire now:** 1–9 and 11–16.  
+**Do not wire:** SD module. Leave **D10, D11, D12, D13** empty.
 
 ---
 
@@ -52,30 +53,36 @@ Think of the Uno as a farm tap board. Each hole is a tap. Empty taps stay empty.
 | D2 | Green LED | **Yes** |
 | D3 | Yellow LED | **Yes** |
 | D4 | Red LED | **Yes** |
-| D5 | Would be SIM800L TX | **No. No phone chip yet.** |
-| D6 | Would be SIM800L RX | **No. No phone chip yet.** |
+| D5 | SIM800L **TX** (chip talks → Uno listens) | **Yes** |
+| D6 | SIM800L **RX** through the 10k + 20k divider | **Yes** |
 | D7 | Reset button → GND | **Yes** |
 | D8 | Buzzer | **Yes** |
 | D9 | Demo button → GND | **Yes** |
-| D10 | Would be SD CS | **No. No SD module yet.** |
+| D10 | Would be SD CS | **No. No SD module.** |
 | D11 | Would be SD MOSI | **No** |
 | D12 | Would be SD MISO | **No** |
 | D13 | Would be SD SCK | **No** |
-| 5V | Sensors, LCD, LEDs, buzzer, buttons | **Yes** |
-| GND | Every module you plug in | **Yes. One shared drain.** |
+| 5V | Sensors, LCD, LEDs, buzzer, buttons | **Yes** — **not** SIM VCC |
+| GND | Every module, plus the 4V buck | **Yes. One shared drain.** |
+| ~4V from buck | **SIM800L VCC only** | **Yes** after you measure ~4.0V |
 
 ---
 
 ## Power (today)
 
-No 4V rail yet. Power the Uno from USB (computer or power bank).
+Two taps. One drain.
 
 | Wire | From | To |
 |------|------|-----|
-| Red | Uno **5V** | Breadboard **+** rail |
+| Red | Uno **5V** | Breadboard **+** rail (small parts only) |
 | Black | Uno **GND** | Breadboard **−** rail |
+| Buck input | 5V USB bank (or battery pack) | LM2596 **IN** |
+| Buck output | LM2596 **OUT** after you measure **~4.0V** | SIM800L **VCC only** |
+| Buck GND | LM2596 GND | Same **−** rail |
 
-Join every module GND to that same **−** rail.
+**Never** feed the SIM800L from the Uno **5V** pin. That pin is a thin hose. The chip gulps current when it calls and will reset or die.
+
+Measure the buck with a multimeter **before** the SIM VCC wire goes on.
 
 ---
 
@@ -162,11 +169,46 @@ Label the lid **RESET** and **DEMO**.
 
 ---
 
-## Leave empty until you buy the missing parts
+## 7. SIM800L phone chip → D5 / D6 + 4V
 
-### SD module (part 10) — not on the table
+The mini phone. Antenna on. Nano-SIM in the slot (gold pads down, cut corner matching the drawing).
 
-Do not put wires on **D10, D11, D12, D13**. The program still runs. The log file just will not appear.
+**Set 4.0V first:**
+
+1. Leave SIM **VCC** disconnected.
+2. Power the LM2596 input.
+3. Meter the output. Turn the screw until you see about **4.0V**.
+4. Then connect SIM **VCC** to that output.
+
+| SIM800L | Connects to |
+|---------|-------------|
+| VCC | Buck **4V out** (never Uno 5V) |
+| GND | Common GND |
+| TX | Uno **D5** (direct) |
+| RX | Mid-point of the divider from **D6** |
+| Antenna | Screwed on |
+
+**Divider (do this exactly).** 10kΩ is the upper resistor. 20kΩ is the lower one to ground. SIM RX comes off the middle.
+
+```
+Uno D6  --- 10kΩ ---+--- SIM800L RX
+                    |
+                  20kΩ
+                    |
+                   GND
+```
+
+SIM TX to D5 is direct. The chip speaks at ~3.3V. The Uno can hear that.
+
+In the program, `GSM_ENABLED` is **true**. Put real numbers in `OWNER_CONTACT` before you press Demo to MEDIUM or CRITICAL. Those stages send a **real text** and a **real call**.
+
+Many boards blink fast while hunting, then **slow blink** when they have joined the network.
+
+---
+
+## Leave empty — SD module (part 10)
+
+You do **not** have this part. Do not put wires on **D10, D11, D12, D13**. Keep `SD_ENABLED` as **false**. The program still runs. Serial will say `No SD module (OK for this bench).`
 
 When you buy it:
 
@@ -179,39 +221,20 @@ When you buy it:
 | MISO | D12 |
 | SCK | D13 |
 
-### SIM800L phone chip (part 8) + LM2596 (part 9) — not on the table
-
-Do not put wires on **D5** or **D6**. Do not feed anything that looks like a phone module from the Uno **5V** pin.
-
-The program has `GSM_ENABLED` and `SD_ENABLED` set to **false**, so Demo will not try to call or write a log file. When those parts arrive, set the matching line to `true` and re-upload.
-
-| Later | To |
-|-------|-----|
-| SIM VCC | Buck **~4.0V only** — never Uno 5V |
-| SIM GND | Common GND |
-| SIM TX | Uno D5 (direct) |
-| SIM RX | Mid-point of 10kΩ + 20kΩ from D6 |
-
-```
-Uno D6  --- 10kΩ ---+--- SIM800L RX
-                    |
-                  20kΩ
-                    |
-                   GND
-```
+Then set `SD_ENABLED` to **true** and upload again. The file is `gaslog.txt` — a demo log, not a fire-proof vault.
 
 ---
 
 ## What you can test today
 
-Upload [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino). USB **data** cable. Serial Monitor **9600**. Wait ~45 seconds of calibrating.
+Upload [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino). USB **data** cable. Serial Monitor **9600**. Wait ~45 seconds of calibrating. Warn the person who holds the owner phone.
 
 | Press | Lights / sound | Phone / SD |
 |-------|----------------|------------|
-| Demo 1 | Green. LCD LOW. Quiet. | No SMS (no phone chip) |
-| Demo 2 | Yellow. Short beeps. | No SMS |
-| Demo 3 | Red. Loud alarm. | No call |
-| Demo 4 | Red. FIRE on screen. | No call |
+| Demo 1 | Green. LCD LOW. Quiet. | No SMS |
+| Demo 2 | Yellow. Short beeps. | **Real SMS** to owner |
+| Demo 3 | Red. Loud alarm. | **Real call**, then SMS |
+| Demo 4 | Red. FIRE on screen. | **Real call**, then SMS |
 | Reset | Alarm off. Calibrate again. | — |
 
-The Vercel app is still a pretend screen for judges. It does not need these missing parts.
+No `gaslog.txt` until the SD board arrives. The Vercel app is still a pretend screen for judges.

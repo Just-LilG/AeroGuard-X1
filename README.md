@@ -8,17 +8,17 @@ Visual walkthrough: [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_G
 
 ## What you assemble
 
-**On the table today:** Arduino Uno (the brain) + MQ gas nose + flame eye + LCD screen + green/yellow/red lights + buzzer + Demo/Reset buttons + breadboard + case.
+**On the table today:** Arduino Uno (the brain) + MQ gas nose + flame eye + LCD + lights + buzzer + buttons + **SIM800L** phone chip + 4V buck + case.
 
-**Still to buy:** **SIM800L** phone chip, **LM2596** 4V buck, **micro SD** module. Do not wire D5, D6, or D10–D13 until those arrive.
+**Still to buy:** **micro SD** module only. Leave D10–D13 empty.
 
-Upload **only** [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) to the Uno. USB **data** cable. Serial Monitor **9600**. Keep `GSM_ENABLED` as **false** until the phone chip is wired.
+Upload **only** [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) to the Uno. USB **data** cable. Serial Monitor **9600**. `GSM_ENABLED` is **true**. Keep `SD_ENABLED` **false** until the SD board arrives. Put owner numbers in the file before a live call.
 
 ## Box and app
 
 The **Vercel contest app** is a screen for judges. Pairing and status are simulated. It does not talk to the hardware.
 
-**Real alerts** (when the SIM800L is fitted) are GSM SMS and calls from the box. **Today there is no phone chip**, so Demo only drives lights, screen, and beeper.
+**Real alerts** are GSM SMS and calls from the SIM800L in the box. There is **no SD log** until that module is bought.
 
 | Stage | LED | Box |
 |-------|-----|-----|
