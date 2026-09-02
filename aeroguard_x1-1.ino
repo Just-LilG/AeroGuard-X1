@@ -46,7 +46,8 @@ const unsigned long RESPONSE_WINDOW_MS = 180000;
 const int FLAME_DETECT_THRESHOLD = 400;
 const unsigned long BTN_DEBOUNCE_MS = 400;
 
-enum RiskLevel { SAFE = 0, LOW = 1, MEDIUM = 2, CRITICAL = 3, FIRE = 4 };
+// Arduino already uses the word LOW for "pin off". Do not name a stage LOW.
+enum RiskLevel { SAFE = 0, LEVEL_LOW = 1, MEDIUM = 2, CRITICAL = 3, FIRE = 4 };
 float gasBaseline = 0;
 float gasReading = 0;
 float gasPrevious = 0;
@@ -111,7 +112,7 @@ void handleDemoButton() {
   demoStage++;
   if (demoStage > 4) demoStage = 1;
   RiskLevel staged = SAFE;
-  if (demoStage == 1) staged = LOW;
+  if (demoStage == 1) staged = LEVEL_LOW;
   else if (demoStage == 2) staged = MEDIUM;
   else if (demoStage == 3) staged = CRITICAL;
   else if (demoStage == 4) staged = FIRE;
@@ -159,7 +160,7 @@ void readSensorsAndEvaluate() {
   RiskLevel instant = SAFE;
   if (deviation >= THRESHOLD_CRITICAL) instant = CRITICAL;
   else if (deviation >= THRESHOLD_MEDIUM) instant = MEDIUM;
-  else if (deviation >= THRESHOLD_LOW) instant = LOW;
+  else if (deviation >= THRESHOLD_LOW) instant = LEVEL_LOW;
   bool flame = (analogRead(PIN_FLAME) < FLAME_DETECT_THRESHOLD);
   if (flame && instant != SAFE) { setLevel(FIRE, false); return; }
   if (instant != pendingLevel) { pendingLevel = instant; thresholdCrossedAt = millis(); }
@@ -221,11 +222,11 @@ void handleSecondarySmsTimer() {
 }
 
 void updateOutputs() {
-  digitalWrite(PIN_LED_GREEN, currentLevel == LOW);
+  digitalWrite(PIN_LED_GREEN, currentLevel == LEVEL_LOW);
   digitalWrite(PIN_LED_YELLOW, currentLevel == MEDIUM);
   digitalWrite(PIN_LED_RED, currentLevel == CRITICAL || currentLevel == FIRE);
   switch (currentLevel) {
-    case SAFE: case LOW: noTone(PIN_BUZZER); break;
+    case SAFE: case LEVEL_LOW: noTone(PIN_BUZZER); break;
     case MEDIUM: tone(PIN_BUZZER, 1000, 180); break;
     case CRITICAL: case FIRE: tone(PIN_BUZZER, 1600); break;
   }
@@ -252,7 +253,7 @@ void updateLCD() {
 
 const char* levelName(RiskLevel lvl) {
   switch (lvl) {
-    case SAFE: return "SAFE"; case LOW: return "LOW"; case MEDIUM: return "MEDIUM";
+    case SAFE: return "SAFE"; case LEVEL_LOW: return "LOW"; case MEDIUM: return "MEDIUM";
     case CRITICAL: return "CRITICAL"; case FIRE: return "FIRE";
   }
   return "?";
