@@ -41,7 +41,12 @@
   .card h3 { font-family: var(--font-c); text-transform: uppercase; font-size: 17px; }
   .card .meta { font-family: var(--font-m); font-size: 11px; color: var(--soft); margin: 4px 0 10px; }
   .card p { color: var(--soft); font-size: 14px; }
+  .card ol, .card ul { color: var(--soft); font-size: 14px; margin: 8px 0 0 18px; }
+  .card li { margin: 6px 0; }
+  .card code { font-family: var(--font-m); font-size: 12px; }
+  pre.diagram { font-family: var(--font-m); font-size: 11px; background: #F5F0E4; border: 1.5px solid var(--ink); padding: 14px 16px; overflow-x: auto; line-height: 1.35; margin: 12px 0 0; white-space: pre; }
   .warn { margin-top: 10px; border-left: 3px solid var(--stamp); padding: 6px 10px; font-size: 12.5px; color: var(--soft); background: rgba(158,43,37,0.05); }
+  table.wires td:first-child { white-space: nowrap; }
   .check { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   @media (max-width: 640px) { .check { grid-template-columns: 1fr; } }
   .item { display: flex; gap: 10px; padding: 12px; border: 1.5px solid var(--ink); background: #F5F0E4; cursor: pointer; font-size: 13.5px; }
@@ -61,11 +66,11 @@
 <div class="wrap">
   <header>
     <h1>AeroGuard-X1<span>Assembly Manual — LPG Leak + Fire Early Warning</span></h1>
-    <p class="lede">Wire and case the competition product: one gas zone, flame sense, green/yellow/red stages, demo button for simulated leaks, real GSM alerts. Smart vents live in the app — not a servo on this box.</p>
+    <p class="lede">Wire and case the competition product: one gas zone, flame sense, green/yellow/red stages, demo button for simulated leaks, real GSM alerts, and a required ESP32 so a phone can read status over WiFi. Smart vents live in the app — not a servo on this box.</p>
     <div class="specs">
-      <div><strong>11</strong><span>Build steps</span></div>
+      <div><strong>13</strong><span>Build steps</span></div>
       <div><strong>01</strong><span>Gas zone (v1)</span></div>
-      <div><strong>02</strong><span>Buttons</span></div>
+      <div><strong>02</strong><span>Boards (Uno + ESP32)</span></div>
       <div><strong>05</strong><span>Risk stages</span></div>
     </div>
     <div class="stages">
@@ -77,23 +82,26 @@
       <h2>Read before power-on</h2>
       <ul>
         <li>SIM800L needs its own ~4V high-current supply — never the Uno 5V pin.</li>
-        <li>Level-shift Uno TX → SIM800L RX with a voltage divider.</li>
+        <li>Level-shift Uno TX → SIM800L RX with a voltage divider (10k + 20k).</li>
+        <li>The ESP32 is required. Its signal pins are 3.3V. Uno A3 is 5V — use a 10k + 20k divider into ESP32 GPIO16. A straight 5V wire can kill the ESP32.</li>
+        <li>ESP32 GPIO17 can go straight to Uno A1 (3.3V is safe for the Uno). Tie every ground together, including the ESP32.</li>
+        <li>Use a data USB cable (not charge-only) when you put the program on the ESP32. Hold BOOT if upload sits on “Connecting…”.</li>
         <li>Common ground for every module including battery and SIM.</li>
-        <li>Set real phone numbers in firmware before any call/SMS demo.</li>
+        <li>Set real phone numbers in firmware before any call/SMS demo. Set WiFi name and password in the ESP32 sketch (or use the AeroGuard-X1 fallback hotspot).</li>
       </ul>
     </div>
   </header>
 
   <p class="kicker">Reference</p>
   <h2 class="sec">Pin map</h2>
-  <p class="desc">Matches <code>aeroguard_x1-1.ino</code>. A1/A3 = ESP32 WiFi bridge UART.</p>
+  <p class="desc">Matches <code>aeroguard_x1-1.ino</code> and <code>esp32_aeroguard_bridge.ino</code>. A1/A3 talk to the ESP32. The ESP32 is required — do not leave it unwired.</p>
   <table>
     <thead><tr><th>Pin</th><th>Connection</th><th>Notes</th></tr></thead>
     <tbody>
       <tr><td><span class="pin">A0</span></td><td>Gas sensor</td><td>MQ-2 / MQ-5</td></tr>
-      <tr><td><span class="pin">A1</span></td><td>ESP32 TX → Uno RX</td><td>App UART</td></tr>
+      <tr><td><span class="pin">A1</span></td><td>ESP32 GPIO17 (TX2) → Uno RX</td><td>Straight wire — 3.3V is safe</td></tr>
       <tr><td><span class="pin">A2</span></td><td>Flame sensor</td><td>Calibrate threshold</td></tr>
-      <tr><td><span class="pin">A3</span></td><td>Uno TX → ESP32 RX</td><td>Level-shift to 3.3V</td></tr>
+      <tr><td><span class="pin">A3</span></td><td>Uno TX → ESP32 GPIO16 (RX2)</td><td>10k + 20k divider (5V → 3.3V)</td></tr>
       <tr><td><span class="pin">A4/A5</span></td><td>LCD SDA / SCL</td><td>I2C</td></tr>
       <tr><td><span class="pin">D2</span></td><td>Green LED</td><td>LOW</td></tr>
       <tr><td><span class="pin">D3</span></td><td>Yellow LED</td><td>MEDIUM</td></tr>
@@ -103,6 +111,8 @@
       <tr><td><span class="pin">D8</span></td><td>Buzzer</td><td></td></tr>
       <tr><td><span class="pin">D9</span></td><td>Demo button</td><td>Simulate leak stages</td></tr>
       <tr><td><span class="pin">D10–13</span></td><td>SD card SPI</td><td>Fixed SPI pins</td></tr>
+      <tr><td><span class="pin">GPIO16</span></td><td>ESP32 RX2 ← divider from A3</td><td>3.3V max</td></tr>
+      <tr><td><span class="pin">GPIO17</span></td><td>ESP32 TX2 → Uno A1</td><td>Required WiFi bridge</td></tr>
     </tbody>
   </table>
 
@@ -118,8 +128,60 @@
   <div class="card"><h3>07 — Buttons</h3><div class="meta">D7 reset · D9 demo</div><p>Each button: one leg to pin, other to GND (internal pull-ups). Label the lid: <strong>RESET</strong> and <strong>DEMO</strong>.</p></div>
   <div class="card"><h3>08 — SD module</h3><div class="meta">D10–D13</div><p>Local incident history for demos and landlords — not marketed as fire-proof storage.</p></div>
   <div class="card"><h3>09 — SIM800L</h3><div class="meta">4V · D5 · D6</div><p>TX→D5, RX←D6 via divider. Active SIM with credit. Slow blink ≈ registered.</p><div class="warn"><strong>Demo:</strong> CRITICAL/FIRE will place a real call — warn the owner phone holder.</div></div>
-  <div class="card"><h3>10 — ESP32 WiFi (app / remote)</h3><div class="meta">A1 / A3 · ESP32 DevKit</div><p>Wire ESP32 UART2 (GPIO16 RX / GPIO17 TX) to Uno A3/A1 with a level shift into the ESP32 RX. Flash <code>esp32_aeroguard_bridge.ino</code>, set WiFi, then open <code>/status</code> on the phone. Firmware already mirrors <code>STATUS</code> / <code>APP_CMD:VENT_OPEN</code> to this link.</p></div>
-  <div class="card"><h3>11 — Case + verify</h3><div class="meta">Print · upload · Serial 9600</div><p>Print the <strong>v2 compact case</strong> (126×90×36 mm) from <code>aeroguard_x1_case.scad</code> — rounded shell with <strong>AeroGuard</strong> engraved on the lid/front and mounts for Uno, ESP32, SIM, SD, and 4V buck. Upload sketches. Press DEMO: LOW → MEDIUM → CRITICAL → FIRE. RESET clears and recalibrates.</p></div>
+
+  <div class="card" id="esp32-why">
+    <h3>10 — ESP32: what it is (required)</h3>
+    <div class="meta">Uno = farm · ESP32 = water channel to the phone</div>
+    <p>The Uno watches gas, lights, buzzer, SIM, and the SD log. It cannot join WiFi. The ESP32 is the channel: it copies the Uno’s <code>STATUS</code> line onto WiFi so a phone browser can open <code>/status</code>, and it can send <code>APP_CMD:VENT_OPEN</code> back when you tap open-vents. Wire it, flash it, and test it. Do not leave it unwired.</p>
+  </div>
+
+  <div class="card" id="esp32-wiring">
+    <h3>11 — ESP32 wiring + 5V→3.3V divider</h3>
+    <div class="meta">GPIO16 RX2 · GPIO17 TX2 · common GND · 10k + 20k</div>
+    <p>Three signal paths. The Uno’s A3 pin is 5V; the ESP32 GPIO16 pin can only take about 3.3V. Knock it down with two resistors.</p>
+    <table class="wires">
+      <thead><tr><th>From</th><th>To</th><th>How</th></tr></thead>
+      <tbody>
+        <tr><td>Uno A3</td><td>ESP32 GPIO16 (RX2)</td><td>10k from A3 to the junction; 20k from that junction to GND; jumper from the junction to GPIO16</td></tr>
+        <tr><td>ESP32 GPIO17 (TX2)</td><td>Uno A1</td><td>Straight wire — no divider</td></tr>
+        <tr><td>ESP32 GND</td><td>Uno GND</td><td>Straight wire — required</td></tr>
+      </tbody>
+    </table>
+    <pre class="diagram">Uno A3 (5V TX) --[ 10kΩ ]--+-- GPIO16 (RX2)
+                           |
+                        [ 20kΩ ]
+                           |
+                          GND -------- ESP32 GND
+                           |
+Uno A1 (RX)  &lt;-------------+-- GPIO17 (TX2)</pre>
+    <div class="warn"><strong>3.3V:</strong> never run Uno A3 straight into GPIO16. If you swap the resistors (20k on top, 10k to ground) the signal may be too weak (~1.7V). USB power on the ESP32 is fine for the demo.</div>
+  </div>
+
+  <div class="card" id="esp32-flash">
+    <h3>12 — Flash the ESP32</h3>
+    <div class="meta">Arduino IDE · ESP32 Dev Module · Serial 115200 · data USB cable</div>
+    <p>Put <code>esp32_aeroguard_bridge.ino</code> on the ESP32. The Uno still gets <code>aeroguard_x1-1.ino</code> at Serial 9600 — switch board and port each time.</p>
+    <ol>
+      <li><strong>File → Preferences</strong> → Additional boards manager URLs → paste <code>https://espressif.github.io/arduino-esp32/package_esp32_index.json</code></li>
+      <li><strong>Tools → Board → Boards Manager</strong> → search <code>esp32</code> → install <strong>esp32</strong> by Espressif.</li>
+      <li><strong>Tools → Board → ESP32 Dev Module</strong>. Pick the ESP32’s USB port.</li>
+      <li>In the sketch, set <code>WIFI_SSID</code> and <code>WIFI_PASS</code> to your 2.4 GHz WiFi (keep the quotes). Leave the placeholders if you will use the fallback hotspot.</li>
+      <li>Use a <strong>data</strong> USB cable. Click Upload. If it sits on <code>Connecting...</code>, hold the <strong>BOOT</strong> button, then release when writing starts.</li>
+      <li>Open Serial Monitor at <strong>115200</strong>, tap EN/RESET, and write down the IP (<code>Remote URL: http://…</code>).</li>
+    </ol>
+  </div>
+
+  <div class="card" id="esp32-test">
+    <h3>13 — Phone test + fallback hotspot</h3>
+    <div class="meta">Browser /status · /vent/open · SSID AeroGuard-X1</div>
+    <p>The companion app can still pretend it found a device. Hardware proof is the phone browser on the <strong>same</strong> WiFi. Use <code>http</code>, not https.</p>
+    <ul>
+      <li><code>http://&lt;ip&gt;/status</code> — JSON with level / demo / gas. The <code>raw</code> line looks like <code>STATUS level=SAFE demo=0 gas=0 vent=APP</code> once the Uno is talking.</li>
+      <li><code>http://&lt;ip&gt;/vent/open</code> — should return ok and send <code>APP_CMD:VENT_OPEN</code> to the Uno.</li>
+      <li>If home WiFi is not set (or will not join), the ESP32 opens its own network: name <strong>AeroGuard-X1</strong>, password <strong>aeroguard</strong>. On the phone join that network, then open <code>http://192.168.4.1/status</code>.</li>
+    </ul>
+    <div class="warn">Case: the printed shell has an ESP32 shelf about 51 × 28 mm. Seat USB and antenna toward the opening. Then press DEMO: LOW → MEDIUM → CRITICAL → FIRE. RESET clears and recalibrates. Uno Serial 9600 · ESP32 Serial 115200.</div>
+  </div>
 
   <p class="kicker">Before you present</p>
   <h2 class="sec">Checklist</h2>
@@ -150,6 +212,10 @@
 
   const items = [
     "Phone numbers set in firmware",
+    "WiFi SSID/password set in ESP32 sketch (or using AeroGuard-X1 hotspot)",
+    "ESP32 flashed (ESP32 Dev Module) · Serial 115200 shows an IP",
+    "Phone browser /status returns JSON (hardware proof)",
+    "Fallback hotspot works if home WiFi is unset (AeroGuard-X1 / aeroguard)",
     "Demo button cycles LOW→MED→CRIT→FIRE",
     "Reset exits demo and recalibrates",
     "MEDIUM sends owner SMS",

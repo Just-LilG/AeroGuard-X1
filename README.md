@@ -21,13 +21,15 @@ LPG leak + fire early-warning **product** for Ghanaian homes, hostels, chop bars
 | [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) | Arduino Uno firmware |
 | [`esp32_aeroguard_bridge.ino`](esp32_aeroguard_bridge.ino) | ESP32 WiFi bridge (`/status`, vent command) |
 | [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad) | Compact 3D-printed case (126×90×36) with AeroGuard engraving |
-| [`AeroGuard-X1_Build_Guide.md`](AeroGuard-X1_Build_Guide.md) | BOM, pin map, pitch outline |
+| [`AeroGuard-X1_Build_Guide.md`](AeroGuard-X1_Build_Guide.md) | BOM, pin map, **ESP32 wiring + flash + phone test**, pitch outline |
 | [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html) | Visual assembly |
 | [`companion/`](companion/) | Android-style companion app (pair → setup → per-device tabs) |
 
 ## Hardware
 
-See the build guide. Upload `aeroguard_x1-1.ino` to an Arduino Uno (Serial 9600) and `esp32_aeroguard_bridge.ino` to the ESP32 (Serial 115200). Set WiFi SSID/password in the ESP32 sketch for remote access.
+The **ESP32 is required** (it is the WiFi path to the phone). Full beginner steps — wiring, voltage divider, Arduino IDE board setup, upload, `/status` test, and hotspot fallback — are in **[Build Guide §7](AeroGuard-X1_Build_Guide.md#7-esp32-wifi-bridge-required)**. Visual cards: [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html).
+
+Upload `aeroguard_x1-1.ino` to an Arduino Uno (Serial 9600) and `esp32_aeroguard_bridge.ino` to the ESP32 (Serial 115200). Set `WIFI_SSID` / `WIFI_PASS` in the ESP32 sketch before upload.
 
 ## Companion app
 

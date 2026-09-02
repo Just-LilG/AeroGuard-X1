@@ -9,10 +9,11 @@
    - Serves live STATUS over HTTP so the phone can reach the
      device remotely on the same network (or via tunnel/cloud later)
 
-  Wiring (3.3V logic on ESP32 side):
-   ESP32 GPIO16 (RX2)  <- Uno A3 (TX)   [use divider or level shifter
-                                         if Uno TX is ~5V]
-   ESP32 GPIO17 (TX2)  -> Uno A1 (RX)
+  Wiring (3.3V logic on ESP32 side — required, do not skip):
+   ESP32 GPIO16 (RX2)  <- Uno A3 (TX) via 10k + 20k divider
+                         Uno A3 --[10k]-- GPIO16 --[20k]-- GND
+                         (5V down to ~3.3V; never wire A3 straight to GPIO16)
+   ESP32 GPIO17 (TX2)  -> Uno A1 (RX)   [straight wire; 3.3V is safe for Uno]
    ESP32 GND           -- Uno GND
    Power ESP32 from USB or 5V VIN separately
 
