@@ -10,6 +10,7 @@
 #include <SoftwareSerial.h>
 #include <SPI.h>
 #include <SD.h>
+#include <string.h>
 
 const int PIN_GAS = A0;
 const int PIN_APP_RX = A1;  // leave empty
@@ -37,14 +38,16 @@ const bool GSM_ENABLED = true;
 const bool SD_ENABLED = false;
 
 const unsigned long CALIBRATION_TIME_MS = 45000;
-const unsigned long CALIBRATION_SAMPLE_MS = 500;
+const unsigned long CALIBRATION_QUICK_MS = 4000;
+const unsigned long CALIBRATION_SAMPLE_MS = 200;
 const float THRESHOLD_LOW = 20.0;
 const float THRESHOLD_MEDIUM = 40.0;
 const float THRESHOLD_CRITICAL = 70.0;
 const unsigned long CONFIRM_WINDOW_MS = 8000;
 const unsigned long RESPONSE_WINDOW_MS = 180000;
 const int FLAME_DETECT_THRESHOLD = 400;
-const unsigned long BTN_DEBOUNCE_MS = 400;
+const unsigned long BTN_DEBOUNCE_MS = 80;
+const unsigned long GSM_RING_MS = 18000;
 
 // Arduino already uses the word LOW for "pin off". Do not name a stage LOW.
 enum RiskLevel { SAFE = 0, LEVEL_LOW = 1, MEDIUM = 2, CRITICAL = 3, FIRE = 4 };
@@ -64,6 +67,22 @@ unsigned long lastLcdSwitch = 0;
 unsigned long lastLcdPage = 0;
 bool lcdAltView = false;
 bool lcdTick = false;
+
+enum GsmState {
+  GSM_IDLE,
+  GSM_DIAL,
+  GSM_RINGING,
+  GSM_HANG,
+  GSM_SMS_MODE,
+  GSM_SMS_ADDR,
+  GSM_SMS_BODY,
+  GSM_SMS_WAIT
+};
+GsmState gsmState = GSM_IDLE;
+char gsmNum[20];
+char gsmText[96];
+unsigned long gsmStepAt = 0;
+bool gsmSmsAfterCall = false;
 
 void lcdLine(byte row, const char* text) {
   lcd.setCursor(0, row);
@@ -112,7 +131,7 @@ void setup() {
   delay(2000);
   initGSM();
   appSerial.begin(9600);
-  calibrateGas();
+  calibrateGas(false);
   setLevel(SAFE, true);
   lcd.clear();
   Serial.println(F("Ready. Demo btn = simulate leak."));
@@ -121,13 +140,14 @@ void setup() {
 void loop() {
   handleDemoButton();
   handleResetButton();
+  pumpGsm();
   pollAppBridge();
   if (!demoMode) readSensorsAndEvaluate();
   updateOutputs();
   updateLCD();
   handleSecondarySmsTimer();
   emitAppStatus();
-  delay(200);
+  delay(15);
 }
 
 void handleDemoButton() {
@@ -152,35 +172,54 @@ void handleResetButton() {
   if (digitalRead(PIN_BTN_RESET) != LOW) return;
   if (millis() - last < BTN_DEBOUNCE_MS) return;
   last = millis();
+  cancelGsm();
   noTone(PIN_BUZZER);
   demoMode = false;
   demoStage = 0;
   ownerNotified = false;
   secondaryNotified = false;
+  currentLevel = SAFE;
+  pendingLevel = SAFE;
+  updateOutputs();
+  lcdLine(0, "RESET");
+  lcdLine(1, "Sniffing air...");
   logEvent("SYSTEM", "reset");
-  calibrateGas();
+  calibrateGas(true);
   setLevel(SAFE, true);
 }
 
-void calibrateGas() {
+void calibrateGas(bool quick) {
+  unsigned long dur = quick ? CALIBRATION_QUICK_MS : CALIBRATION_TIME_MS;
   lcd.clear();
   lcdLine(0, "Sniffing air...");
   long total = 0;
   int samples = 0;
   unsigned long start = millis();
-  while (millis() - start < CALIBRATION_TIME_MS) {
+  while (millis() - start < dur) {
+    if (digitalRead(PIN_BTN_DEMO) == LOW) {
+      demoMode = true;
+      break;
+    }
     total += analogRead(PIN_GAS);
     samples++;
     unsigned long elapsed = millis() - start;
-    byte filled = (byte)(elapsed * 16UL / CALIBRATION_TIME_MS);
+    byte filled = (byte)(elapsed * 16UL / dur);
     if (filled > 16) filled = 16;
     lcd.setCursor(0, 1);
     for (byte i = 0; i < 16; i++) lcd.write(i < filled ? (uint8_t)255 : (uint8_t)'-');
     delay(CALIBRATION_SAMPLE_MS);
   }
+  if (samples < 1) {
+    total = analogRead(PIN_GAS);
+    samples = 1;
+  }
   gasBaseline = (float)total / samples;
   gasReading = gasBaseline;
   gasPrevious = gasBaseline;
+  if (demoMode && demoStage == 0) {
+    demoStage = 1;
+    setLevel(LEVEL_LOW, false);
+  }
 }
 
 void readSensorsAndEvaluate() {
@@ -204,42 +243,40 @@ void setLevel(RiskLevel level, bool silent) {
   RiskLevel previous = currentLevel;
   currentLevel = level;
   pendingLevel = level;
+  if (level == SAFE) { ownerNotified = false; secondaryNotified = false; }
+  lastLcdSwitch = 0;
+  lastLcdPage = 0;
+  lcdAltView = false;
+  updateOutputs();
+  updateLCD();
   if (!silent) {
     if (level == MEDIUM && previous < MEDIUM) notifyMedium();
     else if (level == CRITICAL && previous < CRITICAL) notifyCritical();
     else if (level == FIRE && previous != FIRE) notifyFire();
   }
-  if (level == SAFE) { ownerNotified = false; secondaryNotified = false; }
-  lastLcdSwitch = 0;
-  lastLcdPage = 0;
-  lcdAltView = false;
 }
 
 void notifyMedium() {
-  char msg[120];
+  char msg[96];
   snprintf(msg, sizeof(msg), "AeroGuard MEDIUM at %s", DEVICE_LABEL);
-  sendSMS(OWNER_CONTACT, msg);
+  queueSms(OWNER_CONTACT, msg);
   appPrintln(F("APP_CMD:VENT_OPEN"));
   logEvent("ALERT", "MEDIUM");
 }
 
 void notifyCritical() {
-  char msg[120];
+  char msg[96];
   snprintf(msg, sizeof(msg), "AeroGuard CRITICAL at %s", DEVICE_LABEL);
-  callNumber(OWNER_CONTACT);
-  delay(1500);
-  sendSMS(OWNER_CONTACT, msg);
+  queueCallThenSms(OWNER_CONTACT, msg);
   appPrintln(F("APP_CMD:VENT_OPEN"));
   ownerNotified = true; secondaryNotified = false; criticalSince = millis();
   logEvent("ALERT", "CRITICAL");
 }
 
 void notifyFire() {
-  char msg[120];
+  char msg[96];
   snprintf(msg, sizeof(msg), "AeroGuard FIRE at %s", DEVICE_LABEL);
-  callNumber(OWNER_CONTACT);
-  delay(1500);
-  sendSMS(OWNER_CONTACT, msg);
+  queueCallThenSms(OWNER_CONTACT, msg);
   appPrintln(F("APP_CMD:VENT_OPEN"));
   ownerNotified = true; secondaryNotified = false; criticalSince = millis();
   logEvent("ALERT", "FIRE");
@@ -249,9 +286,10 @@ void handleSecondarySmsTimer() {
   bool stillHigh = (currentLevel == CRITICAL || currentLevel == FIRE);
   if (!ownerNotified || secondaryNotified || !stillHigh) return;
   if (millis() - criticalSince < RESPONSE_WINDOW_MS) return;
-  char msg[120];
+  if (gsmState != GSM_IDLE) return;
+  char msg[96];
   snprintf(msg, sizeof(msg), "AeroGuard backup: %s still %s", DEVICE_LABEL, levelName(currentLevel));
-  sendSMS(SECONDARY_CONTACT, msg);
+  queueSms(SECONDARY_CONTACT, msg);
   secondaryNotified = true;
 }
 
@@ -355,22 +393,99 @@ void initGSM() {
   appSerial.listen();
 }
 
-void sendSMS(const char* number, const char* message) {
-  if (!GSM_ENABLED) return;
-  simSerial.listen();
-  simSerial.print("AT+CMGF=1"); simSerial.write('\r'); delay(400);
-  simSerial.print("AT+CMGS="); simSerial.write('"');
-  simSerial.print(number); simSerial.write('"'); simSerial.println(); delay(400);
-  simSerial.print(message); delay(400); simSerial.write(26); delay(2500);
-  appSerial.listen();
+void copyGsm(const char* number, const char* message) {
+  strncpy(gsmNum, number, sizeof(gsmNum) - 1);
+  gsmNum[sizeof(gsmNum) - 1] = 0;
+  strncpy(gsmText, message, sizeof(gsmText) - 1);
+  gsmText[sizeof(gsmText) - 1] = 0;
 }
 
-void callNumber(const char* number) {
+void cancelGsm() {
+  if (gsmState == GSM_RINGING || gsmState == GSM_DIAL) {
+    simSerial.listen();
+    simSerial.println("ATH");
+  }
+  gsmState = GSM_IDLE;
+  gsmSmsAfterCall = false;
+}
+
+void queueSms(const char* number, const char* message) {
   if (!GSM_ENABLED) return;
-  simSerial.listen();
-  simSerial.print("ATD"); simSerial.print(number); simSerial.println(";");
-  delay(18000); simSerial.println("ATH"); delay(800);
-  appSerial.listen();
+  cancelGsm();
+  copyGsm(number, message);
+  gsmSmsAfterCall = false;
+  gsmState = GSM_SMS_MODE;
+}
+
+void queueCallThenSms(const char* number, const char* message) {
+  if (!GSM_ENABLED) return;
+  cancelGsm();
+  copyGsm(number, message);
+  gsmSmsAfterCall = true;
+  gsmState = GSM_DIAL;
+}
+
+void pumpGsm() {
+  if (!GSM_ENABLED || gsmState == GSM_IDLE) return;
+  unsigned long now = millis();
+  switch (gsmState) {
+    case GSM_DIAL:
+      simSerial.listen();
+      simSerial.print(F("ATD"));
+      simSerial.print(gsmNum);
+      simSerial.println(F(";"));
+      gsmStepAt = now;
+      gsmState = GSM_RINGING;
+      break;
+    case GSM_RINGING:
+      if (now - gsmStepAt < GSM_RING_MS) return;
+      simSerial.println(F("ATH"));
+      gsmStepAt = now;
+      gsmState = GSM_HANG;
+      break;
+    case GSM_HANG:
+      if (now - gsmStepAt < 500) return;
+      if (gsmSmsAfterCall) {
+        gsmSmsAfterCall = false;
+        gsmState = GSM_SMS_MODE;
+      } else {
+        gsmState = GSM_IDLE;
+        appSerial.listen();
+      }
+      break;
+    case GSM_SMS_MODE:
+      simSerial.listen();
+      simSerial.print(F("AT+CMGF=1"));
+      simSerial.write('\r');
+      gsmStepAt = now;
+      gsmState = GSM_SMS_ADDR;
+      break;
+    case GSM_SMS_ADDR:
+      if (now - gsmStepAt < 400) return;
+      simSerial.print(F("AT+CMGS="));
+      simSerial.write('"');
+      simSerial.print(gsmNum);
+      simSerial.write('"');
+      simSerial.println();
+      gsmStepAt = now;
+      gsmState = GSM_SMS_BODY;
+      break;
+    case GSM_SMS_BODY:
+      if (now - gsmStepAt < 400) return;
+      simSerial.print(gsmText);
+      simSerial.write(26);
+      gsmStepAt = now;
+      gsmState = GSM_SMS_WAIT;
+      break;
+    case GSM_SMS_WAIT:
+      if (now - gsmStepAt < 2500) return;
+      gsmState = GSM_IDLE;
+      appSerial.listen();
+      break;
+    default:
+      gsmState = GSM_IDLE;
+      break;
+  }
 }
 
 void logEvent(const char* tag, const char* message) {
