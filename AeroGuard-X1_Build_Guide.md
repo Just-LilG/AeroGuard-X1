@@ -396,7 +396,9 @@ Speak in this order. Short. Show the box in your hands.
 | [`aeroguard_x1_sensor_mount.stl`](aeroguard_x1_sensor_mount.stl) | ×1, flat | Clip for the MQ gas sensor |
 | [`aeroguard_x1_button_cap.stl`](aeroguard_x1_button_cap.stl) | **×2**, flat | One press cap per switch (Demo + Reset) |
 
-**Slice:** **PLA** or **PETG**, about **0.2 mm** layers, **20%** infill. No supports needed.
+**Or print everything at once:** [`aeroguard_x1_case_all_in_one.stl`](aeroguard_x1_case_all_in_one.stl) puts all parts (base, lid, gas clip, and both button caps) on **one plate** so you can print them in a single job. It needs a bed about **220 × 220 mm** (an Ender-3 size). If your printer is smaller, use the four separate files above instead.
+
+**Slice:** **PLA** or **PETG**, about **0.2 mm** layers, **20%** infill. No supports needed. In the all-in-one file the lid and caps are already flipped the right way up for a clean print (this means the lid's top text prints against the bed).
 
 **Want to change something?** Edit the source [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad) in [OpenSCAD](https://openscad.org/downloads.html) (free), pick a `part`, press **F6**, then **File → Export → Export as STL**.
 

@@ -100,6 +100,16 @@ if (part == "all_export") {
     translate([46, case_W + 16, 0]) button_cap();
     translate([66, case_W + 16, 0]) button_cap();
 }
+// Everything on ONE bed, ready to print in a single job (no supports).
+// Base sits flat; the lid and caps are flipped top-down so they print
+// clean. Footprint ~174 x 190 mm -> needs a ~220x220 bed (e.g. Ender 3).
+if (part == "print_plate") {
+    base();                                                   // bottom on the bed
+    translate([0, 2*case_W + 10, lid_H]) rotate([180, 0, 0]) lid();  // lid, top-down
+    translate([case_L + 14, 4, 0]) sensor_mount();            // gas clip
+    translate([case_L + 24, 44, cap_top_h]) rotate([180, 0, 0]) button_cap();
+    translate([case_L + 38, 44, cap_top_h]) rotate([180, 0, 0]) button_cap();
+}
 
 // ============================================================
 // SHARED SHAPES

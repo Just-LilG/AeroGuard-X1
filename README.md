@@ -35,7 +35,8 @@ The **Vercel contest app** is a screen for judges. Pairing and status are simula
 |------|------|
 | [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) | Program for the Uno |
 | [`AeroGuard-X1_Pin_Map_Wiring_Reference.md`](AeroGuard-X1_Pin_Map_Wiring_Reference.md) | Pin-for-pin wiring for today’s parts |
-| [`aeroguard_x1_case_base.stl`](aeroguard_x1_case_base.stl) · [`aeroguard_x1_case_lid.stl`](aeroguard_x1_case_lid.stl) · [`aeroguard_x1_sensor_mount.stl`](aeroguard_x1_sensor_mount.stl) · [`aeroguard_x1_button_cap.stl`](aeroguard_x1_button_cap.stl) | Ready-to-print case (126×90×36 mm). Print the button cap **twice**. |
+| [`aeroguard_x1_case_all_in_one.stl`](aeroguard_x1_case_all_in_one.stl) | **All parts on one plate**, one print (needs a ~220×220 mm bed) |
+| [`aeroguard_x1_case_base.stl`](aeroguard_x1_case_base.stl) · [`aeroguard_x1_case_lid.stl`](aeroguard_x1_case_lid.stl) · [`aeroguard_x1_sensor_mount.stl`](aeroguard_x1_sensor_mount.stl) · [`aeroguard_x1_button_cap.stl`](aeroguard_x1_button_cap.stl) | Separate files (for smaller printers). Print the button cap **twice**. |
 | [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad) | Editable source for the case (change sizes, re-export STL) |
 | [`companion/`](companion/) | Contest phone UI |
 
