@@ -61,9 +61,9 @@
 <div class="wrap">
   <header>
     <h1>AeroGuard-X1<span>Assembly Manual — LPG Leak + Fire Early Warning</span></h1>
-    <p class="lede">Wire and case the competition product: one gas zone, flame sense, green/yellow/red stages, demo button for simulated leaks, real GSM alerts. Smart vents live in the app — not a servo on this box.</p>
+    <p class="lede">Wire and case the competition product: one gas zone, flame sense, green/yellow/red stages, demo button for simulated leaks, and real GSM alerts (calls and texts from the box). The phone app is the contest UI — it does not talk to hardware. Do not wire an ESP32 (WiFi board) for this demo. Smart vents live in the app — not a servo on this box.</p>
     <div class="specs">
-      <div><strong>11</strong><span>Build steps</span></div>
+      <div><strong>10</strong><span>Build steps</span></div>
       <div><strong>01</strong><span>Gas zone (v1)</span></div>
       <div><strong>02</strong><span>Buttons</span></div>
       <div><strong>05</strong><span>Risk stages</span></div>
@@ -76,24 +76,25 @@
     <div class="hazard">
       <h2>Read before power-on</h2>
       <ul>
-        <li>SIM800L needs its own ~4V high-current supply — never the Uno 5V pin.</li>
-        <li>Level-shift Uno TX → SIM800L RX with a voltage divider.</li>
+        <li>SIM800L (the phone chip) needs its own ~4V high-current supply — never the Uno 5V pin.</li>
+        <li>Level-shift Uno TX → SIM800L RX with a voltage divider (two resistors that drop 5V so the SIM chip is not hurt).</li>
         <li>Common ground for every module including battery and SIM.</li>
         <li>Set real phone numbers in firmware before any call/SMS demo.</li>
+        <li>Leave pins A1 and A3 empty. Do not flash a WiFi board for this demo.</li>
       </ul>
     </div>
   </header>
 
   <p class="kicker">Reference</p>
   <h2 class="sec">Pin map</h2>
-  <p class="desc">Matches <code>aeroguard_x1-1.ino</code>. A1/A3 = ESP32 WiFi bridge UART.</p>
+  <p class="desc">Matches <code>aeroguard_x1-1.ino</code>. A1 and A3 stay empty for the demo. They are reserved for a later optional WiFi board.</p>
   <table>
     <thead><tr><th>Pin</th><th>Connection</th><th>Notes</th></tr></thead>
     <tbody>
       <tr><td><span class="pin">A0</span></td><td>Gas sensor</td><td>MQ-2 / MQ-5</td></tr>
-      <tr><td><span class="pin">A1</span></td><td>ESP32 TX → Uno RX</td><td>App UART</td></tr>
+      <tr><td><span class="pin">A1</span></td><td>Leave empty for demo</td><td>Reserved — later WiFi board</td></tr>
       <tr><td><span class="pin">A2</span></td><td>Flame sensor</td><td>Calibrate threshold</td></tr>
-      <tr><td><span class="pin">A3</span></td><td>Uno TX → ESP32 RX</td><td>Level-shift to 3.3V</td></tr>
+      <tr><td><span class="pin">A3</span></td><td>Leave empty for demo</td><td>Reserved — later WiFi board</td></tr>
       <tr><td><span class="pin">A4/A5</span></td><td>LCD SDA / SCL</td><td>I2C</td></tr>
       <tr><td><span class="pin">D2</span></td><td>Green LED</td><td>LOW</td></tr>
       <tr><td><span class="pin">D3</span></td><td>Yellow LED</td><td>MEDIUM</td></tr>
@@ -118,8 +119,8 @@
   <div class="card"><h3>07 — Buttons</h3><div class="meta">D7 reset · D9 demo</div><p>Each button: one leg to pin, other to GND (internal pull-ups). Label the lid: <strong>RESET</strong> and <strong>DEMO</strong>.</p></div>
   <div class="card"><h3>08 — SD module</h3><div class="meta">D10–D13</div><p>Local incident history for demos and landlords — not marketed as fire-proof storage.</p></div>
   <div class="card"><h3>09 — SIM800L</h3><div class="meta">4V · D5 · D6</div><p>TX→D5, RX←D6 via divider. Active SIM with credit. Slow blink ≈ registered.</p><div class="warn"><strong>Demo:</strong> CRITICAL/FIRE will place a real call — warn the owner phone holder.</div></div>
-  <div class="card"><h3>10 — ESP32 WiFi (app / remote)</h3><div class="meta">A1 / A3 · ESP32 DevKit</div><p>Wire ESP32 UART2 (GPIO16 RX / GPIO17 TX) to Uno A3/A1 with a level shift into the ESP32 RX. Flash <code>esp32_aeroguard_bridge.ino</code>, set WiFi, then open <code>/status</code> on the phone. Firmware already mirrors <code>STATUS</code> / <code>APP_CMD:VENT_OPEN</code> to this link.</p></div>
-  <div class="card"><h3>11 — Case + verify</h3><div class="meta">Print · upload · Serial 9600</div><p>Print the <strong>v2 compact case</strong> (126×90×36 mm) from <code>aeroguard_x1_case.scad</code> — rounded shell with <strong>AeroGuard</strong> engraved on the lid/front and mounts for Uno, ESP32, SIM, SD, and 4V buck. Upload sketches. Press DEMO: LOW → MEDIUM → CRITICAL → FIRE. RESET clears and recalibrates.</p></div>
+  <div class="card"><h3>10 — Case + verify</h3><div class="meta">Print · upload Uno only · Serial 9600</div><p>Print the <strong>v2 compact case</strong> (126×90×36 mm) from <code>aeroguard_x1_case.scad</code> — rounded shell with <strong>AeroGuard</strong> engraved on the lid/front and mounts for Uno, SIM, SD, and 4V buck. Leave the extra shelf empty. Upload only <code>aeroguard_x1-1.ino</code> to the Uno. Press DEMO: LOW → MEDIUM → CRITICAL → FIRE. RESET clears and recalibrates. The phone app on Vercel is simulated — real calls and texts still come from the SIM chip.</p></div>
+  <div class="card" id="esp32-later"><h3>Later — optional WiFi board (not this demo)</h3><div class="meta">Phase 2 · skip for the pitch kit</div><p>The file <code>esp32_aeroguard_bridge.ino</code> stays in the repo. An ESP32 is a second board that can join home WiFi. Do not buy, wire, or flash it for this demo. Pins A1 and A3 stay empty until then.</p></div>
 
   <p class="kicker">Before you present</p>
   <h2 class="sec">Checklist</h2>
@@ -156,6 +157,7 @@
     "CRITICAL places real call",
     "LEDs are green / yellow / red",
     "No servo — vents explained as app",
+    "A1 and A3 left empty (no WiFi board)",
     "Case fitted and buttons labeled",
   ];
   const el = document.getElementById("checklist");

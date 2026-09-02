@@ -233,7 +233,7 @@ export default function HomePage() {
             </section>
 
             <p className="pt-2 text-center font-mono text-[10px] text-muted-foreground">
-              Contest demo · ESP32 WiFi remote · GSM on the box
+              Contest demo · simulated app · real GSM on the box
             </p>
           </>
         )}

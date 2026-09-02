@@ -1,5 +1,7 @@
 /*
-  AEROGUARD-X1 — Arduino Uno firmware with ESP32 WiFi bridge on A1/A3
+  AEROGUARD-X1 — Arduino Uno firmware (demo brain).
+  A1/A3 stay reserved for an optional later ESP32 WiFi bridge.
+  The demo kit does not require an ESP32.
 */
 
 #include <Wire.h>
@@ -9,9 +11,9 @@
 #include <SD.h>
 
 const int PIN_GAS = A0;
-const int PIN_APP_RX = A1;  // Uno RX <- ESP32 TX
+const int PIN_APP_RX = A1;  // reserved; later ESP32 TX (leave empty for demo)
 const int PIN_FLAME = A2;
-const int PIN_APP_TX = A3;  // Uno TX -> ESP32 RX
+const int PIN_APP_TX = A3;  // reserved; later ESP32 RX (leave empty for demo)
 const int PIN_LED_GREEN = 2;
 const int PIN_LED_YELLOW = 3;
 const int PIN_LED_RED = 4;
@@ -24,7 +26,7 @@ const int PIN_SD_CS = 10;
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 SoftwareSerial simSerial(PIN_SIM_RX, PIN_SIM_TX);
-SoftwareSerial appSerial(PIN_APP_RX, PIN_APP_TX);  // ESP32 WiFi bridge
+SoftwareSerial appSerial(PIN_APP_RX, PIN_APP_TX);  // optional later ESP32
 const char* OWNER_CONTACT = "+233XXXXXXXXX";
 const char* SECONDARY_CONTACT = "+233YYYYYYYYY";
 const char* DEVICE_LABEL = "AeroGuard Kitchen";
@@ -75,7 +77,7 @@ void setup() {
   simSerial.begin(9600);
   delay(2000);
   initGSM();
-  appSerial.begin(9600);  // ESP32 bridge
+  appSerial.begin(9600);  // optional later ESP32
   calibrateGas();
   setLevel(SAFE, true);
   lcd.clear();

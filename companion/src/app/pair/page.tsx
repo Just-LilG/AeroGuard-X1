@@ -68,7 +68,7 @@ export default function PairPage() {
               {scanning ? "Scanning nearby…" : "Select a unit"}
             </p>
             <p className="text-xs text-muted-foreground">
-              Contest mode simulates discovery. On hardware, the ESP32 serves WiFi status for remote access.
+              Contest mode simulates discovery. This app does not talk to the box. Real calls and texts come from GSM on the device.
             </p>
           </div>
         </div>
