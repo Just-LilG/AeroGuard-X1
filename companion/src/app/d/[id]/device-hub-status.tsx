@@ -3,7 +3,6 @@
 import type { CSSProperties } from "react";
 import { ShieldAlert } from "lucide-react";
 import { StatusRing } from "@/components/status-ring";
-import { Button } from "@/components/ui/button";
 import { STAGE_META, type AeroDevice } from "@/lib/types";
 
 const STAGE_HINT: Record<string, string> = {
@@ -85,21 +84,20 @@ export function StatusTab({
           </p>
         )}
         <div className="mt-4 grid grid-cols-2 gap-2">
-          <Button
+          <button
             type="button"
-            className="h-12 rounded-2xl"
+            className="pressable h-12 rounded-2xl bg-primary text-sm font-semibold text-primary-foreground shadow-md shadow-primary/25"
             onClick={onDemo}
           >
             Next: {demoNext}
-          </Button>
-          <Button
+          </button>
+          <button
             type="button"
-            variant="secondary"
-            className="h-12 rounded-2xl"
+            className="pressable h-12 rounded-2xl bg-secondary text-sm font-semibold text-secondary-foreground"
             onClick={onReset}
           >
             Reset Safe
-          </Button>
+          </button>
         </div>
       </div>
 

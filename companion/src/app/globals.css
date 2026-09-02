@@ -190,7 +190,7 @@
 }
 
 .fade-up {
-  animation: fadeUp 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: fadeUp 420ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 @keyframes fadeUp {
   from {
@@ -199,7 +199,7 @@
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 
@@ -229,7 +229,7 @@
 }
 
 .tab-in {
-  animation: tabIn 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: tabIn 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 @keyframes tabIn {
   from {
@@ -238,12 +238,12 @@
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: none;
   }
 }
 
 .stage-pop {
-  animation: stagePop 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: stagePop 480ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 @keyframes stagePop {
   0% {
@@ -254,7 +254,7 @@
     transform: scale(1.04);
   }
   100% {
-    transform: scale(1);
+    transform: none;
     opacity: 1;
   }
 }

@@ -84,7 +84,6 @@ export function StatusRing({
     return (
       <button
         type="button"
-        key={stage}
         onClick={onClick}
         className={className}
         style={style}
@@ -95,7 +94,7 @@ export function StatusRing({
   }
 
   return (
-    <div key={stage} className={className} style={style}>
+    <div className={className} style={style}>
       {inner}
     </div>
   );

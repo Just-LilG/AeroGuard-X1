@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -144,6 +145,7 @@ function applyStage(d: AeroDevice, stage: Stage, demo: boolean): AeroDevice {
 export function DeviceProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [devices, setDevices] = useState<AeroDevice[]>([]);
+  const persist = useRef(false);
 
   useEffect(() => {
     try {
@@ -155,11 +157,12 @@ export function DeviceProvider({ children }: { children: React.ReactNode }) {
     } catch {
       /* ignore */
     }
+    persist.current = true;
     setReady(true);
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || !persist.current) return;
     localStorage.setItem(KEY, JSON.stringify(stripCalibrating(devices)));
   }, [devices, ready]);
 
