@@ -37,6 +37,9 @@ case_L = 126;
 case_W = 90;
 case_H = 36;
 lid_H  = 3.2;
+mrg    = 0.8;         // how far add-on features sink into their parent so
+                     // booleans FUSE into one solid (no loose shells that
+                     // make CAD tools like Onshape report import faults)
 
 // ---- 6x6mm tactile switch (Demo / Reset) ----
 sw_body      = 6.0;          // switch body is 6.0 x 6.0 mm
@@ -129,11 +132,13 @@ module shell_inner(h) {
 // board rest deck with locating pegs (pegs enlarged for reliable printing)
 module platform(l, w, h = 2.6, label = "") {
     rounded_rect(l, w, h, 1.8);
+    // locating pegs dip into the deck so they fuse (no loose shell)
     for (p = [[3, 3], [l - 3, 3], [3, w - 3], [l - 3, w - 3]])
-        translate([p[0], p[1], h]) cylinder(h = 1.2, d = 3.0);
+        translate([p[0], p[1], h - 0.6]) cylinder(h = 1.8, d = 3.0);
+    // label sits proud but roots into the deck
     if (label != "")
-        translate([l/2, w/2, h + 0.05])
-            linear_extrude(0.5)
+        translate([l/2, w/2, h - 0.3])
+            linear_extrude(0.8)
                 text(label, size = 3.2, font = brand_font,
                      halign = "center", valign = "center");
 }
@@ -174,8 +179,9 @@ module brand_engrave(size = 5.2, depth = 0.8) {
 // ---- switch collar (added under the lid) ----
 module switch_collar_pos() {
     o = sw_pocket + 2*sw_collar_w;
+    // extend up into the plate (0..mrg) so the collar fuses with it
     translate([-o/2, -o/2, -sw_pocket_h])
-        rounded_rect(o, o, sw_pocket_h, 1.2);
+        rounded_rect(o, o, sw_pocket_h + mrg, 1.2);
 }
 // ---- switch voids (pocket + plunger hole) cut from the lid ----
 module switch_collar_neg() {
@@ -241,24 +247,27 @@ module base() {
     }
 
     // ---- floor mounts ----
+    // Every mount starts BELOW the floor top (wall - mrg) and is made that
+    // much taller, so it overlaps the floor and fuses into one solid while
+    // its top face stays at the same height boards rest on.
     // Uno standoffs (official hole pattern)
     uno_holes = [[15.24, 2.54], [15.24, 50.8], [66.04, 17.78], [66.04, 45.72]];
-    for (h = uno_holes) translate([uno_x + h[0], uno_y + h[1], wall]) standoff();
+    for (h = uno_holes) translate([uno_x + h[0], uno_y + h[1], wall - mrg]) standoff(h = 5.5 + mrg);
 
     // module decks
-    translate([sim_x, sim_y, wall]) platform(sim_L + 3, sim_W + 3, 2.4, "SIM");
-    translate([sd_x, sd_y, wall])   platform(sd_L + 3,  sd_W + 3,  2.4, "SD");
-    translate([buck_x, buck_y, wall]) platform(buck_L + 2, buck_W + 2, 2.4, "4V");
+    translate([sim_x, sim_y, wall - mrg]) platform(sim_L + 3, sim_W + 3, 2.4 + mrg, "SIM");
+    translate([sd_x, sd_y, wall - mrg])   platform(sd_L + 3,  sd_W + 3,  2.4 + mrg, "SD");
+    translate([buck_x, buck_y, wall - mrg]) platform(buck_L + 2, buck_W + 2, 2.4 + mrg, "4V");
 
     // corner lid-screw towers (chunky, gusseted)
-    for (p = screw_pts) translate([p[0], p[1], wall]) boss(case_H - wall - 2.4, od = 8, id = 2.0);
+    for (p = screw_pts) translate([p[0], p[1], wall - mrg]) boss(case_H - wall - 2.4 + mrg, od = 8, id = 2.0);
 
-    // inside-floor branding (readable with the lid open)
-    translate([case_L/2, case_W/2 + 2, wall + 0.15])
-        linear_extrude(0.6) text("AeroGuard-X1", size = 4.0, font = brand_font,
+    // inside-floor branding (roots into the floor so it fuses)
+    translate([case_L/2, case_W/2 + 2, wall - 0.3])
+        linear_extrude(0.6 + 0.3) text("AeroGuard-X1", size = 4.0, font = brand_font,
                                  halign = "center", valign = "center");
-    translate([case_L/2, case_W/2 - 5, wall + 0.15])
-        linear_extrude(0.5) text("LPG safety", size = 3.0, font = plain_font,
+    translate([case_L/2, case_W/2 - 5, wall - 0.3])
+        linear_extrude(0.5 + 0.3) text("LPG safety", size = 3.0, font = plain_font,
                                  halign = "center", valign = "center");
 }
 
@@ -270,15 +279,16 @@ module lid() {
         union() {
             // main plate + soft rim
             shell_outer(lid_H);
-            // locating lip that drops into the base ledge (kept chunky)
+            // locating lip that drops into the base ledge (kept chunky).
+            // Extends up into the plate (+mrg) so it fuses instead of just touching.
             translate([wall + clear + 0.15, wall + clear + 0.15, -1.8])
                 difference() {
                     rounded_rect(case_L - 2*(wall + clear + 0.15),
-                                 case_W - 2*(wall + clear + 0.15), 1.8,
+                                 case_W - 2*(wall + clear + 0.15), 1.8 + mrg,
                                  max(1, fillet - wall - clear));
                     translate([1.8, 1.8, -0.2])
                         rounded_rect(case_L - 2*(wall + clear + 1.95),
-                                     case_W - 2*(wall + clear + 1.95), 2.2,
+                                     case_W - 2*(wall + clear + 1.95), 2.2 + mrg,
                                      max(0.8, fillet - wall - clear - 1.6));
                 }
             // switch collars under the plate
@@ -326,16 +336,17 @@ module lid() {
         for (p = screw_pts) translate([p[0], p[1], lid_H - 1.2]) cylinder(h = 1.4, d1 = 2.6, d2 = 4.6);
     }
 
-    // LCD underside retainer lip
+    // LCD underside retainer lip (extends up into the plate so it fuses)
     translate([lcd_x - 2, lcd_y - 2, -1.8])
         difference() {
-            rounded_rect(lcd_L + 4, lcd_W + 4, 1.8, 1.4);
-            translate([1.6, 1.6, -0.2]) rounded_rect(lcd_L + 1, lcd_W + 1, 2.4, 1);
+            rounded_rect(lcd_L + 4, lcd_W + 4, 1.8 + mrg, 1.4);
+            translate([1.6, 1.6, -0.2]) rounded_rect(lcd_L + 1, lcd_W + 1, 2.4 + mrg, 1);
         }
 
-    // inside lid branding
-    translate([case_L/2, case_W/2, -1.75])
-        linear_extrude(0.55) text("AeroGuard", size = 4.2, font = brand_font,
+    // inside lid branding — placed on SOLID plate below the LCD window
+    // (not over the window hole) and rooted in, so every letter fuses.
+    translate([case_L/2, 13, -0.8])
+        linear_extrude(0.8 + mrg) text("AeroGuard", size = 4.0, font = brand_font,
                                   halign = "center", valign = "center");
 }
 
@@ -348,8 +359,8 @@ module button_cap() {
         // top disc with a gentle chamfer for a nicer press
         cylinder(h = cap_top_h - 0.8, d = cap_top_d);
         translate([0, 0, cap_top_h - 0.8]) cylinder(h = 0.8, d1 = cap_top_d, d2 = cap_top_d - 1.6);
-        // stem
-        translate([0, 0, -stem_len]) cylinder(h = stem_len + 0.01, d = cap_stem_d);
+        // stem (overlaps up into the disc so the two fuse into one solid)
+        translate([0, 0, -stem_len]) cylinder(h = stem_len + mrg, d = cap_stem_d);
     }
 }
 
@@ -363,9 +374,6 @@ module sensor_mount() {
             rounded_rect(mount_L, mount_W, wall, 2);
             rounded_rect(wall + 0.8, mount_W, mount_H, 0.6);
             translate([mount_L - wall - 0.8, 0, 0]) rounded_rect(wall + 0.8, mount_W, mount_H, 0.6);
-            translate([mount_L/2, 1.2, wall])
-                linear_extrude(0.5) text("MQ", size = 3.0, font = brand_font,
-                                         halign = "center", valign = "bottom");
         }
         translate([wall - 0.4, -1, wall]) cube([mq_L + 0.8, mount_W + 2, mount_H]);
     }
