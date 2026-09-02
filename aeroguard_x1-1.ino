@@ -1,6 +1,8 @@
 /*
   AEROGUARD-X1 — Arduino Uno firmware (this is the demo brain).
   Leave pins A1 and A3 empty.
+  No SD module and no SIM800L on the table yet:
+  keep GSM_ENABLED false so Demo does not try to call or text.
 */
 
 #include <Wire.h>
@@ -29,6 +31,10 @@ SoftwareSerial appSerial(PIN_APP_RX, PIN_APP_TX);  // unused in the demo kit
 const char* OWNER_CONTACT = "+233XXXXXXXXX";
 const char* SECONDARY_CONTACT = "+233YYYYYYYYY";
 const char* DEVICE_LABEL = "AeroGuard Kitchen";
+// Set true only after the SIM800L phone chip and ~4V buck are wired.
+const bool GSM_ENABLED = false;
+// Set true only after the micro SD module is wired to D10–D13.
+const bool SD_ENABLED = false;
 
 const unsigned long CALIBRATION_TIME_MS = 45000;
 const unsigned long CALIBRATION_SAMPLE_MS = 500;
@@ -72,7 +78,8 @@ void setup() {
   lcd.setCursor(0, 1);
   lcd.print("Starting...");
   Serial.println(F("=== AeroGuard-X1 v1 ==="));
-  if (SD.begin(PIN_SD_CS)) { sdReady = true; logEvent("SYSTEM", "boot"); }
+  if (SD_ENABLED && SD.begin(PIN_SD_CS)) { sdReady = true; logEvent("SYSTEM", "boot"); }
+  else { Serial.println(F("No SD module (OK for this bench).")); }
   simSerial.begin(9600);
   delay(2000);
   initGSM();
@@ -289,6 +296,10 @@ void pollAppBridge() {
 }
 
 void initGSM() {
+  if (!GSM_ENABLED) {
+    Serial.println(F("GSM off — no SIM800L on this bench."));
+    return;
+  }
   simSerial.listen();
   simSerial.println("AT"); delay(800);
   simSerial.println("AT+CMGF=1"); delay(800);
@@ -296,6 +307,7 @@ void initGSM() {
 }
 
 void sendSMS(const char* number, const char* message) {
+  if (!GSM_ENABLED) return;
   simSerial.listen();
   simSerial.print("AT+CMGF=1"); simSerial.write('\r'); delay(400);
   simSerial.print("AT+CMGS="); simSerial.write('"');
@@ -305,6 +317,7 @@ void sendSMS(const char* number, const char* message) {
 }
 
 void callNumber(const char* number) {
+  if (!GSM_ENABLED) return;
   simSerial.listen();
   simSerial.print("ATD"); simSerial.print(number); simSerial.println(";");
   delay(18000); simSerial.println("ATH"); delay(800);

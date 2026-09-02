@@ -83,7 +83,7 @@
 <div class="wrap">
   <header>
     <h1>AeroGuard-X1<span>Assembly Manual — LPG Leak + Fire Early Warning</span></h1>
-    <p class="lede">This is the kit you assemble. One brain board (Arduino Uno — the small computer). One gas nose. One flame eye. A screen, three lights, a beeper, two buttons, an SD log, and a phone chip (SIM800L) that sends real texts and makes real calls. The contest phone app on Vercel is a pretend UI for judges. It does not talk to this box.</p>
+    <p class="lede">This is the kit you assemble. Today you wire the brain (Arduino Uno), gas nose, flame eye, screen, three lights, beeper, and two buttons. You <strong>do not have</strong> the SD card module or the SIM800L phone chip — leave those pins empty. The contest phone app on Vercel is a pretend UI for judges. It does not talk to this box.</p>
     <div class="specs">
       <div><strong>11</strong><span>Build steps</span></div>
       <div><strong>01</strong><span>Gas zone</span></div>
@@ -98,10 +98,9 @@
     <div class="hazard">
       <h2>Read before power-on</h2>
       <ul>
-        <li>The phone chip (SIM800L) needs its own ~4V supply that can gulp current. Never feed it from the Uno 5V pin. That pin is a thin hose. The chip will reset or burn.</li>
-        <li>Protect the chip’s listen pin: Uno D6 goes through two resistors (10kΩ then 20kΩ to ground). That drop is a voltage divider. A bare 5V wire will hurt the chip.</li>
-        <li>Join every ground. Uno, battery, 4V buck, SIM, sensors — one shared drain.</li>
-        <li>Put real phone numbers in the program before any live call or SMS demo.</li>
+        <li>You do <strong>not</strong> have the SIM800L (phone chip) or the SD card module. Leave D5, D6, and D10–D13 empty. Do not invent a 4V rail yet.</li>
+        <li>When those parts arrive: the phone chip needs its own ~4V supply. Never feed it from the Uno 5V pin.</li>
+        <li>Join every ground you do use. Uno, battery, sensors — one shared drain.</li>
         <li>Leave Uno pins A1 and A3 empty. No extra wires there.</li>
       </ul>
     </div>
@@ -114,7 +113,7 @@
     <div class="card">
       <h3>The box</h3>
       <div class="meta">Hardware · GSM</div>
-      <p>Sniffs gas. Watches for flame. Lights. Beeps. Writes a log. The SIM800L (a mini phone with a real SIM card) sends <strong>real SMS</strong> and places <strong>real calls</strong>.</p>
+      <p>Sniffs gas. Watches for flame. Lights. Beeps. <strong>Today:</strong> no phone chip and no SD log on the table. Calls and texts come later with the SIM800L.</p>
     </div>
     <div class="card">
       <h3>The contest app</h3>
@@ -125,72 +124,69 @@
 
   <p class="kicker">Buy</p>
   <h2 class="sec">Shopping list</h2>
-  <p class="desc">Search shops by the module name. This is the full kit. Full written notes live in <code>AeroGuard-X1_Build_Guide.md</code>.</p>
+  <p class="desc">Search shops by the module name. Full written notes live in <code>AeroGuard-X1_Build_Guide.md</code>. Pin sheet: <code>AeroGuard-X1_Pin_Map_Wiring_Reference.md</code>.</p>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>#</th><th>Module name</th><th>What it is</th></tr></thead>
+      <thead><tr><th>#</th><th>Module name</th><th>What it is</th><th>Today</th></tr></thead>
       <tbody>
-        <tr><td>1</td><td>Arduino Uno R3</td><td>The brain. Official or CH340 clone.</td></tr>
-        <tr><td>2</td><td>MQ-5 (or MQ-2) gas module</td><td>The nose. Prefer MQ-5 for LPG.</td></tr>
-        <tr><td>3</td><td>KY-026 IR flame module</td><td>The eye. Use analog A0 on the module.</td></tr>
-        <tr><td>4</td><td>LCD 1602 I2C (PCF8574)</td><td>16×2 screen. Four wires.</td></tr>
-        <tr><td>5</td><td>5mm LEDs G/Y/R + 220Ω</td><td>Stage lights.</td></tr>
-        <tr><td>6</td><td>Active buzzer (KY-012)</td><td>The beeper.</td></tr>
-        <tr><td>7</td><td>Two tactile buttons</td><td>Demo + Reset.</td></tr>
-        <tr><td>8</td><td>SIM800L V2.0 + antenna</td><td>Real SMS and calls.</td></tr>
-        <tr><td>9</td><td>LM2596 buck converter</td><td>Set to ~4.0V for the SIM only.</td></tr>
-        <tr><td>10</td><td>Micro SD SPI module + FAT32 card</td><td>Event log. Not fire-proof.</td></tr>
-        <tr><td>11</td><td>5V USB power bank (easy path)</td><td>Demo power.</td></tr>
-        <tr><td>12</td><td>Breadboard + Dupont wires</td><td>Plug-in wiring grid.</td></tr>
-        <tr><td>13</td><td>10kΩ + 20kΩ resistors</td><td>D6 divider into SIM RX.</td></tr>
-        <tr><td>14</td><td>Nano-SIM with airtime</td><td>Must fit the SIM800L slot.</td></tr>
-        <tr><td>15</td><td>Printed case from this repo</td><td>126×90×36 mm. Lid + base + MQ clip.</td></tr>
+        <tr><td>1</td><td>Arduino Uno R3</td><td>The brain. Official or CH340 clone.</td><td>Have</td></tr>
+        <tr><td>2</td><td>MQ-5 (or MQ-2) gas module</td><td>The nose. Prefer MQ-5 for LPG.</td><td>Have</td></tr>
+        <tr><td>3</td><td>KY-026 IR flame module</td><td>The eye. Use analog A0 on the module.</td><td>Have</td></tr>
+        <tr><td>4</td><td>LCD 1602 I2C (PCF8574)</td><td>16×2 screen. Four wires.</td><td>Have</td></tr>
+        <tr><td>5</td><td>5mm LEDs G/Y/R + 220Ω</td><td>Stage lights.</td><td>Have</td></tr>
+        <tr><td>6</td><td>Active buzzer (KY-012)</td><td>The beeper.</td><td>Have</td></tr>
+        <tr><td>7</td><td>Two tactile buttons</td><td>Demo + Reset.</td><td>Have</td></tr>
+        <tr><td>8</td><td>SIM800L V2.0 + antenna</td><td>Real SMS and calls.</td><td><strong>Buy later</strong></td></tr>
+        <tr><td>9</td><td>LM2596 buck converter</td><td>Set to ~4.0V for the SIM only.</td><td><strong>Buy later</strong></td></tr>
+        <tr><td>10</td><td>Micro SD SPI module + FAT32 card</td><td>Event log. Not fire-proof.</td><td><strong>Buy later</strong></td></tr>
+        <tr><td>11</td><td>5V USB power bank (easy path)</td><td>Demo power.</td><td>Have</td></tr>
+        <tr><td>12</td><td>Breadboard + Dupont wires</td><td>Plug-in wiring grid.</td><td>Have</td></tr>
+        <tr><td>13</td><td>10kΩ + 20kΩ resistors</td><td>D6 divider into SIM RX.</td><td>Bag until #8</td></tr>
+        <tr><td>14</td><td>Nano-SIM with airtime</td><td>Must fit the SIM800L slot.</td><td>Bag until #8</td></tr>
+        <tr><td>15</td><td>Printed case from this repo</td><td>126×90×36 mm. Lid + base + MQ clip.</td><td>Have</td></tr>
       </tbody>
     </table>
   </div>
 
   <p class="kicker">Reference</p>
   <h2 class="sec">Pin map</h2>
-  <p class="desc">Matches <code>aeroguard_x1-1.ino</code>. A1 and A3 stay empty.</p>
+  <p class="desc">Matches <code>aeroguard_x1-1.ino</code>. A1 and A3 stay empty. D5, D6, D10–D13 stay empty until you buy the phone chip and SD board.</p>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Pin</th><th>Connection</th><th>Notes</th></tr></thead>
+      <thead><tr><th>Pin</th><th>Connection</th><th>Wire today?</th></tr></thead>
       <tbody>
-        <tr><td><span class="pin">A0</span></td><td>Gas sensor analog</td><td>MQ-5 / MQ-2 AO pin</td></tr>
-        <tr><td><span class="pin empty">A1</span></td><td>Leave empty</td><td>No wire</td></tr>
-        <tr><td><span class="pin">A2</span></td><td>Flame sensor analog</td><td>KY-026 A0 pin</td></tr>
-        <tr><td><span class="pin empty">A3</span></td><td>Leave empty</td><td>No wire</td></tr>
-        <tr><td><span class="pin">A4 / A5</span></td><td>LCD SDA / SCL</td><td>I2C — two-wire screen chat</td></tr>
-        <tr><td><span class="pin">D2</span></td><td>Green LED</td><td>LOW</td></tr>
-        <tr><td><span class="pin">D3</span></td><td>Yellow LED</td><td>MEDIUM</td></tr>
-        <tr><td><span class="pin">D4</span></td><td>Red LED</td><td>CRITICAL / FIRE</td></tr>
-        <tr><td><span class="pin">D5</span></td><td>SIM800L TX</td><td>Direct. Chip talks, Uno listens.</td></tr>
-        <tr><td><span class="pin">D6</span></td><td>SIM800L RX</td><td>Through 10k + 20k divider</td></tr>
-        <tr><td><span class="pin">D7</span></td><td>Reset button</td><td>Other leg to GND</td></tr>
-        <tr><td><span class="pin">D8</span></td><td>Buzzer</td><td></td></tr>
-        <tr><td><span class="pin">D9</span></td><td>Demo button</td><td>Other leg to GND</td></tr>
-        <tr><td><span class="pin">D10–D13</span></td><td>SD card SPI</td><td>CS, MOSI, MISO, SCK</td></tr>
-        <tr><td><span class="pin">5V / GND</span></td><td>Small modules</td><td>Not the SIM VCC</td></tr>
-        <tr><td><span class="pin">~4V</span></td><td>SIM800L VCC only</td><td>From the buck. Shared GND.</td></tr>
+        <tr><td><span class="pin">A0</span></td><td>Gas sensor analog</td><td>Yes</td></tr>
+        <tr><td><span class="pin empty">A1</span></td><td>Leave empty</td><td>No</td></tr>
+        <tr><td><span class="pin">A2</span></td><td>Flame sensor analog</td><td>Yes</td></tr>
+        <tr><td><span class="pin empty">A3</span></td><td>Leave empty</td><td>No</td></tr>
+        <tr><td><span class="pin">A4 / A5</span></td><td>LCD SDA / SCL</td><td>Yes</td></tr>
+        <tr><td><span class="pin">D2</span></td><td>Green LED</td><td>Yes</td></tr>
+        <tr><td><span class="pin">D3</span></td><td>Yellow LED</td><td>Yes</td></tr>
+        <tr><td><span class="pin">D4</span></td><td>Red LED</td><td>Yes</td></tr>
+        <tr><td><span class="pin empty">D5</span></td><td>SIM800L TX later</td><td>No — no phone chip</td></tr>
+        <tr><td><span class="pin empty">D6</span></td><td>SIM800L RX later</td><td>No — no phone chip</td></tr>
+        <tr><td><span class="pin">D7</span></td><td>Reset button</td><td>Yes</td></tr>
+        <tr><td><span class="pin">D8</span></td><td>Buzzer</td><td>Yes</td></tr>
+        <tr><td><span class="pin">D9</span></td><td>Demo button</td><td>Yes</td></tr>
+        <tr><td><span class="pin empty">D10–D13</span></td><td>SD SPI later</td><td>No — no SD module</td></tr>
+        <tr><td><span class="pin">5V / GND</span></td><td>Small modules</td><td>Yes</td></tr>
       </tbody>
     </table>
   </div>
 
   <p class="kicker">Build</p>
   <h2 class="sec">Steps</h2>
-  <p class="desc">Unplug USB and batteries while you move wires. Power the SIM only after the 4V rail is measured.</p>
+  <p class="desc">Unplug USB while you move wires. <strong>Stop after the buttons.</strong> Skip SD and the phone chip — they are not on the table.</p>
 
   <div class="card" id="step-power">
     <h3>01 — Power rails</h3>
-    <div class="meta">5V for small parts · separate 4V for the phone chip · one GND</div>
-    <p>The Uno 5V pin is a tap for the nose, eye, screen, lights, beeper, buttons, and SD. The SIM800L is thirsty. It needs its own fatter tap at about 4 volts from the LM2596 (a buck converter — a voltage reducer with a tiny screw).</p>
+    <div class="meta">5V for small parts · one GND · no 4V SIM rail yet</div>
+    <p>The Uno 5V pin is a tap for the nose, eye, screen, lights, beeper, and buttons. Power the Uno from USB (computer or 5V power bank).</p>
     <ol>
       <li>Red jumper: Uno <span class="pin">5V</span> → breadboard + rail.</li>
       <li>Black jumper: Uno <span class="pin">GND</span> → breadboard − rail.</li>
-      <li>LM2596 input from the USB power bank (or battery pack). Output will be ~4V.</li>
-      <li>Join buck GND to the same − rail. Do not pour buck 4V into the Uno 5V pin.</li>
+      <li>When you later buy the LM2596 and SIM800L: buck input from the bank, output ~4V for SIM VCC only, buck GND to the same − rail. Never pour 4V into Uno 5V.</li>
     </ol>
-    <div class="warn"><strong>Measure first.</strong> Power the buck. Turn the screw. Read about <strong>4.0V</strong> on a multimeter (the volt meter) before the SIM VCC wire ever goes on.</div>
   </div>
 
   <div class="card" id="step-gas">
@@ -287,48 +283,23 @@
   </div>
 
   <div class="card" id="step-sd">
-    <h3>08 — SD module</h3>
-    <div class="meta">D10 CS · D11 MOSI · D12 MISO · D13 SCK</div>
-    <p>A tiny file cabinet. The program writes <code>gaslog.txt</code>. Good for a landlord / insurance story. Not a fire-proof vault.</p>
-    <div class="table-wrap">
-      <table class="wire">
-        <thead><tr><th>SD pin</th><th>Goes to</th></tr></thead>
-        <tbody>
-          <tr><td>VCC</td><td>5V if the board is 5V-safe (read the print; some want 3.3V)</td></tr>
-          <tr><td>GND</td><td>GND</td></tr>
-          <tr><td>CS</td><td><span class="pin">D10</span></td></tr>
-          <tr><td>MOSI</td><td><span class="pin">D11</span></td></tr>
-          <tr><td>MISO</td><td><span class="pin">D12</span></td></tr>
-          <tr><td>SCK</td><td><span class="pin">D13</span></td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p>Format the card FAT32 on a computer first. D11–D13 are taken. Leave them for the SD only.</p>
+    <h3>08 — SD module — skip today</h3>
+    <div class="meta">Not on the table · leave D10–D13 empty</div>
+    <p>You do not have the SD board. The program still runs. Serial will say the SD is missing. That is OK.</p>
+    <p>When you buy it: CS → D10, MOSI → D11, MISO → D12, SCK → D13. Format the card FAT32. The file is <code>gaslog.txt</code> — a demo log, not a fire-proof vault.</p>
   </div>
 
   <div class="card" id="step-sim">
-    <h3>09 — SIM800L phone chip</h3>
-    <div class="meta">4V VCC · D5 TX · D6 via divider · antenna · nano-SIM</div>
-    <p>This is the mini phone. Screw the antenna on. Seat a nano-SIM with call + SMS credit (gold pads down, cut corner matching the drawing). Set <strong>4.0V</strong> on the buck with the SIM VCC still disconnected. Then connect VCC.</p>
-    <div class="table-wrap">
-      <table class="wire">
-        <thead><tr><th>SIM800L</th><th>Goes to</th></tr></thead>
-        <tbody>
-          <tr><td>VCC</td><td>Buck 4V out — never Uno 5V</td></tr>
-          <tr><td>GND</td><td>Common GND</td></tr>
-          <tr><td>TX</td><td>Uno <span class="pin">D5</span> (direct)</td></tr>
-          <tr><td>RX</td><td>Mid-point of the D6 divider</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p>Divider — do this exactly. 10kΩ is the upper resistor. 20kΩ is the lower one to ground. SIM RX comes off the middle.</p>
+    <h3>09 — SIM800L phone chip — skip today</h3>
+    <div class="meta">Not on the table · leave D5 and D6 empty</div>
+    <p>You do not have the mini phone. Keep <code>GSM_ENABLED</code> as <strong>false</strong> in the program so Demo will not try to call.</p>
+    <p>When the SIM800L, LM2596, antenna, SIM, and 10k/20k pair arrive: set the buck to <strong>4.0V</strong> first, then SIM VCC to that rail only (never Uno 5V). TX → D5. RX through the divider from D6. Then set <code>GSM_ENABLED</code> to true and upload again.</p>
 <pre>Uno D6  --- 10kΩ ---+--- SIM800L RX
                     |
                   20kΩ
                     |
                    GND</pre>
-    <p>Many boards blink fast while hunting, then <strong>slow blink</strong> when they have joined the network.</p>
-    <div class="warn"><strong>Demo caution:</strong> CRITICAL and FIRE place a <strong>real call</strong>, then a real SMS. Warn the person who holds the owner phone. Put your own number in if you are testing alone.</div>
+    <div class="warn">Later, CRITICAL and FIRE will place a <strong>real call</strong>. Warn the owner-phone person before you turn GSM on.</div>
   </div>
 
   <div class="card" id="step-case">
@@ -337,11 +308,11 @@
     <p>Open <code>aeroguard_x1_case.scad</code> in OpenSCAD (free 3D-shape software). Leave <code>part = "all_export"</code>. Press F6. Export STL. Print base, lid, and the MQ sensor clip (PLA or PETG, about 0.2 mm layers).</p>
     <ol>
       <li>Seat the Uno on the standoffs. USB faces the side hole.</li>
-      <li>SIM, SD, and 4V buck on their platforms.</li>
+      <li>SIM, SD, and 4V buck platforms stay empty until those parts arrive.</li>
       <li>Leave the extra empty shelf empty.</li>
       <li>LCD in the lid window. LEDs in G / Y / R. Buttons in DEMO and RESET. Buzzer in its hole.</li>
       <li>Gas sensor in the MQ clip at the grill. Flame sensor toward the side window.</li>
-      <li>Antenna out the front slot. Four lid screws.</li>
+      <li>Antenna slot stays unused until the phone chip arrives. Four lid screws.</li>
     </ol>
   </div>
 
@@ -354,7 +325,7 @@
       <li>Plug a <strong>data</strong> USB cable (charge-only cables look the same and will not upload).</li>
       <li>Tools → Board → <strong>Arduino Uno</strong>. Tools → Port → the port that appears with the cable in.</li>
       <li>Library Manager: install <strong>LiquidCrystal I2C</strong>. SD and SoftwareSerial are already built in.</li>
-      <li>Near the top of the file, set <code>OWNER_CONTACT</code> and <code>SECONDARY_CONTACT</code> like <code>+23324…</code>. Set <code>DEVICE_LABEL</code> to the place name (example: Hostel Block A Kitchen).</li>
+      <li>Keep <code>GSM_ENABLED</code> as <strong>false</strong> until the phone chip is wired. You can still set <code>DEVICE_LABEL</code> (place name on the screen).</li>
       <li>Click Upload. Open Serial Monitor at <strong>9600</strong>.</li>
     </ol>
     <div class="ok">LCD shows Starting… then Calibrating… for about <strong>45 seconds</strong>. The box is learning quiet air, like tasting a river before the rain. Do not press Demo during that wait.</div>
@@ -362,21 +333,21 @@
 
   <p class="kicker">Prove it</p>
   <h2 class="sec">How to test</h2>
-  <p class="desc">Table demo. No open gas. Tell the owner-phone person a test call may come.</p>
+  <p class="desc">Table demo. No open gas. No phone chip today — lights and sound only.</p>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Check</th><th>Do this</th><th>You should see</th></tr></thead>
+      <thead><tr><th>Check</th><th>Do this</th><th>You should see today</th></tr></thead>
       <tbody>
-        <tr><td>Boot</td><td>Power after upload</td><td>Calibrate ~45s, then SAFE</td></tr>
+        <tr><td>Boot</td><td>Power after upload</td><td>Calibrate ~45s, then SAFE. Serial: GSM off, no SD.</td></tr>
         <tr><td>Demo 1</td><td>Press Demo once</td><td>Green. LCD LOW. Quiet.</td></tr>
-        <tr><td>Demo 2</td><td>Press Demo again</td><td>Yellow. Short beeps. Owner SMS.</td></tr>
-        <tr><td>Demo 3</td><td>Press Demo again</td><td>Red. Loud alarm. Phone rings, then SMS.</td></tr>
-        <tr><td>Demo 4</td><td>Press Demo again</td><td>Red. LCD FIRE RISK / DEMO MODE. Call + SMS.</td></tr>
+        <tr><td>Demo 2</td><td>Press Demo again</td><td>Yellow. Short beeps. No SMS yet.</td></tr>
+        <tr><td>Demo 3</td><td>Press Demo again</td><td>Red. Loud alarm. No call yet.</td></tr>
+        <tr><td>Demo 4</td><td>Press Demo again</td><td>Red. LCD FIRE RISK / DEMO MODE.</td></tr>
         <tr><td>Reset</td><td>Press Reset</td><td>Alarm off. Calibrate again. SAFE.</td></tr>
       </tbody>
     </table>
   </div>
-  <div class="warn">MEDIUM sends a real text. CRITICAL and FIRE place a real call. Do not surprise a sleeping family member. Do not dial the fire service from a test.</div>
+  <div class="ok">When the SIM800L is fitted and <code>GSM_ENABLED</code> is true: MEDIUM texts, CRITICAL/FIRE call. Warn the owner-phone person first.</div>
 
   <p class="kicker">Before you present</p>
   <h2 class="sec">Checklist</h2>
@@ -392,8 +363,8 @@
   const seq = [
     { l: "SYSTEM: SAFE", d: "baseline holding", c: "#2B2620" },
     { l: "SYSTEM: LOW", d: "green LED · quiet early warning", c: "#3F6B45" },
-    { l: "SYSTEM: MEDIUM", d: "yellow · SMS + beeps", c: "#C4A035" },
-    { l: "SYSTEM: CRITICAL", d: "red · real call + SMS", c: "#A8341F" },
+    { l: "SYSTEM: MEDIUM", d: "yellow · beeps (no SMS yet)", c: "#C4A035" },
+    { l: "SYSTEM: CRITICAL", d: "red · alarm (no call yet)", c: "#A8341F" },
     { l: "SYSTEM: FIRE", d: "flame path · evacuate", c: "#7A1B1B" },
   ];
   let i = 0;
@@ -409,16 +380,15 @@
   setInterval(tick, 2800);
 
   const items = [
-    "Owner and backup numbers set in the sketch",
+    "Parts 1–7 wired: Uno, gas, flame, LCD, LEDs, buzzer, buttons",
+    "D5, D6, D10–D13 left empty (no phone chip, no SD)",
+    "A1 and A3 left empty",
+    "GSM_ENABLED is false in the sketch",
     "USB data cable · Uno board · Serial 9600",
-    "Demo cycles LOW → MEDIUM → CRITICAL → FIRE",
+    "Demo cycles LOW → MEDIUM → CRITICAL → FIRE (lights + sound)",
     "Reset exits demo and recalibrates",
-    "MEDIUM sends a real owner SMS",
-    "CRITICAL places a real call — warn the holder",
     "LEDs are green / yellow / red",
     "LCD shows stage and place label",
-    "A1 and A3 left empty",
-    "SIM on ~4V, common ground, D6 divider",
     "No servo — vents explained as app",
     "Case fitted · DEMO and RESET labeled",
   ];
