@@ -77,7 +77,7 @@ Full pin tables: [`AeroGuard-X1_Pin_Map_Wiring_Reference.md`](AeroGuard-X1_Pin_M
 | 12 | Wiring | **MB-102 breadboard** + **Dupont jumper wires** (male-male, male-female) | 1 set | **Have** | Breadboard = plastic hole grid so you can plug wires without soldering. |
 | 13 | SIM protect | **10kΩ** resistor + **20kΩ** resistor | 1 pair | **Have** | Voltage divider. Drops the Uno’s 5V talk-line so the SIM chip is not hurt. |
 | 14 | Network | **Nano-SIM** with call + SMS credit | 1 | **Have** | Must fit the SIM800L slot. Use an adapter if your SIM is larger. |
-| 15 | Case | Printed **AeroGuard-X1** case from [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad) | 1 | **Have** | Lid, base, sensor clip. See [§10](#10-case-print). |
+| 15 | Case | Printed **AeroGuard-X1** case — ready-to-print [STL files](aeroguard_x1_case_base.stl) (source: [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad)) | 1 | **Have** | Base, lid, sensor clip, ×2 button caps. Lid takes two 6×6mm switches. See [§10](#10-case-print). |
 | 16 | Tools | USB **data** cable (not charge-only), small screwdriver, **multimeter** | 1 | **Have** | Multimeter = the meter that reads volts. You need it to set 4.0V later. |
 
 **Optional, not required:** extra MQ-5 for a “second kitchen” story later.
@@ -227,7 +227,9 @@ The program already turns on an **internal pull-up**. That means the pin sits HI
 | Reset | Uno **D7** | GND |
 | Demo | Uno **D9** | GND |
 
-Do not wire buttons to 5V. Label the lid **RESET** and **DEMO** so you do not mix them in front of judges.
+Do not wire buttons to 5V. The lid is already labelled **RESET** and **DEMO** so you do not mix them in front of judges.
+
+Each **6×6mm tactile switch** presses up into the square pocket under the lid (a dab of glue holds it), and a printed **button cap** drops into the round hole on top. Solder short wires from the switch legs down to your board. Print **two** caps ([§10](#10-case-print)).
 
 ### 6.8 SD card module — skip today
 
@@ -385,22 +387,30 @@ Speak in this order. Short. Show the box in your hands.
 
 ## 10. Case print
 
-File: [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad).
+**Ready-to-print STL files (no software needed):** just drop these into your slicer.
 
-1. Install [OpenSCAD](https://openscad.org/downloads.html) (free 3D-shape software).
-2. Open the file. Leave `part = "all_export";`.
-3. Press **F6** (render). **File → Export → Export as STL**.
-4. Slice in your printer app. **PLA** or **PETG**. About **0.2 mm** layers, **20%** infill. Print **base** flat, **lid** flat, **sensor mount** flat.
+| File | Print | Notes |
+|------|-------|-------|
+| [`aeroguard_x1_case_base.stl`](aeroguard_x1_case_base.stl) | ×1, flat | The tub that holds everything |
+| [`aeroguard_x1_case_lid.stl`](aeroguard_x1_case_lid.stl) | ×1, flat (top face up) | Holds the two 6×6mm switches, LCD, LEDs, buzzer |
+| [`aeroguard_x1_sensor_mount.stl`](aeroguard_x1_sensor_mount.stl) | ×1, flat | Clip for the MQ gas sensor |
+| [`aeroguard_x1_button_cap.stl`](aeroguard_x1_button_cap.stl) | **×2**, flat | One press cap per switch (Demo + Reset) |
+
+**Slice:** **PLA** or **PETG**, about **0.2 mm** layers, **20%** infill. No supports needed.
+
+**Want to change something?** Edit the source [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad) in [OpenSCAD](https://openscad.org/downloads.html) (free), pick a `part`, press **F6**, then **File → Export → Export as STL**.
 
 | | This case |
 |--|-----------|
 | Outer size | **126 × 90 × 36 mm** |
 | Look | Rounded shell |
 | Outside | **AeroGuard** on lid + front; **X1** on the side |
-| Inside | Uno standoffs; platforms for SIM, SD, 4V buck; four lid screws |
-| Extra shelf | Leave **empty** |
+| Inside | Uno standoffs; platforms for SIM, SD (kept for later), 4V buck; four lid screws |
+| Buttons | Two **6×6mm tactile switches** clip into the **lid**; a printed cap presses each one |
 
-You get **base**, **lid**, and **sensor mount** (a spare mount is on the plate for the multi-zone story). No vent-flap parts.
+**Switches:** each 6×6mm tactile switch pushes up into the square pocket under the lid (a dab of glue holds it). Its plunger pokes through the round hole; the printed **button cap** drops in on top. Solder short wires from the switch legs down to your board.
+
+This print is tuned to be friendly: thick walls, no tiny holes, and chunky, braced screw towers so it does not fail partway through.
 
 ---
 
