@@ -61,7 +61,37 @@ bool secondaryNotified = false;
 unsigned long criticalSince = 0;
 bool sdReady = false;
 unsigned long lastLcdSwitch = 0;
+unsigned long lastLcdPage = 0;
 bool lcdAltView = false;
+bool lcdTick = false;
+
+void lcdLine(byte row, const char* text) {
+  lcd.setCursor(0, row);
+  for (byte i = 0; i < 16; i++) {
+    char c = text[i];
+    if (c == 0) {
+      while (i < 16) {
+        lcd.print(' ');
+        i++;
+      }
+      return;
+    }
+    lcd.print(c);
+  }
+}
+
+void bootSplash() {
+  lcd.clear();
+  lcdLine(0, "  AeroGuard-X1");
+  lcdLine(1, "");
+  for (byte k = 0; k < 16; k++) {
+    lcd.setCursor(k, 1);
+    lcd.write(255);
+    delay(55);
+  }
+  lcdLine(1, "  Starting...");
+  delay(350);
+}
 
 void setup() {
   Serial.begin(9600);
@@ -74,10 +104,7 @@ void setup() {
   pinMode(PIN_FLAME, INPUT);
   lcd.init();
   lcd.backlight();
-  lcd.setCursor(0, 0);
-  lcd.print("AeroGuard-X1");
-  lcd.setCursor(0, 1);
-  lcd.print("Starting...");
+  bootSplash();
   Serial.println(F("=== AeroGuard-X1 v1 ==="));
   if (SD_ENABLED && SD.begin(PIN_SD_CS)) { sdReady = true; logEvent("SYSTEM", "boot"); }
   else { Serial.println(F("No SD module (OK for this bench).")); }
@@ -137,14 +164,18 @@ void handleResetButton() {
 
 void calibrateGas() {
   lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Calibrating...");
+  lcdLine(0, "Sniffing air...");
   long total = 0;
   int samples = 0;
   unsigned long start = millis();
   while (millis() - start < CALIBRATION_TIME_MS) {
     total += analogRead(PIN_GAS);
     samples++;
+    unsigned long elapsed = millis() - start;
+    byte filled = (byte)(elapsed * 16UL / CALIBRATION_TIME_MS);
+    if (filled > 16) filled = 16;
+    lcd.setCursor(0, 1);
+    for (byte i = 0; i < 16; i++) lcd.write(i < filled ? (uint8_t)255 : (uint8_t)'-');
     delay(CALIBRATION_SAMPLE_MS);
   }
   gasBaseline = (float)total / samples;
@@ -179,6 +210,9 @@ void setLevel(RiskLevel level, bool silent) {
     else if (level == FIRE && previous != FIRE) notifyFire();
   }
   if (level == SAFE) { ownerNotified = false; secondaryNotified = false; }
+  lastLcdSwitch = 0;
+  lastLcdPage = 0;
+  lcdAltView = false;
 }
 
 void notifyMedium() {
@@ -233,22 +267,36 @@ void updateOutputs() {
 }
 
 void updateLCD() {
-  if (millis() - lastLcdSwitch < 2000) return;
-  lastLcdSwitch = millis();
-  lcdAltView = !lcdAltView;
-  lcd.clear();
+  unsigned long now = millis();
+  if (lastLcdSwitch != 0 && now - lastLcdSwitch < 400) return;
+  lastLcdSwitch = now;
+  lcdTick = !lcdTick;
+  char star = lcdTick ? '*' : ' ';
+
+  if (lastLcdPage == 0 || now - lastLcdPage >= 2000) {
+    if (lastLcdPage != 0) lcdAltView = !lcdAltView;
+    lastLcdPage = now;
+  }
+
   if (currentLevel == FIRE) {
-    lcd.setCursor(0, 0); lcd.print("FIRE RISK");
-    lcd.setCursor(0, 1); lcd.print(demoMode ? "DEMO MODE" : "EVACUATE");
+    char fire0[17];
+    snprintf(fire0, 17, "FIRE RISK      %c", star);
+    lcdLine(0, fire0);
+    lcdLine(1, demoMode ? "DEMO MODE" : "EVACUATE NOW");
     return;
   }
+
+  char line0[17];
+  char line1[17];
   if (!lcdAltView) {
-    lcd.setCursor(0, 0); lcd.print(demoMode ? "DEMO " : "LIVE "); lcd.print(levelName(currentLevel));
-    lcd.setCursor(0, 1); lcd.print(DEVICE_LABEL);
+    snprintf(line0, 17, "%s %-8s%c", demoMode ? "DEMO" : "LIVE", levelName(currentLevel), star);
+    snprintf(line1, 17, "%.16s", DEVICE_LABEL);
   } else {
-    lcd.setCursor(0, 0); lcd.print("Gas:"); lcd.print((int)gasReading);
-    lcd.setCursor(0, 1); lcd.print("Base:"); lcd.print((int)gasBaseline);
+    snprintf(line0, 17, "Gas %4d      %c", (int)gasReading, star);
+    snprintf(line1, 17, "Base %4d", (int)gasBaseline);
   }
+  lcdLine(0, line0);
+  lcdLine(1, line1);
 }
 
 const char* levelName(RiskLevel lvl) {
