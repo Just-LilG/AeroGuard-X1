@@ -57,7 +57,7 @@ Buy only what is in this table. Search shops by the **module name**.
 
 You **have** almost the full kit. The **only missing part** is **#10**, the **micro SD module**.
 
-You **have** the **SIM800L** phone chip (#8). Wire it with the **LM2596** 4V buck (#9). You **do not have a 20kΩ** — use 10k stand-ins for the D6 divider (see §5 and §6.9). Leave **D10–D13** empty until the SD board arrives.
+You **have** the **SIM800L** phone chip (#8). Wire it with the **LM2596** 4V buck (#9). You **do not have a 20kΩ** — use 10k stand-ins for the D6 divider. **SIM800L-only pin map:** [`AeroGuard-X1_SIM800L_Pin_Map.md`](AeroGuard-X1_SIM800L_Pin_Map.md). Leave **D10–D13** empty until the SD board arrives.
 
 Full pin tables: [`AeroGuard-X1_Pin_Map_Wiring_Reference.md`](AeroGuard-X1_Pin_Map_Wiring_Reference.md).
 
