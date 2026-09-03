@@ -128,12 +128,16 @@ void setup() {
   if (SD_ENABLED && SD.begin(PIN_SD_CS)) { sdReady = true; logEvent("SYSTEM", "boot"); }
   else { Serial.println(F("No SD module (OK for this bench).")); }
   simSerial.begin(9600);
-  delay(2000);
-  initGSM();
-  if (!GSM_ENABLED) {
+  if (GSM_ENABLED) {
+    lcdLine(0, "Waking phone...");
+    lcdLine(1, "");
+    delay(600);
+    initGSM();
+  } else {
     lcdLine(0, "GSM: add 3.7V");
     lcdLine(1, "18650 or phone");
     delay(1400);
+    initGSM();
   }
   appSerial.begin(9600);
   calibrateGas(false);
@@ -393,8 +397,8 @@ void initGSM() {
     return;
   }
   simSerial.listen();
-  simSerial.println("AT"); delay(800);
-  simSerial.println("AT+CMGF=1"); delay(800);
+  simSerial.println("AT"); delay(300);
+  simSerial.println("AT+CMGF=1"); delay(300);
   appSerial.listen();
 }
 
