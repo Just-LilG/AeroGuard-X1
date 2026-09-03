@@ -311,15 +311,15 @@ You load **one** file onto the Uno: [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino).
 Near the top of `aeroguard_x1-1.ino`:
 
 ```c
-const char* OWNER_CONTACT = "+233XXXXXXXXX";
-const char* SECONDARY_CONTACT = "+233YYYYYYYYY";
+const char* OWNER_CONTACT = "+233557164067";
+const char* SECONDARY_CONTACT = "+233508705321";
 const char* DEVICE_LABEL = "AeroGuard Kitchen";
 ```
 
 | Name | Put |
 |------|-----|
-| `OWNER_CONTACT` | The owner’s number in international form, like `+23324…` |
-| `SECONDARY_CONTACT` | Roommate or landlord. Gets an SMS only if CRITICAL/FIRE is still on after **3 minutes**. Backup check-in. Not “go inside and fix a leak.” |
+| `OWNER_CONTACT` | Main / owner phone. Set to `+233557164067`. |
+| `SECONDARY_CONTACT` | Backup phone. Set to `+233508705321`. Gets an SMS only if CRITICAL/FIRE is still on after **3 minutes**. Backup check-in. Not “go inside and fix a leak.” |
 | `DEVICE_LABEL` | Short place name. It is printed on the LCD and inside texts. Example: `Hostel Block A Kitchen`. |
 
 If the LCD is blank, change `LiquidCrystal_I2C lcd(0x27, 16, 2);` so `0x27` matches your backpack (`0x3F` is the other common value).

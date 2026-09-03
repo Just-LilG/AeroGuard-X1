@@ -29,8 +29,8 @@ const int PIN_SD_CS = 10;
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 SoftwareSerial simSerial(PIN_SIM_RX, PIN_SIM_TX);
 SoftwareSerial appSerial(PIN_APP_RX, PIN_APP_TX);  // unused in the demo kit
-const char* OWNER_CONTACT = "+233XXXXXXXXX";
-const char* SECONDARY_CONTACT = "+233YYYYYYYYY";
+const char* OWNER_CONTACT = "+233557164067";
+const char* SECONDARY_CONTACT = "+233508705321";
 const char* DEVICE_LABEL = "AeroGuard Kitchen";
 // SIM800L is wired. Set false only if you unplug the phone chip.
 const bool GSM_ENABLED = true;
