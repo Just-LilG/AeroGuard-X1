@@ -165,6 +165,9 @@ void setup() {
   pickLcd();
   lcd.init();
   lcd.backlight();
+  lcd.setBacklight(255);
+  delay(50);
+  lcd.backlight();
   bootSplash();
   if (SD_ENABLED && SD.begin(PIN_SD_CS)) { sdReady = true; logEvent("SYSTEM", "boot"); }
   else { Serial.println(F("No SD module (OK for this bench).")); }
