@@ -57,7 +57,7 @@ Buy only what is in this table. Search shops by the **module name**.
 
 You **have** almost the full kit. The **only missing part** is **#10**, the **micro SD module**.
 
-You **have** the **SIM800L** phone chip (#8). Wire it with the **LM2596** 4V buck (#9) and the **10k + 20k** divider. Leave **D10–D13** empty until the SD board arrives.
+You **have** the **SIM800L** phone chip (#8). Wire it with the **LM2596** 4V buck (#9). You **do not have a 20kΩ** — use 10k stand-ins for the D6 divider (see §5 and §6.9). Leave **D10–D13** empty until the SD board arrives.
 
 Full pin tables: [`AeroGuard-X1_Pin_Map_Wiring_Reference.md`](AeroGuard-X1_Pin_Map_Wiring_Reference.md).
 
@@ -75,7 +75,7 @@ Full pin tables: [`AeroGuard-X1_Pin_Map_Wiring_Reference.md`](AeroGuard-X1_Pin_M
 | 10 | Log | **Micro SD card module (SPI)** (often **HW-125**) + a **microSD** card formatted **FAT32** | 1 | **Buy later — only missing part** | Writes a simple event file. Not a fire-proof vault. |
 | 11 | Battery | **5V USB power bank**, *or* **18650** cell + **TP4056** charger + boost to 5V | 1 | **Have** | Demo power. USB bank is the easy path. |
 | 12 | Wiring | **MB-102 breadboard** + **Dupont jumper wires** (male-male, male-female) | 1 set | **Have** | Breadboard = plastic hole grid so you can plug wires without soldering. |
-| 13 | SIM protect | **10kΩ** resistor + **20kΩ** resistor | 1 pair | **Have** | Voltage divider. Drops the Uno’s 5V talk-line so the SIM chip is not hurt. |
+| 13 | SIM protect | **10kΩ** resistor + **20kΩ** resistor | 1 pair | **No 20k** — see workaround below | Voltage divider. Drops the Uno’s 5V talk-line so the SIM chip is not hurt. |
 | 14 | Network | **Nano-SIM** with call + SMS credit | 1 | **Have** | Must fit the SIM800L slot. Use an adapter if your SIM is larger. |
 | 15 | Case | Printed **AeroGuard-X1** case — ready-to-print [STL files](aeroguard_x1_case_base.stl) (source: [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad)) | 1 | **Have** | Base, lid, sensor clip, ×2 button caps. Lid takes two 6×6mm switches. See [§10](#10-case-print). |
 | 16 | Tools | USB **data** cable (not charge-only), small screwdriver, **multimeter** | 1 | **Have** | Multimeter = the meter that reads volts. You need it to set 4.0V later. |
@@ -127,7 +127,15 @@ A1 and A3 stay empty. D10–D13 stay empty until the SD board arrives.
 1. **The SIM800L is thirsty.** When it calls, it gulps current (around **2A** peaks). Feed it from the **LM2596** set to about **4.0 volts** (3.7–4.2V is the safe window). **Never** take SIM power from the Uno **5V** pin. That pin is a thin hose. The chip will reset or die.
 2. **Measure before you connect the SIM.** Power the buck. Turn the small screw. Read the output with a multimeter. Only then clip SIM VCC to that 4V.
 3. **Common ground.** Uno GND, battery GND, buck GND, SIM GND, and every sensor GND must join. Same drain for every pipe. If grounds do not meet, modules misbehave or the SIM never talks.
-4. **Voltage divider on D6.** The Uno speaks at 5V. The SIM800L listen pin wants about 2.8V. Use **10kΩ** from D6 to the SIM RX pin, and **20kΩ** from that same SIM RX pin down to GND. Do not run a bare wire from D6 to SIM RX.
+4. **Voltage divider on D6.** The Uno speaks at 5V. The SIM800L listen pin wants about 2.8V. **Do not** run a bare wire from D6 to SIM RX.
+
+   **You do not have a 20kΩ.** Use this instead:
+
+   - **Best:** two **10kΩ** resistors in a line (leg to leg). That pair *is* 20k. Use it as the resistor down to GND. One more **10kΩ** goes from D6 to the middle (SIM RX). You need **three 10k** total for this.
+   - **If you only have two 10kΩ:** one from D6 to SIM RX, one from SIM RX to GND. That gives about 2.5V. A bit lower than 3.3V, but still a safe drop. Many SIM800L boards accept it.
+   - **If you only have one 10kΩ:** buy a **20kΩ** or a second **10kΩ** before you wire D6. Do not skip the drop.
+
+   A 22kΩ is close enough to 20k if a shop has that instead.
 5. **SIM TX to D5 is direct.** The chip speaks at ~3.3V. The Uno can hear that. No divider on that wire.
 6. **One USB data cable** for the computer. Charge-only cables look the same and will not upload the program.
 7. **Set owner phone numbers in the program** before you demo a real call. See [§7](#7-set-phone-numbers-and-upload-the-program).
@@ -257,17 +265,30 @@ You **have** the phone chip. This is the mini phone. Antenna on. Nano-SIM in the
 | RX | Mid-point of the divider from **D6** |
 | Antenna | Screw / uFL attached |
 
-**Divider (do this exactly):**
+**Divider.** The Uno talks too “loud” (5V). The phone chip listens at a quieter level. The resistors are a pressure drop.
+
+**You did not get a 20kΩ.** Use two 10kΩ end to end as the ground leg (that equals 20k), plus one 10k from D6:
+
+```
+Uno D6  --- 10kΩ --------+--- SIM800L RX
+                         |
+                    10kΩ + 10kΩ
+                    (two in a line = 20k)
+                         |
+                        GND
+```
+
+If you only have **two** 10kΩ (not three), use this. It is a little quieter (~2.5V) but still protects the chip:
 
 ```
 Uno D6  --- 10kΩ ---+--- SIM800L RX
                     |
-                  20kΩ
+                  10kΩ
                     |
                    GND
 ```
 
-The 10k is the upper resistor (from D6). The 20k is the lower resistor (down to ground). The SIM RX wire comes off the middle.
+The SIM RX wire always comes off the **middle**. Never a bare D6 wire to RX.
 
 Keep `GSM_ENABLED` as **true** in [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino).
 

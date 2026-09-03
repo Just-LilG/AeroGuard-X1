@@ -100,7 +100,7 @@
       <ul>
         <li>You do <strong>not</strong> have the SD card module. Leave D10–D13 empty. That is the only missing part.</li>
         <li>The phone chip (SIM800L) needs its own ~4V supply from the LM2596. Never feed it from the Uno 5V pin. Measure ~4.0V before SIM VCC.</li>
-        <li>Protect the chip’s listen pin: Uno D6 goes through two resistors (10kΩ then 20kΩ to ground). A bare 5V wire will hurt the chip.</li>
+        <li>Protect the chip’s listen pin: Uno D6 must go through resistors, never a bare 5V wire. You do not have a 20kΩ — use two 10kΩ in a line as 20k, or a 10k+10k pair (see the SIM step).</li>
         <li>Join every ground. Uno, battery, 4V buck, SIM, sensors — one shared drain.</li>
         <li>Put real phone numbers in the program before any live call or SMS demo.</li>
         <li>Leave Uno pins A1 and A3 empty.</li>
@@ -143,7 +143,7 @@
         <tr><td>10</td><td>Micro SD SPI module + FAT32 card</td><td>Event log. Not fire-proof.</td><td><strong>Buy later — only missing part</strong></td></tr>
         <tr><td>11</td><td>5V USB power bank (easy path)</td><td>Demo power.</td><td>Have</td></tr>
         <tr><td>12</td><td>Breadboard + Dupont wires</td><td>Plug-in wiring grid.</td><td>Have</td></tr>
-        <tr><td>13</td><td>10kΩ + 20kΩ resistors</td><td>D6 divider into SIM RX.</td><td>Have</td></tr>
+        <tr><td>13</td><td>10kΩ + 20kΩ resistors</td><td>D6 divider into SIM RX.</td><td>No 20k — use 10k stand-ins</td></tr>
         <tr><td>14</td><td>Nano-SIM with airtime</td><td>Must fit the SIM800L slot.</td><td>Have</td></tr>
         <tr><td>15</td><td>Printed case from this repo</td><td>126×90×36 mm. Lid + base + MQ clip.</td><td>Have</td></tr>
       </tbody>
@@ -309,10 +309,10 @@
         </tbody>
       </table>
     </div>
-    <p>Divider — do this exactly. 10kΩ is the upper resistor. 20kΩ is the lower one to ground. SIM RX comes off the middle.</p>
+    <p>Divider — you do <strong>not</strong> have a 20kΩ. Two 10kΩ in a line equal 20k (use that to ground). One more 10k from D6 to the middle. If you only have two 10k total, use 10k up and 10k down (~2.5V). SIM RX comes off the middle. Never a bare D6 wire.</p>
 <pre>Uno D6  --- 10kΩ ---+--- SIM800L RX
                     |
-                  20kΩ
+              10k+10k (or one 10k)
                     |
                    GND</pre>
     <p>Many boards blink fast while hunting, then <strong>slow blink</strong> when they have joined the network.</p>

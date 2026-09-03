@@ -28,7 +28,7 @@ Numbers match the Build Guide shopping list.
 | 10 | Micro SD module + card | **Buy later — this is the only missing part** |
 | 11 | 5V USB power bank or battery pack | **Have** |
 | 12 | Breadboard + jumper wires | **Have** |
-| 13 | 10kΩ + 20kΩ resistors (SIM protect) | **Have** |
+| 13 | 10kΩ + 20kΩ resistors (SIM protect) | **No 20k.** Use two 10k in a line, or 10k+10k |
 | 14 | Nano-SIM with airtime | **Have** |
 | 15 | Printed case | **Have** (or print when you are ready) |
 | 16 | USB **data** cable + screwdriver + multimeter | **Have** |
@@ -188,15 +188,29 @@ The mini phone. Antenna on. Nano-SIM in the slot (gold pads down, cut corner mat
 | RX | Mid-point of the divider from **D6** |
 | Antenna | Screwed on |
 
-**Divider (do this exactly).** 10kΩ is the upper resistor. 20kΩ is the lower one to ground. SIM RX comes off the middle.
+**Divider.** You did **not** get a 20kΩ. Do **not** run a bare D6 wire into SIM RX.
+
+**Option A — three 10kΩ (same as 10k + 20k):** two 10k in a line to ground (that pair is 20k), one 10k from D6 to the middle.
+
+```
+Uno D6  --- 10kΩ --------+--- SIM800L RX
+                         |
+                    10kΩ + 10kΩ
+                         |
+                        GND
+```
+
+**Option B — only two 10kΩ:** one from D6 to SIM RX, one from SIM RX to GND (~2.5V). Still a safe drop.
 
 ```
 Uno D6  --- 10kΩ ---+--- SIM800L RX
                     |
-                  20kΩ
+                  10kΩ
                     |
                    GND
 ```
+
+A 22kΩ from a shop can stand in for 20k. The SIM RX wire always comes off the **middle**.
 
 SIM TX to D5 is direct. The chip speaks at ~3.3V. The Uno can hear that.
 
