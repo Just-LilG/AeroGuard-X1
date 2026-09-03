@@ -27,9 +27,11 @@ const int PIN_BUZZER = 8;
 const int PIN_BTN_DEMO = 9;
 const int PIN_SD_CS = 10;
 
-// 20×4 screen. Tries 0x27 first, then 0x3F (two common “house numbers” for this backpack).
-LiquidCrystal_I2C lcd27(0x27, 20, 4);
-LiquidCrystal_I2C lcd3f(0x3F, 20, 4);
+// Small screen: 16 letters × 2 lines (the one with two rows of boxes if this is wrong).
+const byte LCD_COLS = 16;
+const byte LCD_ROWS = 2;
+LiquidCrystal_I2C lcd27(0x27, LCD_COLS, LCD_ROWS);
+LiquidCrystal_I2C lcd3f(0x3F, LCD_COLS, LCD_ROWS);
 LiquidCrystal_I2C *lcdPtr = &lcd27;
 #define lcd (*lcdPtr)
 SoftwareSerial simSerial(PIN_SIM_RX, PIN_SIM_TX);
@@ -90,12 +92,12 @@ unsigned long gsmStepAt = 0;
 bool gsmSmsAfterCall = false;
 
 void lcdLine(byte row, const char* text) {
+  if (row >= LCD_ROWS) return;
   lcd.setCursor(0, row);
-  byte cols = 20;
-  for (byte i = 0; i < cols; i++) {
+  for (byte i = 0; i < LCD_COLS; i++) {
     char c = text[i];
     if (c == 0) {
-      while (i < cols) { lcd.print(' '); i++; }
+      while (i < LCD_COLS) { lcd.print(' '); i++; }
       return;
     }
     lcd.print(c);
@@ -106,8 +108,6 @@ void lcdClearAll() {
   lcd.clear();
   lcdLine(0, "");
   lcdLine(1, "");
-  lcdLine(2, "");
-  lcdLine(3, "");
 }
 
 void pickLcd() {
@@ -142,7 +142,7 @@ void bootSplash() {
   lcdClearAll();
   lcdLine(0, "AeroGuard-X1");
   lcdLine(1, "");
-  for (byte k = 0; k < 20; k++) {
+  for (byte k = 0; k < LCD_COLS; k++) {
     lcd.setCursor(k, 1);
     lcd.write(255);
     delay(45);
@@ -179,7 +179,7 @@ bool gsmStarted = false;
 void loop() {
   if (GSM_ENABLED && !gsmStarted) {
     gsmStarted = true;
-    lcdLine(2, "Waking phone...");
+    lcdLine(1, "Waking phone...");
     simSerial.begin(9600);
     initGSM();
   }
@@ -249,10 +249,10 @@ void calibrateGas(bool quick) {
     total += analogRead(PIN_GAS);
     samples++;
     unsigned long elapsed = millis() - start;
-    byte filled = (byte)(elapsed * 20UL / dur);
-    if (filled > 20) filled = 20;
+    byte filled = (byte)(elapsed * (unsigned long)LCD_COLS / dur);
+    if (filled > LCD_COLS) filled = LCD_COLS;
     lcd.setCursor(0, 1);
-    for (byte i = 0; i < 20; i++) lcd.write(i < filled ? (uint8_t)255 : (uint8_t)'-');
+    for (byte i = 0; i < LCD_COLS; i++) lcd.write(i < filled ? (uint8_t)255 : (uint8_t)'-');
     delay(CALIBRATION_SAMPLE_MS);
   }
   if (samples < 1) {
@@ -369,41 +369,30 @@ void updateLCD() {
   }
 
   if (currentLevel == SAFE) {
-    lcdLine(0, "READY        SAFE");
-    lcdLine(1, "Press DEMO button");
-    lcdLine(2, "Touch D9 to GND");
-    lcdLine(3, "Green blink = on");
+    lcdLine(0, "READY      SAFE");
+    lcdLine(1, "Touch D9 to GND");
     return;
   }
 
   if (currentLevel == FIRE) {
-    char fire0[21];
-    snprintf(fire0, 21, "FIRE RISK          %c", star);
+    char fire0[17];
+    snprintf(fire0, 17, "FIRE RISK     %c", star);
     lcdLine(0, fire0);
     lcdLine(1, demoMode ? "DEMO MODE" : "EVACUATE NOW");
-    lcdLine(2, "");
-    lcdLine(3, "Press RESET to stop");
     return;
   }
 
-  char line0[21];
-  char line1[21];
+  char line0[17];
+  char line1[17];
   if (!lcdAltView) {
-    snprintf(line0, 21, "%s %-8s      %c", demoMode ? "DEMO" : "LIVE", levelName(currentLevel), star);
-    snprintf(line1, 21, "%.20s", DEVICE_LABEL);
+    snprintf(line0, 17, "%s %-7s%c", demoMode ? "DEMO" : "LIVE", levelName(currentLevel), star);
+    snprintf(line1, 17, "%.16s", DEVICE_LABEL);
   } else {
-    snprintf(line0, 21, "Gas %4d          %c", (int)gasReading, star);
-    snprintf(line1, 21, "Base %4d", (int)gasBaseline);
+    snprintf(line0, 17, "Gas %4d     %c", (int)gasReading, star);
+    snprintf(line1, 17, "Base %4d", (int)gasBaseline);
   }
   lcdLine(0, line0);
   lcdLine(1, line1);
-  if (currentLevel == SAFE) {
-    lcdLine(2, "Press DEMO to test");
-    lcdLine(3, "Green blink = ready");
-  } else {
-    lcdLine(2, demoMode ? "DEMO MODE" : "");
-    lcdLine(3, "Press RESET to stop");
-  }
 }
 
 const char* levelName(RiskLevel lvl) {
