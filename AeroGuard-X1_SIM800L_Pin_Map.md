@@ -69,6 +69,8 @@ The Uno is the brain. It drinks **5V** from USB. It cannot feed the SIM800L.
 
 **Do not** put SIM **VCC** on Uno 5V. **Do not** put it on Uno 3.3V. Both will fail or hurt the chip. The phone chip gulps a lot of current when it calls, like a pump kicking on.
 
+**A resistor cannot replace the LM2596.** The 10k resistors are only for the D6 talk wire. They cannot make a steady ~4V for VCC. Leave VCC empty until you buy an LM2596 or use a loose 18650.
+
 Keep `GSM_ENABLED` as **false** until VCC has ~4V. Lights, Demo, and Reset still work.
 
 **When you later have ~4V**, pick one:

@@ -99,7 +99,7 @@
       <h2>Read before power-on</h2>
       <ul>
         <li>You do <strong>not</strong> have the SD card module. Leave D10–D13 empty.</li>
-        <li>You do <strong>not</strong> have the LM2596 (the 4V board). Leave SIM <strong>VCC</strong> empty. Never feed it from the Uno 5V or 3.3V pin.</li>
+        <li>You do <strong>not</strong> have the LM2596 (the 4V board). Leave SIM <strong>VCC</strong> empty. Never feed it from the Uno 5V or 3.3V pin. A resistor cannot replace that board.</li>
         <li>Protect the chip’s listen pin: Uno D6 must go through resistors, never a bare 5V wire. You do not have a 20kΩ — use two 10kΩ in a line as 20k, or a 10k+10k pair (see the SIM step).</li>
         <li>Join every ground. Uno, battery, SIM GND, sensors — one shared drain.</li>
         <li>Put real phone numbers in the program before any live call or SMS demo.</li>

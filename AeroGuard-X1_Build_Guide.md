@@ -128,8 +128,9 @@ A1 and A3 stay empty. D10–D13 stay empty until the SD board arrives.
 
 1. **The SIM800L is thirsty.** When it calls, it gulps current (around **2A** peaks). It needs about **4.0 volts** (3.7–4.2V is the safe window) from a **separate** source — not a pin on the Uno. The usual part is an **LM2596** (you do **not** have this yet). **Never** take SIM power from the Uno **5V** pin or the Uno **3.3V** pin. Those pins are thin hoses. The chip will reset or die.
 2. **Leave SIM VCC unconnected today.** You do not have the LM2596. Do not guess. When you later buy the LM2596: power it, turn the screw, read about **4.0V** on a meter, **then** clip SIM VCC. **Or** if you have a single loose **18650** cell (about 3.7V, like a rechargeable flashlight cell): plus to SIM VCC, minus joined to Uno GND. Do **not** use a 5V boosted pack for SIM VCC.
-3. **Common ground.** Uno GND, battery GND, SIM GND (when you wire it), and every sensor GND must join. Same drain for every pipe. If you later add an LM2596, its GND joins this same rail.
-4. **Voltage divider on D6.** The Uno speaks at 5V. The SIM800L listen pin wants about 2.8V. **Do not** run a bare wire from D6 to SIM RX.
+3. **A resistor cannot replace the LM2596.** The 10k resistors are only for the D6 *talk* wire, like a quiet-down on a garden hose. Power is a different job. When the phone chip calls, it gulps a big gulp, then sips. A resistor’s drop changes with every gulp, so the voltage would jump around, collapse, or cook the resistor. Leave VCC empty until you have an LM2596 or a loose 18650.
+4. **Common ground.** Uno GND, battery GND, SIM GND (when you wire it), and every sensor GND must join. Same drain for every pipe. If you later add an LM2596, its GND joins this same rail.
+5. **Voltage divider on D6.** The Uno speaks at 5V. The SIM800L listen pin wants about 2.8V. **Do not** run a bare wire from D6 to SIM RX.
 
    **You do not have a 20kΩ.** Use this instead:
 
@@ -138,9 +139,9 @@ A1 and A3 stay empty. D10–D13 stay empty until the SD board arrives.
    - **If you only have one 10kΩ:** buy a **20kΩ** or a second **10kΩ** before you wire D6. Do not skip the drop.
 
    A 22kΩ is close enough to 20k if a shop has that instead.
-5. **SIM TX to D5 is direct.** The chip speaks at ~3.3V. The Uno can hear that. No divider on that wire.
-6. **One USB data cable** for the computer. Charge-only cables look the same and will not upload the program.
-7. **Set owner phone numbers in the program** before you demo a real call. See [§7](#7-set-phone-numbers-and-upload-the-program).
+6. **SIM TX to D5 is direct.** The chip speaks at ~3.3V. The Uno can hear that. No divider on that wire.
+7. **One USB data cable** for the computer. Charge-only cables look the same and will not upload the program.
+8. **Set owner phone numbers in the program** before you demo a real call. See [§7](#7-set-phone-numbers-and-upload-the-program).
 
 ---
 

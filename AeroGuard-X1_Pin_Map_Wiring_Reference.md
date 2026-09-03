@@ -82,6 +82,8 @@ One 5V tap. One drain. **No 4V tap yet.**
 
 **Never** feed the SIM800L from the Uno **5V** pin or the **3.3V** pin. Those pins are thin hoses. The chip gulps current when it calls and will reset or die.
 
+**A resistor cannot replace the LM2596.** The 10k resistors are only for the D6 talk wire, not for VCC power.
+
 Later, when you buy an LM2596: measure about **4.0V** with a multimeter **before** the SIM VCC wire goes on. Or use a single loose **18650** (~3.7V) plus to VCC, minus to the same GND. Do **not** use a 5V boosted pack on VCC.
 
 ---
