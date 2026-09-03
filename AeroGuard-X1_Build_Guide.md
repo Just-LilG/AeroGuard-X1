@@ -333,7 +333,7 @@ Keep `GSM_ENABLED` as **true** (the phone chip is on the table). Keep `SD_ENABLE
 1. Click **Upload** (the arrow).
 2. Wait until the IDE says **Done uploading**.
 3. **Tools → Serial Monitor.** Set the speed box to **9600**.
-4. You should see `AeroGuard-X1` / `Ready`. The LCD shows **Starting…** then **Calibrating…** for **45 seconds**. Do not press Demo during that wait. It is learning quiet air, like tasting the river before the rain.
+4. You should see `AeroGuard-X1` / `Ready`. The LCD shows **Sniffing air…** for about **5 seconds** (a filling bar). It is learning quiet air, like tasting the river before the rain. You can press **Demo** during that bar to skip it.
 
 Do not upload any other `.ino` file for this demo.
 
@@ -345,13 +345,13 @@ Do this on a table. No open gas. Tell the owner-phone person that a test call ma
 
 | Check | What you do | What you should see **today** (phone chip yes, no SD) |
 |-------|-------------|---------------------|
-| Boot | Power USB after upload; SIM on 4V | LCD: Starting → Calibrating (~45s) → live SAFE / label. Serial: `No SD module`. |
+| Boot | Power USB after upload; SIM on 4V | LCD: Starting → Sniffing air (~5s) → live SAFE / label. Serial: `No SD module`. |
 | Serial | Monitor at 9600 | Lines like `STATUS level=SAFE …` once per second |
 | Demo 1 | Press **Demo** once | **Green** LED. LCD **LOW**. Quiet (no buzzer). |
 | Demo 2 | Press **Demo** again | **Yellow** LED. Short beeps. **Real SMS** to owner. |
 | Demo 3 | Press **Demo** again | **Red** LED. Loud alarm. **Phone rings**, then SMS. |
 | Demo 4 | Press **Demo** again | Still **red**. LCD **FIRE RISK** / **DEMO MODE**. Call + SMS again. |
-| Reset | Press **Reset** | Alarm stops. Demo ends. Calibrating ~45s. Back to SAFE. |
+| Reset | Press **Reset** | Alarm stops. Demo ends. Sniffs ~2s. Back to SAFE. |
 | SIM | Watch the network LED | Slow blink after it finds the network |
 
 **SMS/call caution**

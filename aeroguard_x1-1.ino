@@ -37,9 +37,9 @@ const bool GSM_ENABLED = true;
 // Set true only after the micro SD module is wired to D10–D13.
 const bool SD_ENABLED = false;
 
-const unsigned long CALIBRATION_TIME_MS = 45000;
-const unsigned long CALIBRATION_QUICK_MS = 4000;
-const unsigned long CALIBRATION_SAMPLE_MS = 200;
+const unsigned long CALIBRATION_TIME_MS = 5000;
+const unsigned long CALIBRATION_QUICK_MS = 2000;
+const unsigned long CALIBRATION_SAMPLE_MS = 100;
 const float THRESHOLD_LOW = 20.0;
 const float THRESHOLD_MEDIUM = 40.0;
 const float THRESHOLD_CRITICAL = 70.0;

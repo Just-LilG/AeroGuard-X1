@@ -227,7 +227,7 @@ Then set `SD_ENABLED` to **true** and upload again. The file is `gaslog.txt` —
 
 ## What you can test today
 
-Upload [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino). USB **data** cable. Serial Monitor **9600**. Wait ~45 seconds of calibrating. Warn the person who holds the owner phone.
+Upload [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino). USB **data** cable. Serial Monitor **9600**. Wait about **5 seconds** of sniffing air (or press Demo to skip). Warn the person who holds the owner phone.
 
 | Press | Lights / sound | Phone / SD |
 |-------|----------------|------------|
