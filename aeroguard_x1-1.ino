@@ -43,9 +43,9 @@ const bool GSM_ENABLED = true;
 // Set true only after the micro SD module is wired to D10–D13.
 const bool SD_ENABLED = false;
 
-const unsigned long CALIBRATION_TIME_MS = 5000;
-const unsigned long CALIBRATION_QUICK_MS = 2000;
-const unsigned long CALIBRATION_SAMPLE_MS = 100;
+const unsigned long CALIBRATION_TIME_MS = 1200;
+const unsigned long CALIBRATION_QUICK_MS = 400;
+const unsigned long CALIBRATION_SAMPLE_MS = 40;
 const float THRESHOLD_LOW = 20.0;
 const float THRESHOLD_MEDIUM = 40.0;
 const float THRESHOLD_CRITICAL = 70.0;
@@ -223,6 +223,7 @@ void calibrateGas(bool quick) {
   unsigned long dur = quick ? CALIBRATION_QUICK_MS : CALIBRATION_TIME_MS;
   lcd.clear();
   lcdLine(0, "Sniffing air...");
+  lcdLine(1, "wait 1 second");
   long total = 0;
   int samples = 0;
   unsigned long start = millis();
@@ -233,11 +234,6 @@ void calibrateGas(bool quick) {
     }
     total += analogRead(PIN_GAS);
     samples++;
-    unsigned long elapsed = millis() - start;
-    byte filled = (byte)(elapsed * (unsigned long)LCD_COLS / dur);
-    if (filled > LCD_COLS) filled = LCD_COLS;
-    lcd.setCursor(0, 1);
-    for (byte i = 0; i < LCD_COLS; i++) lcd.write(i < filled ? (uint8_t)255 : (uint8_t)'-');
     delay(CALIBRATION_SAMPLE_MS);
   }
   if (samples < 1) {
