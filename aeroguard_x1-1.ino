@@ -99,16 +99,24 @@ void lcdLine(byte row, const char* text) {
   }
 }
 
-void bootSplash() {
+void lcdClearAll() {
   lcd.clear();
-  lcdLine(0, "    AeroGuard-X1");
+  lcdLine(0, "");
+  lcdLine(1, "");
+  lcdLine(2, "");
+  lcdLine(3, "");
+}
+
+void bootSplash() {
+  lcdClearAll();
+  lcdLine(0, "AeroGuard-X1");
   lcdLine(1, "");
   for (byte k = 0; k < 20; k++) {
     lcd.setCursor(k, 1);
     lcd.write(255);
     delay(45);
   }
-  lcdLine(1, "    Starting...");
+  lcdLine(1, "Starting...");
   delay(350);
 }
 
@@ -142,7 +150,12 @@ void setup() {
   appSerial.begin(9600);
   calibrateGas(false);
   setLevel(SAFE, true);
-  lcd.clear();
+  lcdClearAll();
+  lcdLine(0, "READY        SAFE");
+  lcdLine(1, "Press DEMO button");
+  lcdLine(2, "D9 to GND = DEMO");
+  lcdLine(3, "D7 to GND = RESET");
+  delay(800);
   Serial.println(F("Ready. Demo btn = simulate leak."));
 }
 
@@ -164,6 +177,7 @@ void handleDemoButton() {
   if (digitalRead(PIN_BTN_DEMO) != LOW) return;
   if (millis() - last < BTN_DEBOUNCE_MS) return;
   last = millis();
+  Serial.println(F("DEMO pressed"));
   demoMode = true;
   demoStage++;
   if (demoStage > 4) demoStage = 1;
@@ -303,9 +317,15 @@ void handleSecondarySmsTimer() {
 }
 
 void updateOutputs() {
-  digitalWrite(PIN_LED_GREEN, currentLevel == LEVEL_LOW);
-  digitalWrite(PIN_LED_YELLOW, currentLevel == MEDIUM);
-  digitalWrite(PIN_LED_RED, currentLevel == CRITICAL || currentLevel == FIRE);
+  if (currentLevel == SAFE) {
+    digitalWrite(PIN_LED_GREEN, (millis() / 500) % 2);
+    digitalWrite(PIN_LED_YELLOW, LOW);
+    digitalWrite(PIN_LED_RED, LOW);
+  } else {
+    digitalWrite(PIN_LED_GREEN, currentLevel == LEVEL_LOW);
+    digitalWrite(PIN_LED_YELLOW, currentLevel == MEDIUM);
+    digitalWrite(PIN_LED_RED, currentLevel == CRITICAL || currentLevel == FIRE);
+  }
   switch (currentLevel) {
     case SAFE: case LEVEL_LOW: noTone(PIN_BUZZER); break;
     case MEDIUM: tone(PIN_BUZZER, 1000, 180); break;
@@ -330,6 +350,8 @@ void updateLCD() {
     snprintf(fire0, 21, "FIRE RISK          %c", star);
     lcdLine(0, fire0);
     lcdLine(1, demoMode ? "DEMO MODE" : "EVACUATE NOW");
+    lcdLine(2, "");
+    lcdLine(3, "Press RESET to stop");
     return;
   }
 
@@ -344,6 +366,13 @@ void updateLCD() {
   }
   lcdLine(0, line0);
   lcdLine(1, line1);
+  if (currentLevel == SAFE) {
+    lcdLine(2, "Press DEMO to test");
+    lcdLine(3, "Green blink = ready");
+  } else {
+    lcdLine(2, demoMode ? "DEMO MODE" : "");
+    lcdLine(3, "Press RESET to stop");
+  }
 }
 
 const char* levelName(RiskLevel lvl) {
