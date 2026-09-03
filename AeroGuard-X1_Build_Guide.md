@@ -57,7 +57,7 @@ Buy only what is in this table. Search shops by the **module name**.
 
 You **have** the **SIM800L** phone chip (#8). You **do not have** the **LM2596** 4V board (#9) or the **SD** module (#10).
 
-**Do not** power SIM **VCC** from the Uno. There is no 4V pin on the Uno. Until you buy an LM2596 **or** use a single **18650** cell (~3.7V), leave **VCC** on the red SIM board **unconnected**. You may still wire **GND**, **TXD→D5**, **RXD←D6**. Lights and Demo still work. Calls/SMS wait until VCC has ~4V.
+**Do not** power SIM **VCC** from the Uno. There is no 4V pin on the Uno. **You do not need to wait for the LM2596** to get texts and calls. Use a **3.7V cell** this week — see [§3.1](#31-get-calls-working-this-week-no-lm2596). Never a resistor. Never Uno 5V.
 
 **SIM800L-only pin map:** [`AeroGuard-X1_SIM800L_Pin_Map.md`](AeroGuard-X1_SIM800L_Pin_Map.md). You **do not have a 20kΩ** — use 10k stand-ins for the D6 divider. Leave **D10–D13** empty.
 
@@ -73,9 +73,9 @@ Full pin tables: [`AeroGuard-X1_Pin_Map_Wiring_Reference.md`](AeroGuard-X1_Pin_M
 | 6 | Alarm | **Active buzzer module** (often **KY-012**) | 1 | **Have** | The beeper. |
 | 7 | Buttons | Two **6×6mm tactile push buttons**, or two **KY-004** button modules | 2 | **Have** | **Demo** and **Reset**. Momentary = click and it springs back. |
 | 8 | Phone chip | **SIM800L V2.0 GSM/GPRS module** with antenna | 1 | **Have** | Sends SMS and makes calls. Needs strong ~4V power. |
-| 9 | SIM power | **LM2596 DC-DC buck converter** | 1 | **Buy later — you do not have this** | A “pressure reducer.” Set output to about **4.0V**. Not a pin on the Uno. |
+| 9 | SIM power | **LM2596 DC-DC buck converter** | 1 | **Buy later — not required for the pitch if you use a 3.7V cell** | Nice to have. A 18650 or old phone battery already makes ~3.7V. |
 | 10 | Log | **Micro SD card module (SPI)** (often **HW-125**) + a **microSD** card formatted **FAT32** | 1 | **Buy later** | Writes a simple event file. Not a fire-proof vault. |
-| 11 | Battery | **5V USB power bank**, *or* **18650** cell + **TP4056** charger + boost to 5V | 1 | **Have** | Demo power. USB bank is the easy path. |
+| 11 | Battery | **5V USB power bank**, *or* **18650** cell + **TP4056** charger + boost to 5V | 1 | **Have** | Uno drinks 5V from USB or the bank. If you have a **loose 18650**, that cell feeds SIM VCC. |
 | 12 | Wiring | **MB-102 breadboard** + **Dupont jumper wires** (male-male, male-female) | 1 set | **Have** | Breadboard = plastic hole grid so you can plug wires without soldering. |
 | 13 | SIM protect | **10kΩ** resistor + **20kΩ** resistor | 1 pair | **No 20k** — see workaround below | Voltage divider. Drops the Uno’s 5V talk-line so the SIM chip is not hurt. |
 | 14 | Network | **Nano-SIM** with call + SMS credit | 1 | **Have** | Must fit the SIM800L slot. Use an adapter if your SIM is larger. |
@@ -87,6 +87,46 @@ Full pin tables: [`AeroGuard-X1_Pin_Map_Wiring_Reference.md`](AeroGuard-X1_Pin_M
 **Do not buy for this kit:** a servo motor, a vent flap, a Bluetooth dongle, or a second brain board.
 
 **Shop tip:** if a listing says “MQ-2 smoke sensor,” it still sees LPG mixed with smoke. For a cleaner cooking-gas story, ask for **MQ-5**.
+
+---
+
+## 3.1 Get calls working this week (no LM2596)
+
+The program already knows how to **text and call**. The missing LM2596 only makes 4V from 5V. A rechargeable cell is **already** about 3.7V — that is inside the phone chip’s safe window (about 3.7–4.2V).
+
+Think of the LM2596 as a tap reducer. You do not need it if the tank is already the right pressure.
+
+### Use this (in order)
+
+1. **A loose 18650** — the fat rechargeable tube (flashlight / laptop-style cell). If your kit has the 18650 + charger board, take power from the **battery holder**, not from any 5V boost USB hole.
+2. **An old phone battery** — the flat pack from a dead smartphone. Use the pads marked **+** and **−**. Ignore extra pads (often a temperature pin).
+3. **One 18650 from a phone-parts stall** — often same day. If you are already at that stall you can also ask for an LM2596, but you do **not** have to wait for it.
+
+**Do not:** use a resistor, Uno 5V, Uno 3.3V, a 5V boost/USB output on SIM VCC, or open a sealed power bank.
+
+### Wire the cell (unplug USB first)
+
+```
+Cell PLUS (+)  --------  SIM800L VCC
+Cell MINUS (−) --------  SIM800L GND  and  Uno GND
+                         (one shared drain)
+```
+
+- 18650: the **bump** end is plus. The **flat** end is minus. Tape the metal sides so they cannot touch a wire by accident.
+- Skip a puffy, leaking, or hot cell.
+- The Uno still drinks **5V from USB** (computer or power bank). The cell feeds **only** the SIM.
+
+### Then turn the feature on
+
+In [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) change this one line and upload again:
+
+```c
+const bool GSM_ENABLED = true;
+```
+
+Warn the person who holds `+233557164067`. Network LED: fast blink = hunting, **slow blink** = on the network. Then Demo → MEDIUM = real SMS. Demo → CRITICAL = real call.
+
+Full talk-wire steps stay in [§6.9](#69-sim800l--calls-from-a-37v-cell).
 
 ---
 
@@ -118,7 +158,7 @@ Pin-for-pin module tables: [`AeroGuard-X1_Pin_Map_Wiring_Reference.md`](AeroGuar
 | D13 | SD **SCK** | **No** |
 | 5V | Sensors, LCD, LEDs, buzzer, buttons | **Yes** — not SIM VCC |
 | GND | **Every** module (including SIM GND) | **Yes** |
-| ~4V | **SIM800L VCC only** | **Not yet** — no LM2596. Leave VCC off, or use a 18650 (~3.7V) |
+| ~4V | **SIM800L VCC only** | **Yes** from a **3.7V cell** (18650 or old phone battery). Never Uno 5V. |
 
 A1 and A3 stay empty. D10–D13 stay empty until the SD board arrives.
 
@@ -127,8 +167,8 @@ A1 and A3 stay empty. D10–D13 stay empty until the SD board arrives.
 ## 5. Power warnings (read before any power)
 
 1. **The SIM800L is thirsty.** When it calls, it gulps current (around **2A** peaks). It needs about **4.0 volts** (3.7–4.2V is the safe window) from a **separate** source — not a pin on the Uno. The usual part is an **LM2596** (you do **not** have this yet). **Never** take SIM power from the Uno **5V** pin or the Uno **3.3V** pin. Those pins are thin hoses. The chip will reset or die.
-2. **Leave SIM VCC unconnected today.** You do not have the LM2596. Do not guess. When you later buy the LM2596: power it, turn the screw, read about **4.0V** on a meter, **then** clip SIM VCC. **Or** if you have a single loose **18650** cell (about 3.7V, like a rechargeable flashlight cell): plus to SIM VCC, minus joined to Uno GND. Do **not** use a 5V boosted pack for SIM VCC.
-3. **A resistor cannot replace the LM2596.** The 10k resistors are only for the D6 *talk* wire, like a quiet-down on a garden hose. Power is a different job. When the phone chip calls, it gulps a big gulp, then sips. A resistor’s drop changes with every gulp, so the voltage would jump around, collapse, or cook the resistor. Leave VCC empty until you have an LM2596 or a loose 18650.
+2. **Feed SIM VCC from a 3.7V cell this week.** You do not have to wait for the LM2596. See [§3.1](#31-get-calls-working-this-week-no-lm2596). **Never** Uno 5V or 3.3V. If the cell is not on yet, leave VCC empty.
+3. **A resistor cannot replace the LM2596 or the cell.** The 10k resistors are only for the D6 *talk* wire, like a quiet-down on a garden hose. Power is a different job. When the phone chip calls, it gulps a big gulp, then sips. A resistor’s drop changes with every gulp, so the voltage would jump around, collapse, or cook the resistor.
 4. **Common ground.** Uno GND, battery GND, SIM GND (when you wire it), and every sensor GND must join. Same drain for every pipe. If you later add an LM2596, its GND joins this same rail.
 5. **Voltage divider on D6.** The Uno speaks at 5V. The SIM800L listen pin wants about 2.8V. **Do not** run a bare wire from D6 to SIM RX.
 
@@ -147,18 +187,18 @@ A1 and A3 stay empty. D10–D13 stay empty until the SD board arrives.
 
 ## 6. Step-by-step assembly
 
-Do these in order. Unplug USB and batteries while you move wires. Lights and screen run from USB. Skip the LM2596 and skip the SD module — you do not have them. Leave SIM **VCC** unconnected until you have ~4V.
+Do these in order. Unplug USB and batteries while you move wires. Lights and screen run from USB. Skip the LM2596 and skip the SD module. For calls, add a **3.7V cell** to SIM VCC ([§3.1](#31-get-calls-working-this-week-no-lm2596)).
 
 Open the HTML guide beside this page if you want the same steps with bigger cards. Or use the pin sheet: [`AeroGuard-X1_Pin_Map_Wiring_Reference.md`](AeroGuard-X1_Pin_Map_Wiring_Reference.md).
 
 ### 6.1 Power rails
 
-**Goal:** a 5V strip for the small parts, and one shared GND. There is **no** 4V strip until you buy an LM2596 (or use a loose 18650).
+**Goal:** a 5V strip for the small parts, and one shared GND. SIM VCC comes from a **3.7V cell**, not from the Uno.
 
 1. Put the Uno on the table. Note **5V**, **GND**, and the numbered pins.
 2. Run a red jumper from Uno **5V** to the breadboard **+** rail.
 3. Run a black jumper from Uno **GND** to the breadboard **−** rail.
-4. **Do not** sit an LM2596 — you do not have it. Skip any 4V screw-board steps.
+4. Skip the LM2596. You do not need it if a 3.7V cell feeds SIM VCC.
 5. **Do not** put SIM VCC on the Uno 5V pin or the 3.3V pin.
 
 ### 6.2 Gas sensor (MQ-5 or MQ-2)
@@ -244,32 +284,27 @@ Each **6×6mm tactile switch** presses up into the square pocket under the lid (
 
 You do **not** have this part. Leave **D10–D13** empty. Keep `SD_ENABLED` as **false**. The program still runs. Serial will say `No SD module (OK for this bench).`
 
-(You are also missing the **LM2596**. That is a separate item — see [§6.9](#69-sim800l--leave-vcc-off-until-you-have-4v).)
+(You are also missing the **LM2596**. You do not need it for calls — use a 3.7V cell. See [§3.1](#31-get-calls-working-this-week-no-lm2596) and [§6.9](#69-sim800l--calls-from-a-37v-cell).)
 
 When you buy the SD board, wire CS/MOSI/MISO/SCK to D10–D13, VCC per the print on the board, GND to GND. Format the card **FAT32**. Set `SD_ENABLED` to **true** and upload again. The program writes `gaslog.txt`. It is **not** a fire-proof black box.
 
-### 6.9 SIM800L — leave VCC off until you have ~4V
+### 6.9 SIM800L — calls from a 3.7V cell
 
 You **have** the phone chip. This is the mini phone. Antenna on. Nano-SIM in the slot (gold pads down, cut corner matching the drawing on the holder).
 
-You **do not have** the LM2596 (the small board with a screw that makes ~4V). The Uno has **no** 4V pin. **Leave the VCC hole empty.**
-
-Wire the talk wires and ground today:
+You **do not have** the LM2596. You **do not need it** for the pitch. Feed **VCC** from a **3.7V cell** ([§3.1](#31-get-calls-working-this-week-no-lm2596)). The Uno has **no** 4V pin.
 
 | SIM800L | To | Today? |
 |---------|-----|--------|
-| VCC | Leave empty until ~4V exists | **No** — never Uno 5V or 3.3V |
-| GND | Common GND (same as Uno) | **Yes** |
+| VCC | Cell **plus** (18650 bump, or phone-battery **+**) | **Yes** — never Uno 5V or 3.3V |
+| GND | Cell **minus** and Uno GND | **Yes** |
 | TX | Uno **D5** (direct) | **Yes** |
 | RX | Mid-point of the divider from **D6** | **Yes** |
 | Antenna | Screw / uFL attached | **Yes** |
 
-**When you later have ~4V**, pick one:
+When the cell is on VCC, set `GSM_ENABLED` to **true** in [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) and upload again. Until then, leave VCC empty and keep `GSM_ENABLED` **false**.
 
-1. **Buy an LM2596** (best). Power its input from the USB bank. Turn the screw. Meter about **4.0V**. Then SIM **VCC** → that output. Join LM2596 GND to the same **−** rail.
-2. **Or a single loose 18650** (~3.7V). Plus → SIM VCC. Minus → same GND as the Uno. Do **not** use a 5V boosted pack on VCC.
-
-Then set `GSM_ENABLED` to **true** and upload again.
+If you later buy an LM2596: take the cell off VCC, set the screw to about **4.0V** on a meter, then SIM VCC → that output. Same GND rail.
 
 **Divider.** The Uno talks too “loud” (5V). The phone chip listens at a quieter level. The resistors are a pressure drop.
 
@@ -296,11 +331,11 @@ Uno D6  --- 10kΩ ---+--- SIM800L RX
 
 The SIM RX wire always comes off the **middle**. Never a bare D6 wire to RX.
 
-Keep `GSM_ENABLED` as **false** in [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) until SIM VCC has ~4V. Lights, screen, Demo, and Reset still work.
+Keep `GSM_ENABLED` as **false** until the 3.7V cell is on SIM VCC. Then set it **true** and upload. Lights, screen, Demo, and Reset work either way.
 
-**Network light:** stays dark until VCC has ~4V. That is OK today. Later, many boards blink fast when hunting, then **slow blink** when they have registered.
+**Network light:** dark if VCC is empty. With the cell on: fast blink = hunting, **slow blink** = on the network.
 
-**Caution (after 4V is on):** CRITICAL and FIRE place a **real call** to `OWNER_CONTACT`. Warn the person who holds that phone.
+**Caution:** CRITICAL and FIRE place a **real call** to `OWNER_CONTACT`. Warn the person who holds that phone.
 
 ### 6.10 Case
 
@@ -353,7 +388,7 @@ If the LCD is blank, change `LiquidCrystal_I2C lcd(0x27, 16, 2);` so `0x27` matc
 
 If the lighter test never hits FIRE, change `FLAME_DETECT_THRESHOLD` a little and try again.
 
-Keep `GSM_ENABLED` as **false** until SIM VCC has ~4V (you do not have the LM2596 yet). Keep `SD_ENABLED` as **false** until the SD module is wired. When each part is ready, flip that line to `true` and upload again.
+Keep `GSM_ENABLED` as **false** until the 3.7V cell is on SIM VCC, then set it **true**. Keep `SD_ENABLED` as **false** until the SD module is wired. When each part is ready, flip that line to `true` and upload again.
 
 ### 7.4 Upload
 
@@ -368,27 +403,29 @@ Do not upload any other `.ino` file for this demo.
 
 ## 8. How to test
 
-Do this on a table. No open gas. **Today there is no 4V**, so Demo will **not** send a text or place a call. Lights, screen, and beeper still work.
+Do this on a table. No open gas. Tell the owner-phone person a test call may come **after** the 3.7V cell is on VCC and `GSM_ENABLED` is **true**.
 
-| Check | What you do | What you should see **today** (no LM2596, no SD) |
+**Without the cell** (lights only):
+
+| Check | What you do | What you should see |
 |-------|-------------|---------------------|
-| Boot | Power USB after upload. SIM VCC left empty. | LCD: Starting → Sniffing air (~5s) → live SAFE / label. Serial: `GSM off` and `No SD module`. |
-| Serial | Monitor at 9600 | Lines like `STATUS level=SAFE …` once per second |
-| Demo 1 | Press **Demo** once | **Green** LED. LCD **LOW**. Quiet (no buzzer). |
-| Demo 2 | Press **Demo** again | **Yellow** LED. Short beeps. **No SMS** until VCC has ~4V. |
-| Demo 3 | Press **Demo** again | **Red** LED. Loud alarm. **No call** until VCC has ~4V. |
-| Demo 4 | Press **Demo** again | Still **red**. LCD **FIRE RISK** / **DEMO MODE**. |
-| Reset | Press **Reset** | Alarm stops. Demo ends. Sniffs ~2s. Back to SAFE. |
-| SIM | VCC is empty | Network LED stays dark. That is OK. |
+| Boot | USB on, SIM VCC empty, `GSM_ENABLED` false | Sniffing air ~5s. Serial: `GSM off`. |
+| Demo 1–4 | Press Demo | Green → yellow + beeps → red + alarm. **No SMS, no call.** |
+| Reset | Press Reset | Alarm off. Back to SAFE. |
 
-**Later, after ~4V is on VCC** (LM2596 or a loose 18650) and `GSM_ENABLED` is **true**:
+**With the 3.7V cell** (`GSM_ENABLED` true):
+
+| Check | What you do | What you should see |
+|-------|-------------|---------------------|
+| SIM | Cell on VCC. Wait. | Network LED **slow blink**. |
+| Demo 2 | Press Demo to yellow | **Real SMS** to owner. |
+| Demo 3 | Press Demo to red | **Phone rings**, then SMS. |
 
 - MEDIUM sends a **real text**.
-- CRITICAL and FIRE place a **real call** (the box rings the owner for a bit, then hangs up) and a **real text**.
-- Put your own number in first if you are alone.
+- CRITICAL and FIRE place a **real call** (rings a bit, then hangs up) and a **real text**.
 - Do not surprise a sleeping family member. Do not spam the fire service.
 
-If SMS never arrives then: airtime, SIM seated, slow blink, 4V still ~4V under load, divider wired, `OWNER_CONTACT` has `+` and country code.
+If SMS never arrives: airtime, SIM seated, slow blink, cell still charged, divider wired, `OWNER_CONTACT` has `+` and country code.
 
 There is **no SD log** until you buy the SD module.
 
@@ -401,7 +438,7 @@ Speak in this order. Short. Show the box in your hands.
 1. **Problem.** LPG is in homes, hostels, and chop bars. If it leaks at night, people smell it late — or not at all.
 2. **Who pays first.** Lead with **hostel wardens / multi-tenant housing**. Chop bars and family kitchens are the next wave.
 3. **Show the product.** Cased unit. Green / yellow / red. One brain: the Arduino Uno. One phone chip: the SIM800L. This is the kit.
-4. **Live demo.** Press **Demo**: LOW (green, quiet) → MEDIUM (yellow, beep) → CRITICAL (red, alarm). Press **Reset** to clear. Say the **4V board** (LM2596) and the **SD log** are still on order — lights work now; real calls start when VCC has ~4V.
+4. **Live demo.** Press **Demo**: LOW (green, quiet) → MEDIUM (yellow, beep, **text**) → CRITICAL (red, **the phone rings**). Press **Reset** to clear. The SIM is powered by a **3.7V cell** (18650 or old phone battery). The LM2596 and SD log can wait.
 5. **App story.** Open the Vercel contest app on a phone. Pairing and status are **simulated** for judges. Smart vents live in the app. Real calls still come from the SIM in the box.
 6. **Cost + market.** Be honest about parts cost. Who buys, who installs, who gets the SMS.
 7. **Tough questions, ready answers.**
