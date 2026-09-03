@@ -167,6 +167,11 @@ void loop() {
   pollAppBridge();
   if (!demoMode) readSensorsAndEvaluate();
   updateOutputs();
+  if (digitalRead(PIN_BTN_DEMO) == LOW) {
+    digitalWrite(PIN_LED_GREEN, HIGH);
+    digitalWrite(PIN_LED_YELLOW, HIGH);
+    digitalWrite(PIN_LED_RED, HIGH);
+  }
   updateLCD();
   handleSecondarySmsTimer();
   emitAppStatus();
@@ -321,7 +326,7 @@ void updateOutputs() {
 
 void updateLCD() {
   unsigned long now = millis();
-  if (lastLcdSwitch != 0 && now - lastLcdSwitch < 400) return;
+  if (currentLevel != SAFE && lastLcdSwitch != 0 && now - lastLcdSwitch < 400) return;
   lastLcdSwitch = now;
   lcdTick = !lcdTick;
   char star = lcdTick ? '*' : ' ';
@@ -331,9 +336,14 @@ void updateLCD() {
     lastLcdPage = now;
   }
 
-  if (currentLevel == SAFE) {
-    lcdLine(0, "READY      SAFE");
-    lcdLine(1, "Touch D9 to GND");
+  if (currentLevel == SAFE && !demoMode) {
+    if (digitalRead(PIN_BTN_DEMO) == LOW) {
+      lcdLine(0, "YES  D9 = GND");
+      lcdLine(1, "hold the jumper");
+    } else {
+      lcdLine(0, "READY      SAFE");
+      lcdLine(1, "jumper 9 to GND");
+    }
     return;
   }
 
