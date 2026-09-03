@@ -103,7 +103,7 @@ export function SetupFlow({
             />
           </div>
           <div>
-            <Label htmlFor="setup-backup">Backup phone (SMS after 3 min)</Label>
+            <Label htmlFor="setup-backup">Backup phone (SMS after owner)</Label>
             <Input
               id="setup-backup"
               className="mt-2 h-12 rounded-2xl"

@@ -367,14 +367,14 @@ Near the top of `aeroguard_x1-1.ino`:
 
 ```c
 const char* OWNER_CONTACT = "+233557164067";
-const char* SECONDARY_CONTACT = "+233508705321";
+const char* SECONDARY_CONTACT = "+233599494342";
 const char* DEVICE_LABEL = "AeroGuard Kitchen";
 ```
 
 | Name | Put |
 |------|-----|
 | `OWNER_CONTACT` | Main / owner phone. Set to `+233557164067`. |
-| `SECONDARY_CONTACT` | Backup phone. Set to `+233508705321`. Gets an SMS only if CRITICAL/FIRE is still on after **3 minutes**. Backup check-in. Not “go inside and fix a leak.” |
+| `SECONDARY_CONTACT` | Backup phone. Set to `+233599494342`. Gets a text after the owner is warned (MEDIUM, CRITICAL, or FIRE). Not “go inside and fix a leak.” |
 | `DEVICE_LABEL` | Short place name. It is printed on the LCD and inside texts. Example: `Hostel Block A Kitchen`. |
 
 If the LCD is blank, change `LiquidCrystal_I2C lcd(0x27, 16, 2);` so `0x27` matches your backpack (`0x3F` is the other common value).
@@ -430,7 +430,7 @@ Speak in this order. Short. Show the box in your hands.
 6. **Cost + market.** Be honest about parts cost. Who buys, who installs, who gets the SMS.
 7. **Tough questions, ready answers.**
    - SD card = history for a demo, not a fire-proof vault.
-   - Secondary number = a delayed SMS check-in, not a first responder.
+   - Secondary number = a backup text after the owner is warned, not a first responder.
    - Fire service voice call is not in this kit (a silent ring with no address is not useful). Phase 2 can be a verified address text with a partner.
    - The website cannot drive the box. GSM does.
 

@@ -98,7 +98,7 @@ export function DeviceTab({
             onChange={(e) => setBackup(e.target.value)}
           />
           <p className="mt-1.5 text-[12px] text-muted-foreground">
-            SMS only after 3 minutes if the owner has not cleared the alert.
+            SMS after the owner is warned (MEDIUM, CRITICAL, or FIRE).
           </p>
         </div>
         <Button

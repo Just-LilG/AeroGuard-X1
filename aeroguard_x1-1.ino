@@ -52,7 +52,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 SoftwareSerial sim(PIN_SIM_RX, PIN_SIM_TX);
 
 const char* OWNER_CONTACT = "+233557164067";
-const char* SECONDARY_CONTACT = "+233508705321";
+const char* SECONDARY_CONTACT = "+233599494342";
 const char* DEVICE_LABEL = "AeroGuard Kitchen";
 
 // true = send real texts/calls. Set false if the 3.7V cell is unplugged.
@@ -324,10 +324,11 @@ void maybeWarnPhones() {
 void maybeBackupSms() {
   if (!PHONE_ALERTS) return;
   if (backupDone) return;
-  if (level < 3) return;
+  if (level < 2) return;
   if (warnAt == 0) return;
-  if (millis() - warnAt < 180000) return;  // 3 minutes
   if (phoneStep != 0) return;
+  // Wait until the owner text/call is done, then text the backup.
+  if (millis() - warnAt < 4000) return;
 
   char text[80];
   snprintf(text, 80, "BACKUP: AeroGuard %s at %s", levelWord(), DEVICE_LABEL);
