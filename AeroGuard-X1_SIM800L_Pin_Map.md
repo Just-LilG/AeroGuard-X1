@@ -71,7 +71,7 @@ The Uno is the brain. It drinks **5V** from USB. It cannot feed the SIM800L.
 
 **A resistor cannot replace the cell.** The 10k resistors are only for the D6 talk wire.
 
-Keep `GSM_ENABLED` as **false** until the cell is on VCC. Then set it **true** and upload.
+Keep `GSM_ENABLED` as **true**. You have the 3.7V cell. Lights, Demo, and Reset still work. If you unplug the cell, set it **false**.
 
 ```
 Cell PLUS (+)  ----  board VCC

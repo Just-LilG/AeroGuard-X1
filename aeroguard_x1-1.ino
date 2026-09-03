@@ -1,8 +1,8 @@
 /*
   AEROGUARD-X1 — Arduino Uno firmware (this is the demo brain).
   Leave pins A1 and A3 empty.
-  SIM800L: feed VCC from a 3.7V cell (18650 or old phone battery).
-  No LM2596 needed for calls. Keep GSM_ENABLED false until that cell is on VCC.
+  SIM800L: you have a 3.7V cell. Plus → VCC, minus → GND with the Uno.
+  No LM2596 needed. GSM_ENABLED is true. Never Uno 5V on VCC.
   No SD module yet: keep SD_ENABLED false and leave D10–D13 empty.
 */
 
@@ -33,8 +33,8 @@ SoftwareSerial appSerial(PIN_APP_RX, PIN_APP_TX);  // unused in the demo kit
 const char* OWNER_CONTACT = "+233557164067";
 const char* SECONDARY_CONTACT = "+233508705321";
 const char* DEVICE_LABEL = "AeroGuard Kitchen";
-// Set true after a 3.7V cell (or LM2596 ~4V) is on SIM VCC. Never Uno 5V.
-const bool GSM_ENABLED = false;
+// 3.7V cell is on SIM VCC. Set false only if you unplug that cell.
+const bool GSM_ENABLED = true;
 // Set true only after the micro SD module is wired to D10–D13.
 const bool SD_ENABLED = false;
 

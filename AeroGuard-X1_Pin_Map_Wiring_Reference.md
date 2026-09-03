@@ -3,8 +3,8 @@
 **This page is for the parts on the table today.**  
 It matches [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino).
 
-You **have** the **SIM800L** (the phone chip that texts and calls).  
-You **do not have** the **LM2596**. You do **not** need it this week — feed SIM **VCC** from a **3.7V cell** (18650 or old phone battery).  
+You **have** the **SIM800L** and a **3.7V cell**.  
+You **do not have** the **LM2596**. You do **not** need it — feed SIM **VCC** from that cell.  
 You **do not have** the **SD card module**. Leave **D10–D13** empty.
 
 The full shopping story is in [`AeroGuard-X1_Build_Guide.md`](AeroGuard-X1_Build_Guide.md). Pictures: [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html).
@@ -25,9 +25,9 @@ Numbers match the Build Guide shopping list.
 | 6 | Buzzer (the beeper) | **Have** |
 | 7 | Demo + Reset buttons | **Have** |
 | 8 | SIM800L phone chip + antenna | **Have** |
-| 9 | LM2596 buck (4V “pressure reducer” for the phone chip) | **Buy later** — skip if a 3.7V cell is on VCC |
+| 9 | LM2596 buck (4V “pressure reducer” for the phone chip) | **Buy later** — not needed; cell feeds VCC |
 | 10 | Micro SD module + card | **Buy later** |
-| 11 | 5V USB power bank or battery pack | **Have** |
+| 11 | 18650 / 3.7V cell (and maybe a 5V USB bank) | **Have** — cell → SIM VCC. USB 5V → Uno only |
 | 12 | Breadboard + jumper wires | **Have** |
 | 13 | 10kΩ + 20kΩ resistors (SIM protect) | **No 20k.** Use two 10k in a line, or 10k+10k |
 | 14 | Nano-SIM with airtime | **Have** |
@@ -185,7 +185,7 @@ You **do not have** the LM2596. You **do not need it**. **VCC** comes from a **3
 | RX | Mid-point of the divider from **D6** | **Yes** |
 | Antenna | Screwed on | **Yes** |
 
-When the cell is on, set `GSM_ENABLED` to **true** and upload again. Until then leave VCC empty and keep it **false**.
+When the cell is on VCC, upload. In the program, `GSM_ENABLED` is **true**. If you unplug the cell, set it **false**.
 
 **Divider.** You did **not** get a 20kΩ. Do **not** run a bare D6 wire into SIM RX.
 
@@ -213,7 +213,7 @@ A 22kΩ from a shop can stand in for 20k. The SIM RX wire always comes off the *
 
 SIM TX to D5 is direct. The chip speaks at ~3.3V. The Uno can hear that.
 
-In the program, `GSM_ENABLED` is **false** until the 3.7V cell is on VCC. Then set it **true** and upload. MEDIUM sends a **real text**. CRITICAL/FIRE place a **real call**.
+In the program, `GSM_ENABLED` is **true**. You have the 3.7V cell. MEDIUM sends a **real text**. CRITICAL/FIRE place a **real call**.
 
 The network LED stays dark today (no VCC). Later: blinks fast while hunting, then **slow blink** when it has joined the network.
 
