@@ -1,21 +1,22 @@
 /*
   AEROGUARD-X1 — Arduino Uno firmware (this is the demo brain).
-  THIS LCD is the 16-pin screen (labels GND VDD VO ... BLA BLK).
-  Not the 4-wire I2C backpack. See the pin list below.
+  LCD is the 4-wire board: GND, VCC, SDA, SCL only.
+  SDA → Uno A4. SCL → Uno A5. VCC → 5V. GND → GND.
   SIM800L: 3.7V cell on VCC. Never Uno 5V on SIM VCC.
-  No SD module: SD_ENABLED false. D10–D13 are used by this LCD.
+  Leave D10–D13 empty (no SD). Leave A1 and A3 empty.
 */
 
-#include <LiquidCrystal.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
 #include <SoftwareSerial.h>
 #include <SPI.h>
 #include <SD.h>
 #include <string.h>
 
 const int PIN_GAS = A0;
-const int PIN_APP_RX = A4;  // unused
+const int PIN_APP_RX = A1;  // leave empty
 const int PIN_FLAME = A2;
-const int PIN_APP_TX = A5;  // unused
+const int PIN_APP_TX = A3;  // leave empty
 const int PIN_LED_GREEN = 2;
 const int PIN_LED_YELLOW = 3;
 const int PIN_LED_RED = 4;
@@ -26,16 +27,12 @@ const int PIN_BUZZER = 8;
 const int PIN_BTN_DEMO = 9;
 const int PIN_SD_CS = 10;
 
-const int PIN_LCD_RS = 10;
-const int PIN_LCD_E = 11;
-const int PIN_LCD_D4 = 12;
-const int PIN_LCD_D5 = 13;
-const int PIN_LCD_D6 = A1;
-const int PIN_LCD_D7 = A3;
-
 const byte LCD_COLS = 16;
 const byte LCD_ROWS = 2;
-LiquidCrystal lcd(PIN_LCD_RS, PIN_LCD_E, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7);
+LiquidCrystal_I2C lcd27(0x27, LCD_COLS, LCD_ROWS);
+LiquidCrystal_I2C lcd3f(0x3F, LCD_COLS, LCD_ROWS);
+LiquidCrystal_I2C *lcdPtr = &lcd27;
+#define lcd (*lcdPtr)
 SoftwareSerial simSerial(PIN_SIM_RX, PIN_SIM_TX);
 SoftwareSerial appSerial(PIN_APP_RX, PIN_APP_TX);  // unused in the demo kit
 const char* OWNER_CONTACT = "+233557164067";
@@ -112,6 +109,26 @@ void lcdClearAll() {
   lcdLine(1, "");
 }
 
+void pickLcd() {
+  Wire.begin();
+  delay(80);
+  bool got27 = false;
+  bool got3f = false;
+  Serial.print(F("I2C scan:"));
+  for (byte a = 1; a < 127; a++) {
+    Wire.beginTransmission(a);
+    if (Wire.endTransmission() == 0) {
+      Serial.print(F(" 0x"));
+      Serial.print(a, HEX);
+      if (a == 0x27) got27 = true;
+      if (a == 0x3F) got3f = true;
+    }
+  }
+  Serial.println();
+  if (got3f && !got27) lcdPtr = &lcd3f;
+  else lcdPtr = &lcd27;
+}
+
 void bootSplash() {
   lcdClearAll();
   lcdLine(0, "AeroGuard-X1");
@@ -136,7 +153,9 @@ void setup() {
   pinMode(PIN_BTN_RESET, INPUT_PULLUP);
   pinMode(PIN_BTN_DEMO, INPUT_PULLUP);
   pinMode(PIN_FLAME, INPUT);
-  lcd.begin(LCD_COLS, LCD_ROWS);
+  pickLcd();
+  lcd.init();
+  lcd.backlight();
   bootSplash();
   if (SD_ENABLED && SD.begin(PIN_SD_CS)) { sdReady = true; logEvent("SYSTEM", "boot"); }
   else { Serial.println(F("No SD module (OK for this bench).")); }
