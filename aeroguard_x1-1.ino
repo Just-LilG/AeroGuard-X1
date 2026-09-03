@@ -132,14 +132,7 @@ void pickLcd() {
 void bootSplash() {
   lcdClearAll();
   lcdLine(0, "AeroGuard-X1");
-  lcdLine(1, "");
-  for (byte k = 0; k < LCD_COLS; k++) {
-    lcd.setCursor(k, 1);
-    lcd.write(255);
-    delay(45);
-  }
   lcdLine(1, "Starting...");
-  delay(350);
 }
 
 void setup() {
@@ -182,8 +175,15 @@ void loop() {
 
 void handleDemoButton() {
   static unsigned long last = 0;
-  if (digitalRead(PIN_BTN_DEMO) != LOW) return;
+  static bool down = false;
+  bool pressed = (digitalRead(PIN_BTN_DEMO) == LOW);
+  if (!pressed) {
+    down = false;
+    return;
+  }
+  if (down) return;
   if (millis() - last < BTN_DEBOUNCE_MS) return;
+  down = true;
   last = millis();
   Serial.println(F("DEMO pressed"));
   demoMode = true;
@@ -195,6 +195,12 @@ void handleDemoButton() {
   else if (demoStage == 3) staged = CRITICAL;
   else if (demoStage == 4) staged = FIRE;
   logEvent("DEMO", levelName(staged));
+  lastLcdSwitch = 0;
+  lcdLine(0, "DEMO button OK");
+  lcdLine(1, levelName(staged));
+  digitalWrite(PIN_LED_GREEN, staged == LEVEL_LOW);
+  digitalWrite(PIN_LED_YELLOW, staged == MEDIUM);
+  digitalWrite(PIN_LED_RED, staged == CRITICAL || staged == FIRE);
   setLevel(staged, false);
 }
 
