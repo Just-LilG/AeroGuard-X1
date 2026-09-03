@@ -4,6 +4,8 @@ This matches the **red board** with the metal SIM tray and two rows of 6 holes.
 
 You will use **4 holes**. Leave the other 8 empty.
 
+**There is no 4V hole on the Arduino Uno.** The Uno only has **5V** and **3.3V**. The SIM800L wants about **4.0V** from a **different** board: the **LM2596** (small module with a screw). That screw is how you “turn the pressure down” from 5V-ish to 4V.
+
 ---
 
 ## Top row (the only row you wire)
@@ -55,12 +57,22 @@ Uno D6 ---- 10kΩ ----+---- board RXD
 
 ---
 
-## Power order
+## Power — Uno has no 4V pin
 
-1. Do **not** connect **VCC** yet.
-2. Set the LM2596 screw to about **4.0V** on a meter.
-3. Then **VCC** → that 4V. **GND** → common ground.
-4. Then **TXD** and **RXD**.
+The Uno is the brain. It drinks **5V** from USB. It cannot feed the SIM800L.
+
+| What | Where it comes from |
+|------|---------------------|
+| Sensors, LCD, lights, buzzer | Uno **5V** |
+| SIM800L **VCC** | **LM2596 OUT**, set to **~4.0V** |
+| All grounds | Join together (Uno GND + LM2596 GND + SIM GND) |
+
+**Do not** put SIM **VCC** on Uno 5V. **Do not** put it on Uno 3.3V. Both will fail or hurt the chip. The phone chip gulps a lot of current when it calls, like a pump kicking on.
+
+1. USB power bank (or USB from the computer) feeds the Uno **and** the **IN** side of the LM2596.
+2. Do **not** connect SIM **VCC** yet.
+3. Meter the LM2596 **OUT** pads. Turn the screw until you see about **4.0V**.
+4. Then SIM **VCC** → that **OUT**. SIM **GND** → common GND.
 
 ---
 
