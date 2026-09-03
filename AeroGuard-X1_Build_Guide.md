@@ -400,7 +400,8 @@ Do this on a table. No open gas. Tell the owner-phone person a test call may com
 
 | Check | What you do | What you should see |
 |-------|-------------|---------------------|
-| Boot | USB on. Cell on SIM VCC. | Screen **READY SAFE**. Green blinks. Network LED hunts, then **slow blink**. |
+| Boot | USB on. Cell on SIM VCC. | Screen **READY SAFE** and a **gas** number. Green blinks. |
+| Live gas | Press **Reset** first. Do **not** press Demo. Hold an **unlit** lighter 10 cm from the gas sensor (the nose). Do not open the stove. | Gas number climbs. Then **LIVE** alarm: LOW → MEDIUM → CRITICAL. Same lights, beeps, texts, and calls as Demo. |
 | Demo 1 | Press **Demo** once | **Green** LED. LCD **LOW**. Quiet. |
 | Demo 2 | Press **Demo** again | **Yellow**. Short beeps. **Real SMS**. |
 | Demo 3 | Press **Demo** again | **Red**. Loud alarm. **Phone rings**, then SMS. |

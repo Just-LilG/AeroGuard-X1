@@ -244,6 +244,7 @@ Upload [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino). USB **data** cable. Serial Mo
 
 | Press | Lights / sound | Phone / SD |
 |-------|----------------|------------|
+| Real gas (no Demo) | Gas number climbs, then LIVE alarm | Same as Demo stages |
 | Demo 1 | Green. LCD LOW. Quiet. | No SMS |
 | Demo 2 | Yellow. Short beeps. | **Real SMS** (with cell + GSM on) |
 | Demo 3 | Red. Loud alarm. | **Real call**, then SMS |

@@ -28,7 +28,7 @@ The **Vercel contest app** is a screen for judges. Pairing and status are simula
 | CRITICAL | Red | Alarm + **call + SMS** |
 | FIRE | Red | Alarm + **call + SMS** (fire-service SMS = later) |
 
-**Demo** pretends a leak (LOW → MEDIUM → CRITICAL → FIRE). **Reset** mutes, exits demo, recalibrates. No motorized vent on the box — vents are an app story.
+**Demo** pretends a leak (LOW → MEDIUM → CRITICAL → FIRE). **Real gas** on the MQ sensor does the same without Demo. **Reset** mutes, exits demo, and learns quiet air again. No motorized vent on the box — vents are an app story.
 
 ## Files
 

@@ -3,9 +3,9 @@
 
   What this box does:
   - Green = safe / low. Yellow = medium. Red = critical / fire.
-  - Demo button (D9 joined to GND) walks the alarm like a fire drill.
+  - Demo button (D9 joined to GND) is only a fire drill.
+  - Real gas on A0, or flame on A2, raises the alarm with no Demo press.
   - Reset button (D7 joined to GND) goes back to safe.
-  - Real gas / flame can also raise the alarm.
   - The phone chip (SIM800L) only wakes when we send a warning. Not at boot.
 
   Screen: 4 wires. GND, VCC, SDA, SCL.
@@ -60,9 +60,10 @@ const bool PHONE_ALERTS = true;
 
 // Flame analog drops when it sees fire light. Lower this if a lighter never trips.
 const int FLAME_DETECT_THRESHOLD = 400;
-const int GAS_LOW_ABOVE = 80;
-const int GAS_MED_ABOVE = 160;
-const int GAS_CRIT_ABOVE = 280;
+// How far the gas number must climb above quiet air.
+const int GAS_LOW_ABOVE = 40;
+const int GAS_MED_ABOVE = 90;
+const int GAS_CRIT_ABOVE = 160;
 
 // 0=safe  1=low  2=medium  3=critical  4=fire
 int level = 0;
@@ -79,6 +80,10 @@ int lastWarned = -1;
 
 int liveHold = 0;
 unsigned long liveHoldAt = 0;
+unsigned long liveReadyAt = 0;
+int lastGas = 0;
+int lastFlame = 0;
+unsigned long logAt = 0;
 
 // Phone work is a short list of steps. One step, wait, next step.
 int phoneStep = 0;
@@ -163,19 +168,21 @@ void setScreen() {
   if (millis() - lcdAt < 300) return;
   lcdAt = millis();
 
-  if (level == 0) {
-    paint("READY      SAFE", "press DEMO  D9");
-    return;
-  }
-
   char top[17];
   char bottom[17];
 
+  if (level == 0) {
+    snprintf(top, 17, "READY      SAFE");
+    snprintf(bottom, 17, "gas %4d  watch", lastGas);
+    paint(top, bottom);
+    return;
+  }
+
   snprintf(top, 17, "ALARM  %-8s", levelWord());
   if (demoMode) {
-    snprintf(bottom, 17, "DEMO  gas %4d", analogRead(PIN_GAS));
+    snprintf(bottom, 17, "DEMO  gas %4d", lastGas);
   } else {
-    snprintf(bottom, 17, "LIVE  gas %4d", analogRead(PIN_GAS));
+    snprintf(bottom, 17, "LIVE  gas %4d", lastGas);
   }
   paint(top, bottom);
 }
@@ -342,6 +349,10 @@ void readButtons() {
 
   if (lastReset == HIGH && resetNow == LOW) {
     gasCalm = analogRead(PIN_GAS);
+    lastGas = gasCalm;
+    liveHold = 0;
+    liveHoldAt = millis();
+    liveReadyAt = millis() + 3000;
     raiseLevel(0, false);
     delay(40);
   }
@@ -350,9 +361,23 @@ void readButtons() {
   lastReset = resetNow;
 }
 
-int liveLevelFromSensors() {
-  int gas = analogRead(PIN_GAS);
-  int flame = analogRead(PIN_FLAME);
+int readSmoothGas() {
+  long sum = 0;
+  for (int i = 0; i < 8; i++) sum += analogRead(PIN_GAS);
+  return (int)(sum / 8);
+}
+
+void followQuietAir(int gas) {
+  // The nose can drift while it warms. Follow slow drift.
+  // A leak jumps up, so we do not chase a big climb.
+  if (gas < gasCalm) {
+    gasCalm = (gasCalm * 7 + gas) / 8;
+  } else if ((gas - gasCalm) < 15) {
+    gasCalm = (gasCalm * 31 + gas) / 32;
+  }
+}
+
+int liveLevelFromSensors(int gas, int flame) {
   bool fire = flame < FLAME_DETECT_THRESHOLD;
   int climb = gas - gasCalm;
   if (climb < 0) climb = 0;
@@ -368,16 +393,45 @@ int liveLevelFromSensors() {
 }
 
 void readLiveSensors() {
-  if (demoMode) return;
+  lastGas = readSmoothGas();
+  lastFlame = analogRead(PIN_FLAME);
 
-  int next = liveLevelFromSensors();
+  if (millis() < liveReadyAt) {
+    gasCalm = lastGas;
+    liveHold = 0;
+    liveHoldAt = millis();
+    return;
+  }
+
+  if (level == 0 && !demoMode) followQuietAir(lastGas);
+
+  int next = liveLevelFromSensors(lastGas, lastFlame);
   if (next != liveHold) {
     liveHold = next;
     liveHoldAt = millis();
   }
-  if (liveHold != level && millis() - liveHoldAt >= 2000) {
-    raiseLevel(liveHold, false);
+
+  unsigned long need = (next >= 3) ? 800 : 1000;
+  if (millis() - liveHoldAt < need) return;
+
+  // Demo is only a drill. Real gas or flame can still raise the alarm.
+  if (demoMode) {
+    if (next > level) raiseLevel(next, false);
+    return;
   }
+
+  if (next != level) raiseLevel(next, false);
+}
+
+void maybeLogGas() {
+  if (millis() - logAt < 1000) return;
+  logAt = millis();
+  Serial.print(F("gas="));
+  Serial.print(lastGas);
+  Serial.print(F(" calm="));
+  Serial.print(gasCalm);
+  Serial.print(F(" flame="));
+  Serial.println(lastFlame);
 }
 
 void setup() {
@@ -402,20 +456,24 @@ void setup() {
   paint("AeroGuard-X1", "boot...");
 
   gasCalm = analogRead(PIN_GAS);
+  lastGas = gasCalm;
+  lastFlame = analogRead(PIN_FLAME);
   liveHold = 0;
   liveHoldAt = millis();
+  liveReadyAt = millis() + 3000;
   lastDemo = digitalRead(PIN_DEMO);
   lastReset = digitalRead(PIN_RESET);
 
   delay(400);
   digitalWrite(PIN_YELLOW, LOW);
   digitalWrite(PIN_RED, LOW);
-  paint("READY      SAFE", "press DEMO  D9");
+  paint("READY      SAFE", "gas     watch");
 }
 
 void loop() {
   readButtons();
   readLiveSensors();
+  maybeLogGas();
   setLights();
   setSound();
   setScreen();
