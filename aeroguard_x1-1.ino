@@ -1,7 +1,8 @@
 /*
   AEROGUARD-X1 — Arduino Uno firmware (this is the demo brain).
   Leave pins A1 and A3 empty.
-  SIM800L is on the table: GSM_ENABLED is true.
+  SIM800L is on the table, but there is no LM2596 4V board yet.
+  Leave SIM VCC unconnected. Keep GSM_ENABLED false until VCC has ~4V.
   No SD module yet: keep SD_ENABLED false and leave D10–D13 empty.
 */
 
@@ -32,8 +33,8 @@ SoftwareSerial appSerial(PIN_APP_RX, PIN_APP_TX);  // unused in the demo kit
 const char* OWNER_CONTACT = "+233557164067";
 const char* SECONDARY_CONTACT = "+233508705321";
 const char* DEVICE_LABEL = "AeroGuard Kitchen";
-// SIM800L is wired. Set false only if you unplug the phone chip.
-const bool GSM_ENABLED = true;
+// No 4V yet (no LM2596). Leave SIM VCC unconnected. Set true after VCC has ~4V.
+const bool GSM_ENABLED = false;
 // Set true only after the micro SD module is wired to D10–D13.
 const bool SD_ENABLED = false;
 
@@ -384,7 +385,7 @@ void pollAppBridge() {
 
 void initGSM() {
   if (!GSM_ENABLED) {
-    Serial.println(F("GSM off — no SIM800L on this bench."));
+    Serial.println(F("GSM off — no ~4V for SIM800L yet (no LM2596). Lights still work."));
     return;
   }
   simSerial.listen();

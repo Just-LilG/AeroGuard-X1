@@ -9,17 +9,17 @@ Visual walkthrough: [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_G
 
 ## What you assemble
 
-**On the table today:** Arduino Uno (the brain) + MQ gas nose + flame eye + LCD + lights + buzzer + buttons + **SIM800L** phone chip + 4V buck + case.
+**On the table today:** Arduino Uno (the brain) + MQ gas nose + flame eye + LCD + lights + buzzer + buttons + **SIM800L** phone chip + case.
 
-**Still to buy:** **micro SD** module only. Leave D10–D13 empty.
+**Still to buy:** **LM2596** (the 4V board for the phone chip) and the **micro SD** module. Leave SIM **VCC** unconnected. Leave D10–D13 empty.
 
-Upload **only** [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) to the Uno. USB **data** cable. Serial Monitor **9600**. `GSM_ENABLED` is **true**. Keep `SD_ENABLED` **false** until the SD board arrives. Put owner numbers in the file before a live call.
+Upload **only** [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) to the Uno. USB **data** cable. Serial Monitor **9600**. `GSM_ENABLED` is **false** until SIM VCC has ~4V. Keep `SD_ENABLED` **false** until the SD board arrives. Put owner numbers in the file before a live call.
 
 ## Box and app
 
 The **Vercel contest app** is a screen for judges. Pairing and status are simulated. It does not talk to the hardware.
 
-**Real alerts** are GSM SMS and calls from the SIM800L in the box. There is **no SD log** until that module is bought.
+**Real alerts** will be GSM SMS and calls from the SIM800L **after** SIM VCC has ~4V. Today there is no LM2596, so leave VCC empty. There is **no SD log** until that module is bought.
 
 | Stage | LED | Box |
 |-------|-----|-----|
