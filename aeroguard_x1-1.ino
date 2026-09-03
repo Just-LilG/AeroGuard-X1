@@ -27,9 +27,9 @@ const int PIN_BUZZER = 8;
 const int PIN_BTN_DEMO = 9;
 const int PIN_SD_CS = 10;
 
-// Small screen: 16 letters × 2 lines (the one with two rows of boxes if this is wrong).
-const byte LCD_COLS = 16;
-const byte LCD_ROWS = 2;
+// Big glowing 20×4 screen (the one with backlight). Do not use the dark 16×2 for the pitch.
+const byte LCD_COLS = 20;
+const byte LCD_ROWS = 4;
 LiquidCrystal_I2C lcd27(0x27, LCD_COLS, LCD_ROWS);
 LiquidCrystal_I2C lcd3f(0x3F, LCD_COLS, LCD_ROWS);
 LiquidCrystal_I2C *lcdPtr = &lcd27;
@@ -108,6 +108,8 @@ void lcdClearAll() {
   lcd.clear();
   lcdLine(0, "");
   lcdLine(1, "");
+  lcdLine(2, "");
+  lcdLine(3, "");
 }
 
 void pickLcd() {
@@ -180,12 +182,6 @@ void setup() {
 bool gsmStarted = false;
 
 void loop() {
-  if (GSM_ENABLED && !gsmStarted) {
-    gsmStarted = true;
-    lcdLine(1, "Waking phone...");
-    simSerial.begin(9600);
-    initGSM();
-  }
   handleDemoButton();
   handleResetButton();
   pumpGsm();
@@ -444,13 +440,13 @@ void pollAppBridge() {
 }
 
 void initGSM() {
-  if (!GSM_ENABLED) {
-    Serial.println(F("GSM off — add a 3.7V cell to SIM VCC, then set GSM_ENABLED true."));
-    return;
-  }
+  if (!GSM_ENABLED) return;
+  if (gsmStarted) return;
+  gsmStarted = true;
+  simSerial.begin(9600);
   simSerial.listen();
-  simSerial.println("AT"); delay(300);
-  simSerial.println("AT+CMGF=1"); delay(300);
+  simSerial.println("AT");
+  simSerial.println("AT+CMGF=1");
   appSerial.listen();
 }
 
@@ -472,6 +468,7 @@ void cancelGsm() {
 
 void queueSms(const char* number, const char* message) {
   if (!GSM_ENABLED) return;
+  initGSM();
   cancelGsm();
   copyGsm(number, message);
   gsmSmsAfterCall = false;
@@ -480,6 +477,7 @@ void queueSms(const char* number, const char* message) {
 
 void queueCallThenSms(const char* number, const char* message) {
   if (!GSM_ENABLED) return;
+  initGSM();
   cancelGsm();
   copyGsm(number, message);
   gsmSmsAfterCall = true;
