@@ -1,116 +1,72 @@
-# SIM800L only — pin map
+# Your red SIM800L Coreboard — pin map only
 
-This page is **only** the phone chip. Nothing else.
+This matches the **red board** with the metal SIM tray and two rows of 6 holes.
 
-The SIM800L is a mini phone. The Arduino Uno is the brain. They talk on **two wires** (D5 and D6). Power is a **separate 4V tap**, not the Uno 5V pin.
-
----
-
-## What to ignore on the SIM800L board
-
-Leave these **unconnected** unless a print on your board says you must:
-
-| Pad / pin | Do this |
-|-----------|---------|
-| RST | Leave empty |
-| RING | Leave empty |
-| DTR | Leave empty |
-| GND (extra pads) | Only need **one** GND to the common ground |
-| 5V | **Do not use** if your board has it |
-
-You only use: **VCC, GND, TX, RX, antenna, SIM slot**.
+You will use **4 holes**. Leave the other 8 empty.
 
 ---
 
-## Power first (before any data wire)
+## Top row (the only row you wire)
 
-1. Disconnect SIM **VCC**.
-2. Power the **LM2596** (the little board with a screw).
-3. Measure the output. Turn the screw until the meter says about **4.0V**.
-4. Then connect SIM **VCC**.
+Looking at the board the same way as the photo (SIM tray in the middle, writing **SIM800L Coreboard** on the right):
 
-| SIM800L pin | Goes to | Notes |
-|-------------|---------|--------|
-| **VCC** (sometimes VIN) | LM2596 **OUT** (~4.0V) | **Never** Uno 5V. That pin is too weak. The chip gulps current when it calls. |
-| **GND** | Uno GND **and** buck GND | One shared drain. Join them. |
+Left → right:
 
----
-
-## Talk wires (only two)
-
-TX means “this chip talks.” RX means “this chip listens.”
-
-| SIM800L pin | Goes to | How |
-|-------------|---------|-----|
-| **TX** | Uno **D5** | Straight jumper. No resistor. The chip talks quietly enough. |
-| **RX** | Uno **D6** | **Not** a straight jumper. Must go through resistors (below). |
-
-Remember it as a conversation:
-
-- SIM **TX** → Uno **D5** = the phone chip speaks, the Uno hears  
-- Uno **D6** → SIM **RX** = the Uno speaks, the phone chip hears (voice must be turned down)
+| Hole on your board | Use it? | Goes to |
+|--------------------|---------|---------|
+| **NET** | No | Leave empty (network LED pad) |
+| **VCC** | **Yes** | LM2596 **OUT**, about **4.0V**. Never Uno 5V. |
+| **RST** | No | Leave empty |
+| **RXD** | **Yes** | Uno **D6**, through the 10k resistors (not a bare wire) |
+| **TXD** | **Yes** | Uno **D5**, straight jumper |
+| **GND** | **Yes** | Uno GND and LM2596 GND (same drain) |
 
 ---
 
-## D6 resistors (you have no 20kΩ)
+## Bottom row (leave all empty)
 
-Do **not** put a bare wire from D6 to RX. 5V will shout at a 3V ear.
+| Hole | What it is | Use it? |
+|------|------------|---------|
+| **RING** | “phone is ringing” pin | No |
+| **DTR** | extra control | No |
+| **MICP** / **MICN** | microphone | No |
+| **SPKP** / **SPKN** | speaker | No |
 
-**If you have two 10kΩ resistors** (simplest):
+You do not need a mic or speaker. The box still **calls and texts** with AT commands.
 
-| From | Through | To |
-|------|---------|-----|
-| Uno **D6** | one **10kΩ** | the **middle** (this middle also goes to SIM **RX**) |
-| that same **middle** | the other **10kΩ** | **GND** |
+---
+
+## The two talk wires, in one line
+
+| Your board | Direction | Uno |
+|------------|-----------|-----|
+| **TXD** | chip talks → brain hears | **D5** straight |
+| **RXD** | brain talks → chip hears | **D6** + resistors |
+
+RXD is the quiet-down pin. You have no 20kΩ. Use two 10kΩ:
 
 ```
-Uno D6 ---- 10kΩ ----+---- SIM800L RX
+Uno D6 ---- 10kΩ ----+---- board RXD
                      |
                    10kΩ
                      |
                     GND
 ```
 
-**If you have three 10kΩ** (closer to the original 10k+20k plan):
+---
 
-```
-Uno D6 ---- 10kΩ --------+---- SIM800L RX
-                         |
-                    10kΩ + 10kΩ  (two in a line)
-                         |
-                        GND
-```
+## Power order
 
-The SIM **RX** wire always comes off the **+** in the middle.
+1. Do **not** connect **VCC** yet.
+2. Set the LM2596 screw to about **4.0V** on a meter.
+3. Then **VCC** → that 4V. **GND** → common ground.
+4. Then **TXD** and **RXD**.
 
 ---
 
-## Antenna and SIM card
+## SIM and antenna
 
-| Part | What to do |
-|------|------------|
-| Antenna | Screw it on (or clip the uFL cable). No antenna = no network. |
-| Nano-SIM | Slide in with **gold pads down**. Match the cut corner to the drawing on the holder. Needs call + SMS credit. |
+- Slide the nano-SIM into the silver tray. Gold pads toward the board. Match the cut corner.
+- The antenna is usually a **spring or small gold pad on the other side** of this board — not the **NET** hole. Screw / solder the antenna there.
 
----
-
-## Uno side (same two pins)
-
-| Uno pin | Job |
-|---------|-----|
-| **D5** | Hears the SIM800L (from SIM TX) |
-| **D6** | Talks to the SIM800L (to SIM RX, through the resistors) |
-| **GND** | Shared with the SIM800L |
-
-Leave **D10–D13** empty (no SD board). Leave **A1** and **A3** empty.
-
----
-
-## Is it alive?
-
-On many SIM800L boards the network LED:
-
-- **fast blink** = still hunting  
-- **slow blink** = on the network — good  
-
-Owner number in the program: `+233557164067`. Backup: `+233508705321`. Demo MEDIUM texts. CRITICAL / FIRE calls.
+Network LED (if your board has one): fast blink = hunting. Slow blink = on the network.
