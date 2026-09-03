@@ -165,40 +165,24 @@ void setup() {
   pickLcd();
   lcd.init();
   lcd.backlight();
-  lcdClearAll();
-  lcdLine(0, "HELLO from Uno");
-  lcdLine(1, "Turn blue screw");
-  lcdLine(2, "if you see this");
-  lcdLine(3, "screen is working");
-  delay(2000);
   bootSplash();
   if (SD_ENABLED && SD.begin(PIN_SD_CS)) { sdReady = true; logEvent("SYSTEM", "boot"); }
   else { Serial.println(F("No SD module (OK for this bench).")); }
-  simSerial.begin(9600);
-  if (GSM_ENABLED) {
-    lcdLine(0, "Waking phone...");
-    lcdLine(1, "");
-    delay(600);
-    initGSM();
-  } else {
-    lcdLine(0, "GSM: add 3.7V");
-    lcdLine(1, "18650 or phone");
-    delay(1400);
-    initGSM();
-  }
   appSerial.begin(9600);
   calibrateGas(false);
   setLevel(SAFE, true);
-  lcdClearAll();
-  lcdLine(0, "READY        SAFE");
-  lcdLine(1, "Press DEMO button");
-  lcdLine(2, "D9 to GND = DEMO");
-  lcdLine(3, "D7 to GND = RESET");
-  delay(800);
-  Serial.println(F("Ready. Demo btn = simulate leak."));
+  Serial.println(F("Ready. Demo: touch D9 to GND."));
 }
 
+bool gsmStarted = false;
+
 void loop() {
+  if (GSM_ENABLED && !gsmStarted) {
+    gsmStarted = true;
+    lcdLine(2, "Waking phone...");
+    simSerial.begin(9600);
+    initGSM();
+  }
   handleDemoButton();
   handleResetButton();
   pumpGsm();
@@ -382,6 +366,14 @@ void updateLCD() {
   if (lastLcdPage == 0 || now - lastLcdPage >= 2000) {
     if (lastLcdPage != 0) lcdAltView = !lcdAltView;
     lastLcdPage = now;
+  }
+
+  if (currentLevel == SAFE) {
+    lcdLine(0, "READY        SAFE");
+    lcdLine(1, "Press DEMO button");
+    lcdLine(2, "Touch D9 to GND");
+    lcdLine(3, "Green blink = on");
+    return;
   }
 
   if (currentLevel == FIRE) {
