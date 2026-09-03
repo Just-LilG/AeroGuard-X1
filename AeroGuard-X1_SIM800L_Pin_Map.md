@@ -34,7 +34,7 @@ Left → right:
 | **MICP** / **MICN** | microphone | No |
 | **SPKP** / **SPKN** | speaker | No |
 
-You do not need a mic or speaker. The box **calls and texts** after VCC has a 3.7V cell and `GSM_ENABLED` is true.
+You do not need a mic or speaker. The box **calls and texts** after VCC has a 3.7V cell and `PHONE_ALERTS` is true.
 
 ---
 
@@ -71,7 +71,7 @@ The Uno is the brain. It drinks **5V** from USB. It cannot feed the SIM800L.
 
 **A resistor cannot replace the cell.** The 10k resistors are only for the D6 talk wire.
 
-Keep `GSM_ENABLED` as **true**. You have the 3.7V cell. Lights, Demo, and Reset still work. If you unplug the cell, set it **false**.
+Keep `PHONE_ALERTS` as **true**. You have the 3.7V cell. Lights, Demo, and Reset still work. If you unplug the cell, set it **false**.
 
 ```
 Cell PLUS (+)  ----  board VCC

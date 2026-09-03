@@ -191,7 +191,7 @@
       <li>Cell plus → SIM VCC. Cell minus → the same − rail. 18650 bump is plus. Old phone battery uses the + and − pads.</li>
       <li>Do not put SIM VCC on Uno 5V or 3.3V. Do not use a resistor. Do not use a 5V USB / boost hole on VCC.</li>
     </ol>
-    <div class="warn"><strong>Tape the cell.</strong> Do not let plus and minus touch. Skip a puffy or hot cell. <code>GSM_ENABLED</code> is already <strong>true</strong> — connect the cell before you Demo to MEDIUM.</div>
+    <div class="warn"><strong>Tape the cell.</strong> Do not let plus and minus touch. Skip a puffy or hot cell. <code>PHONE_ALERTS</code> is already <strong>true</strong> — connect the cell before you Demo to MEDIUM.</div>
   </div>
 
   <div class="card" id="step-gas">
@@ -290,14 +290,14 @@
   <div class="card" id="step-sd">
     <h3>08 — SD module — skip today</h3>
     <div class="meta">Buy later · leave D10–D13 empty</div>
-    <p>You do not have the SD board. Keep <code>SD_ENABLED</code> as <strong>false</strong>. The program still runs. Serial will say the SD is missing. That is OK. Calls use a 3.7V cell on SIM VCC, not the LM2596.</p>
-    <p>When you buy it: CS → D10, MOSI → D11, MISO → D12, SCK → D13. Format the card FAT32. Then set <code>SD_ENABLED</code> to true and upload again. The file is <code>gaslog.txt</code> — a demo log, not a fire-proof vault.</p>
+    <p>You do not have the SD board. Leave <strong>D10–D13</strong> empty. This program does not talk to an SD card yet. The box still runs. Calls use a 3.7V cell on SIM VCC, not the LM2596.</p>
+    <p>When you buy it: CS → D10, MOSI → D11, MISO → D12, SCK → D13. Format the card FAT32. SD logging is not in this program yet.</p>
   </div>
 
   <div class="card" id="step-sim">
     <h3>09 — SIM800L phone chip — 3.7V cell on VCC</h3>
     <div class="meta">Cell plus → VCC · D5 TX · D6 via divider · antenna · nano-SIM</div>
-    <p>You <strong>have</strong> the mini phone and a 3.7V cell. Screw the antenna on. Seat a nano-SIM. Feed <strong>VCC</strong> from the cell plus. <code>GSM_ENABLED</code> is already <strong>true</strong> — upload after the cell is on.</p>
+    <p>You <strong>have</strong> the mini phone and a 3.7V cell. Screw the antenna on. Seat a nano-SIM. Feed <strong>VCC</strong> from the cell plus. <code>PHONE_ALERTS</code> is already <strong>true</strong> — upload after the cell is on.</p>
     <div class="table-wrap">
       <table class="wire">
         <thead><tr><th>SIM800L</th><th>Goes to</th></tr></thead>
@@ -316,7 +316,7 @@
                     |
                    GND</pre>
     <p>Many boards blink fast while hunting, then <strong>slow blink</strong> when they have joined the network. Dark LED usually means VCC is still empty.</p>
-    <div class="warn"><strong>After the cell is on:</strong> CRITICAL and FIRE place a <strong>real call</strong>, then a real SMS. Warn the person who holds the owner phone. <code>GSM_ENABLED</code> is already <strong>true</strong>.</div>
+    <div class="warn"><strong>After the cell is on:</strong> CRITICAL and FIRE place a <strong>real call</strong>, then a real SMS. Warn the person who holds the owner phone. <code>PHONE_ALERTS</code> is already <strong>true</strong>.</div>
   </div>
 
   <div class="card" id="step-case">
@@ -343,10 +343,10 @@
       <li>Tools → Board → <strong>Arduino Uno</strong>. Tools → Port → the port that appears with the cable in.</li>
       <li>Library Manager: install <strong>LiquidCrystal I2C</strong>. SD and SoftwareSerial are already built in.</li>
       <li>Set <code>OWNER_CONTACT</code> and <code>SECONDARY_CONTACT</code> like <code>+23324…</code>. Set <code>DEVICE_LABEL</code> to the place name.</li>
-      <li>Keep <code>GSM_ENABLED</code> as <strong>true</strong> (cell on SIM VCC). Keep <code>SD_ENABLED</code> as <strong>false</strong>.</li>
+      <li>Keep <code>PHONE_ALERTS</code> as <strong>true</strong> (cell on SIM VCC). Leave D10–D13 empty.</li>
       <li>Click Upload. Open Serial Monitor at <strong>9600</strong>.</li>
     </ol>
-    <div class="ok">LCD shows a filling bar for about <strong>5 seconds</strong> (<code>Sniffing air...</code>). That is the box learning quiet air. Press <strong>Demo</strong> during the bar if you want to skip it.</div>
+    <div class="ok">The screen should jump to <strong>READY SAFE</strong> and <strong>press DEMO D9</strong>. Green light blinks. There is no waiting bar.</div>
   </div>
 
   <p class="kicker">Prove it</p>
@@ -356,11 +356,11 @@
     <table>
       <thead><tr><th>Check</th><th>Do this</th><th>You should see</th></tr></thead>
       <tbody>
-        <tr><td>Boot</td><td>USB on. Cell on SIM VCC. GSM_ENABLED true.</td><td>Sniffing air ~5s, then SAFE. Network LED hunts, then slow blink.</td></tr>
+        <tr><td>Boot</td><td>USB on. Cell on SIM VCC. PHONE_ALERTS true.</td><td>READY SAFE. Green blinks. Network LED hunts, then slow blink.</td></tr>
         <tr><td>Demo 1</td><td>Press Demo once</td><td>Green. LCD LOW. Quiet.</td></tr>
         <tr><td>Demo 2</td><td>Press Demo again</td><td>Yellow. Short beeps. Owner SMS.</td></tr>
         <tr><td>Demo 3</td><td>Press Demo again</td><td>Red. Loud alarm. Phone rings, then SMS.</td></tr>
-        <tr><td>Demo 4</td><td>Press Demo again</td><td>Red. LCD FIRE RISK / DEMO MODE. Call + SMS.</td></tr>
+        <tr><td>Demo 4</td><td>Press Demo again</td><td>Red. LCD FIRE. Call + SMS.</td></tr>
         <tr><td>Reset</td><td>Press Reset</td><td>Alarm off. Calibrate again. SAFE.</td></tr>
       </tbody>
     </table>
@@ -400,7 +400,7 @@
   const items = [
     "SIM800L VCC from 3.7V cell (18650 or phone battery); D5/D6 wired",
     "Owner and backup numbers set in the sketch",
-    "GSM_ENABLED true · SD_ENABLED false",
+    "PHONE_ALERTS true · D10–D13 empty (no SD)",
     "D10–D13 left empty (no SD module)",
     "A1 and A3 left empty",
     "USB data cable · Uno board · Serial 9600",

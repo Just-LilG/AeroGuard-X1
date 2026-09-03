@@ -92,7 +92,7 @@ Full pin tables: [`AeroGuard-X1_Pin_Map_Wiring_Reference.md`](AeroGuard-X1_Pin_M
 
 ## 3.1 Get calls working this week (no LM2596)
 
-You **have** a battery. The program already has texts and calls turned **on** (`GSM_ENABLED` is **true**). The missing LM2596 only makes 4V from 5V. Your rechargeable cell is **already** about 3.7V — that is the right pressure.
+You **have** a battery. The program already has texts and calls turned **on** (`PHONE_ALERTS` is **true**). The missing LM2596 only makes 4V from 5V. Your rechargeable cell is **already** about 3.7V — that is the right pressure.
 
 Think of the LM2596 as a tap reducer. You do not need it. The tank is already at the right height.
 
@@ -233,6 +233,8 @@ Aim the black LED-looking sensor toward where a flame would be. After the progra
 
 If the screen stays blank after upload: contrast screw on the backpack, backlight jumper, and I2C address. Address is usually `0x27` or `0x3F`. The program starts at `0x27`. Change that one number if needed.
 
+The program is set for a **16×2** screen (`LiquidCrystal_I2C lcd(0x27, 16, 2);`). A bigger 20×4 with the same 4 wires still works — extra rows stay blank. To fill all four rows, change `16, 2` to `20, 4` and upload again.
+
 ### 6.5 Status LEDs
 
 **What they are:** three stage lamps. Green = LOW. Yellow = MEDIUM. Red = CRITICAL or FIRE.
@@ -273,11 +275,11 @@ Each **6×6mm tactile switch** presses up into the square pocket under the lid (
 
 ### 6.8 SD card module — skip today
 
-You do **not** have this part. Leave **D10–D13** empty. Keep `SD_ENABLED` as **false**. The program still runs. Serial will say `No SD module (OK for this bench).`
+You do **not** have this part. Leave **D10–D13** empty. This program does not talk to an SD card yet, so the box still runs.
 
 (You are also missing the **LM2596**. You do not need it for calls — use a 3.7V cell. See [§3.1](#31-get-calls-working-this-week-no-lm2596) and [§6.9](#69-sim800l--calls-from-a-37v-cell).)
 
-When you buy the SD board, wire CS/MOSI/MISO/SCK to D10–D13, VCC per the print on the board, GND to GND. Format the card **FAT32**. Set `SD_ENABLED` to **true** and upload again. The program writes `gaslog.txt`. It is **not** a fire-proof black box.
+When you buy the SD board, wire CS/MOSI/MISO/SCK to D10–D13, VCC per the print on the board, GND to GND. Format the card **FAT32**. SD logging is not in this program yet. Leave those pins empty until a later build adds it.
 
 ### 6.9 SIM800L — calls from a 3.7V cell
 
@@ -293,7 +295,7 @@ You **do not have** the LM2596. You **do not need it** for the pitch. Feed **VCC
 | RX | Mid-point of the divider from **D6** | **Yes** |
 | Antenna | Screw / uFL attached | **Yes** |
 
-When the cell is on VCC, upload [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino). `GSM_ENABLED` is already **true**. If you unplug the cell, set it back to **false** so Demo does not try to call.
+When the cell is on VCC, upload [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino). `PHONE_ALERTS` is already **true**. If you unplug the cell, set it back to **false** so Demo does not try to call.
 
 If you later buy an LM2596: take the cell off VCC, set the screw to about **4.0V** on a meter, then SIM VCC → that output. Same GND rail.
 
@@ -322,7 +324,7 @@ Uno D6  --- 10kΩ ---+--- SIM800L RX
 
 The SIM RX wire always comes off the **middle**. Never a bare D6 wire to RX.
 
-Keep `GSM_ENABLED` as **true** (you have the 3.7V cell). Keep `SD_ENABLED` as **false** until the SD module is wired.
+Keep `PHONE_ALERTS` as **true** (you have the 3.7V cell). Leave D10–D13 empty. There is no SD card in this program yet.
 
 **Network light:** dark if VCC is empty. With the cell on: fast blink = hunting, **slow blink** = on the network.
 
@@ -379,14 +381,14 @@ If the LCD is blank, change `LiquidCrystal_I2C lcd(0x27, 16, 2);` so `0x27` matc
 
 If the lighter test never hits FIRE, change `FLAME_DETECT_THRESHOLD` a little and try again.
 
-Keep `GSM_ENABLED` as **true** (cell on SIM VCC). Keep `SD_ENABLED` as **false** until the SD module is wired. Then change `SD_ENABLED` to `true` and upload again.
+Keep `PHONE_ALERTS` as **true** (cell on SIM VCC). Leave D10–D13 empty. There is no SD card in this program yet.
 
 ### 7.4 Upload
 
 1. Click **Upload** (the arrow).
 2. Wait until the IDE says **Done uploading**.
 3. **Tools → Serial Monitor.** Set the speed box to **9600**.
-4. You should see `AeroGuard-X1` / `Ready`. The LCD shows **Sniffing air…** for about **5 seconds** (a filling bar). It is learning quiet air, like tasting the river before the rain. You can press **Demo** during that bar to skip it.
+4. The screen should jump to **READY SAFE** and **press DEMO D9**. Green light blinks. There is no waiting bar.
 
 Do not upload any other `.ino` file for this demo.
 
@@ -394,22 +396,22 @@ Do not upload any other `.ino` file for this demo.
 
 ## 8. How to test
 
-Do this on a table. No open gas. Tell the owner-phone person a test call may come. Wire the 3.7V cell first, then upload with `GSM_ENABLED` **true**.
+Do this on a table. No open gas. Tell the owner-phone person a test call may come. Wire the 3.7V cell first, then upload with `PHONE_ALERTS` **true**.
 
 | Check | What you do | What you should see |
 |-------|-------------|---------------------|
-| Boot | USB on. Cell on SIM VCC. | Sniffing air ~5s. Network LED hunts, then **slow blink**. |
+| Boot | USB on. Cell on SIM VCC. | Screen **READY SAFE**. Green blinks. Network LED hunts, then **slow blink**. |
 | Demo 1 | Press **Demo** once | **Green** LED. LCD **LOW**. Quiet. |
 | Demo 2 | Press **Demo** again | **Yellow**. Short beeps. **Real SMS**. |
 | Demo 3 | Press **Demo** again | **Red**. Loud alarm. **Phone rings**, then SMS. |
-| Demo 4 | Press **Demo** again | Still red. LCD **FIRE RISK**. Call + SMS. |
+| Demo 4 | Press **Demo** again | Still red. LCD **FIRE**. Call + SMS. |
 | Reset | Press **Reset** | Alarm off. Back to SAFE. |
 
 - MEDIUM sends a **real text**.
 - CRITICAL and FIRE place a **real call** (rings a bit, then hangs up) and a **real text**.
 - Do not surprise a sleeping family member. Do not spam the fire service.
 
-If SMS never arrives: airtime, SIM seated, slow blink, cell still charged, divider wired, `OWNER_CONTACT` has `+` and country code. If Demo tries to call with no cell on VCC, set `GSM_ENABLED` back to **false**.
+If SMS never arrives: airtime, SIM seated, slow blink, cell still charged, divider wired, `OWNER_CONTACT` has `+` and country code. If Demo tries to call with no cell on VCC, set `PHONE_ALERTS` back to **false**.
 
 There is **no SD log** until you buy the SD module.
 

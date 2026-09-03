@@ -13,7 +13,7 @@ Visual walkthrough: [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_G
 
 **Still to buy:** **micro SD** module (leave D10–D13 empty). The **LM2596** can wait. Never a resistor. Never Uno 5V on SIM VCC.
 
-Upload **only** [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) to the Uno. USB **data** cable. Serial Monitor **9600**. `GSM_ENABLED` is **true**. Keep `SD_ENABLED` **false** until the SD board arrives. Wire the cell to SIM VCC before you Demo to MEDIUM.
+Upload **only** [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) to the Uno. USB **data** cable. Serial Monitor **9600**. `PHONE_ALERTS` is **true**. Leave D10–D13 empty. Wire the cell to SIM VCC before you Demo to MEDIUM.
 
 ## Box and app
 

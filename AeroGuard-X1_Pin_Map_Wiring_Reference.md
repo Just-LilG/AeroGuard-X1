@@ -185,7 +185,7 @@ You **do not have** the LM2596. You **do not need it**. **VCC** comes from a **3
 | RX | Mid-point of the divider from **D6** | **Yes** |
 | Antenna | Screwed on | **Yes** |
 
-When the cell is on VCC, upload. In the program, `GSM_ENABLED` is **true**. If you unplug the cell, set it **false**.
+When the cell is on VCC, upload. In the program, `PHONE_ALERTS` is **true**. If you unplug the cell, set it **false**.
 
 **Divider.** You did **not** get a 20kΩ. Do **not** run a bare D6 wire into SIM RX.
 
@@ -213,7 +213,7 @@ A 22kΩ from a shop can stand in for 20k. The SIM RX wire always comes off the *
 
 SIM TX to D5 is direct. The chip speaks at ~3.3V. The Uno can hear that.
 
-In the program, `GSM_ENABLED` is **true**. You have the 3.7V cell. MEDIUM sends a **real text**. CRITICAL/FIRE place a **real call**.
+In the program, `PHONE_ALERTS` is **true**. You have the 3.7V cell. MEDIUM sends a **real text**. CRITICAL/FIRE place a **real call**.
 
 The network LED stays dark today (no VCC). Later: blinks fast while hunting, then **slow blink** when it has joined the network.
 
@@ -221,7 +221,7 @@ The network LED stays dark today (no VCC). Later: blinks fast while hunting, the
 
 ## Leave empty — SD module (part 10)
 
-You do **not** have this part. Do not put wires on **D10, D11, D12, D13**. Keep `SD_ENABLED` as **false**. The program still runs. Serial will say `No SD module (OK for this bench).`
+You do **not** have this part. Do not put wires on **D10, D11, D12, D13**. This program does not talk to an SD card yet. The box still runs.
 
 When you buy it:
 
@@ -234,13 +234,13 @@ When you buy it:
 | MISO | D12 |
 | SCK | D13 |
 
-Then set `SD_ENABLED` to **true** and upload again. The file is `gaslog.txt` — a demo log, not a fire-proof vault.
+SD logging is not in this program yet. Leave those pins empty until a later build adds it.
 
 ---
 
 ## What you can test today
 
-Upload [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino). USB **data** cable. Serial Monitor **9600**. After the 3.7V cell is on VCC and `GSM_ENABLED` is **true**, warn the person who holds the owner phone.
+Upload [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino). USB **data** cable. Serial Monitor **9600**. After the 3.7V cell is on VCC and `PHONE_ALERTS` is **true**, warn the person who holds the owner phone.
 
 | Press | Lights / sound | Phone / SD |
 |-------|----------------|------------|
