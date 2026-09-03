@@ -27,8 +27,11 @@ const int PIN_BUZZER = 8;
 const int PIN_BTN_DEMO = 9;
 const int PIN_SD_CS = 10;
 
-// 20×4 screen (the big blue one with backlight). Change to 16,2 for a small 1602.
-LiquidCrystal_I2C lcd(0x27, 20, 4);
+// 20×4 screen. Tries 0x27 first, then 0x3F (two common “house numbers” for this backpack).
+LiquidCrystal_I2C lcd27(0x27, 20, 4);
+LiquidCrystal_I2C lcd3f(0x3F, 20, 4);
+LiquidCrystal_I2C *lcdPtr = &lcd27;
+#define lcd (*lcdPtr)
 SoftwareSerial simSerial(PIN_SIM_RX, PIN_SIM_TX);
 SoftwareSerial appSerial(PIN_APP_RX, PIN_APP_TX);  // unused in the demo kit
 const char* OWNER_CONTACT = "+233557164067";
@@ -107,6 +110,34 @@ void lcdClearAll() {
   lcdLine(3, "");
 }
 
+void pickLcd() {
+  Wire.begin();
+  delay(80);
+  bool got27 = false;
+  bool got3f = false;
+  Serial.print(F("I2C scan:"));
+  for (byte a = 1; a < 127; a++) {
+    Wire.beginTransmission(a);
+    if (Wire.endTransmission() == 0) {
+      Serial.print(F(" 0x"));
+      Serial.print(a, HEX);
+      if (a == 0x27) got27 = true;
+      if (a == 0x3F) got3f = true;
+    }
+  }
+  Serial.println();
+  if (got3f && !got27) {
+    lcdPtr = &lcd3f;
+    Serial.println(F("LCD address 0x3F"));
+  } else if (got27) {
+    lcdPtr = &lcd27;
+    Serial.println(F("LCD address 0x27"));
+  } else {
+    lcdPtr = &lcd27;
+    Serial.println(F("No LCD heard. Swap SDA/SCL or check A4 A5. Turn the blue screw."));
+  }
+}
+
 void bootSplash() {
   lcdClearAll();
   lcdLine(0, "AeroGuard-X1");
@@ -122,6 +153,8 @@ void bootSplash() {
 
 void setup() {
   Serial.begin(9600);
+  delay(200);
+  Serial.println(F("=== AeroGuard-X1 v1 ==="));
   pinMode(PIN_LED_GREEN, OUTPUT);
   pinMode(PIN_LED_YELLOW, OUTPUT);
   pinMode(PIN_LED_RED, OUTPUT);
@@ -129,10 +162,16 @@ void setup() {
   pinMode(PIN_BTN_RESET, INPUT_PULLUP);
   pinMode(PIN_BTN_DEMO, INPUT_PULLUP);
   pinMode(PIN_FLAME, INPUT);
+  pickLcd();
   lcd.init();
   lcd.backlight();
+  lcdClearAll();
+  lcdLine(0, "HELLO from Uno");
+  lcdLine(1, "Turn blue screw");
+  lcdLine(2, "if you see this");
+  lcdLine(3, "screen is working");
+  delay(2000);
   bootSplash();
-  Serial.println(F("=== AeroGuard-X1 v1 ==="));
   if (SD_ENABLED && SD.begin(PIN_SD_CS)) { sdReady = true; logEvent("SYSTEM", "boot"); }
   else { Serial.println(F("No SD module (OK for this bench).")); }
   simSerial.begin(9600);
