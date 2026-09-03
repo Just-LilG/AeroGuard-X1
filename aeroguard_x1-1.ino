@@ -212,41 +212,17 @@ void handleResetButton() {
   currentLevel = SAFE;
   pendingLevel = SAFE;
   updateOutputs();
-  lcdLine(0, "RESET");
-  lcdLine(1, "Sniffing air...");
   logEvent("SYSTEM", "reset");
   calibrateGas(true);
   setLevel(SAFE, true);
 }
 
 void calibrateGas(bool quick) {
-  unsigned long dur = quick ? CALIBRATION_QUICK_MS : CALIBRATION_TIME_MS;
-  lcd.clear();
-  lcdLine(0, "Sniffing air...");
-  lcdLine(1, "wait 1 second");
-  long total = 0;
-  int samples = 0;
-  unsigned long start = millis();
-  while (millis() - start < dur) {
-    if (digitalRead(PIN_BTN_DEMO) == LOW) {
-      demoMode = true;
-      break;
-    }
-    total += analogRead(PIN_GAS);
-    samples++;
-    delay(CALIBRATION_SAMPLE_MS);
-  }
-  if (samples < 1) {
-    total = analogRead(PIN_GAS);
-    samples = 1;
-  }
-  gasBaseline = (float)total / samples;
+  (void)quick;
+  gasBaseline = (float)analogRead(PIN_GAS);
+  if (gasBaseline < 1) gasBaseline = 1;
   gasReading = gasBaseline;
   gasPrevious = gasBaseline;
-  if (demoMode && demoStage == 0) {
-    demoStage = 1;
-    setLevel(LEVEL_LOW, false);
-  }
 }
 
 void readSensorsAndEvaluate() {
