@@ -27,7 +27,8 @@ const int PIN_BUZZER = 8;
 const int PIN_BTN_DEMO = 9;
 const int PIN_SD_CS = 10;
 
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+// 20×4 screen (the big blue one with backlight). Change to 16,2 for a small 1602.
+LiquidCrystal_I2C lcd(0x27, 20, 4);
 SoftwareSerial simSerial(PIN_SIM_RX, PIN_SIM_TX);
 SoftwareSerial appSerial(PIN_APP_RX, PIN_APP_TX);  // unused in the demo kit
 const char* OWNER_CONTACT = "+233557164067";
@@ -87,13 +88,11 @@ bool gsmSmsAfterCall = false;
 
 void lcdLine(byte row, const char* text) {
   lcd.setCursor(0, row);
-  for (byte i = 0; i < 16; i++) {
+  byte cols = 20;
+  for (byte i = 0; i < cols; i++) {
     char c = text[i];
     if (c == 0) {
-      while (i < 16) {
-        lcd.print(' ');
-        i++;
-      }
+      while (i < cols) { lcd.print(' '); i++; }
       return;
     }
     lcd.print(c);
@@ -102,14 +101,14 @@ void lcdLine(byte row, const char* text) {
 
 void bootSplash() {
   lcd.clear();
-  lcdLine(0, "  AeroGuard-X1");
+  lcdLine(0, "    AeroGuard-X1");
   lcdLine(1, "");
-  for (byte k = 0; k < 16; k++) {
+  for (byte k = 0; k < 20; k++) {
     lcd.setCursor(k, 1);
     lcd.write(255);
-    delay(55);
+    delay(45);
   }
-  lcdLine(1, "  Starting...");
+  lcdLine(1, "    Starting...");
   delay(350);
 }
 
@@ -209,10 +208,10 @@ void calibrateGas(bool quick) {
     total += analogRead(PIN_GAS);
     samples++;
     unsigned long elapsed = millis() - start;
-    byte filled = (byte)(elapsed * 16UL / dur);
-    if (filled > 16) filled = 16;
+    byte filled = (byte)(elapsed * 20UL / dur);
+    if (filled > 20) filled = 20;
     lcd.setCursor(0, 1);
-    for (byte i = 0; i < 16; i++) lcd.write(i < filled ? (uint8_t)255 : (uint8_t)'-');
+    for (byte i = 0; i < 20; i++) lcd.write(i < filled ? (uint8_t)255 : (uint8_t)'-');
     delay(CALIBRATION_SAMPLE_MS);
   }
   if (samples < 1) {
@@ -323,21 +322,21 @@ void updateLCD() {
   }
 
   if (currentLevel == FIRE) {
-    char fire0[17];
-    snprintf(fire0, 17, "FIRE RISK      %c", star);
+    char fire0[21];
+    snprintf(fire0, 21, "FIRE RISK          %c", star);
     lcdLine(0, fire0);
     lcdLine(1, demoMode ? "DEMO MODE" : "EVACUATE NOW");
     return;
   }
 
-  char line0[17];
-  char line1[17];
+  char line0[21];
+  char line1[21];
   if (!lcdAltView) {
-    snprintf(line0, 17, "%s %-8s%c", demoMode ? "DEMO" : "LIVE", levelName(currentLevel), star);
-    snprintf(line1, 17, "%.16s", DEVICE_LABEL);
+    snprintf(line0, 21, "%s %-8s      %c", demoMode ? "DEMO" : "LIVE", levelName(currentLevel), star);
+    snprintf(line1, 21, "%.20s", DEVICE_LABEL);
   } else {
-    snprintf(line0, 17, "Gas %4d      %c", (int)gasReading, star);
-    snprintf(line1, 17, "Base %4d", (int)gasBaseline);
+    snprintf(line0, 21, "Gas %4d          %c", (int)gasReading, star);
+    snprintf(line1, 21, "Base %4d", (int)gasBaseline);
   }
   lcdLine(0, line0);
   lcdLine(1, line1);
