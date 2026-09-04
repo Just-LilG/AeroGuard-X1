@@ -13,7 +13,7 @@ Visual walkthrough: [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_G
 
 **Still to buy:** **micro SD** module (leave D10–D13 empty). The **LM2596** can wait. Never a resistor. Never Uno 5V on SIM VCC.
 
-Upload **only** [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) to the Uno. USB **data** cable. Serial Monitor **9600**. `PHONE_ALERTS` is **true**. Leave D10–D13 empty. Wire the cell to SIM VCC before you Demo to MEDIUM.
+Upload **only** [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) to the Uno for the full box. To test the phone chip **alone**, open [`sim800l_test/sim800l_test.ino`](sim800l_test/sim800l_test.ino) instead. USB **data** cable. Serial Monitor **9600**. SIM GND is a straight wire — no 10k in that hole. Wire the cell to SIM VCC. The SIM light must blink before a text or call can work.
 
 ## Box and app
 
