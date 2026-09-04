@@ -4,6 +4,8 @@
   What this box does:
   - Green = safe / low. Yellow = medium. Red = critical / fire.
   - Demo button (D9 joined to GND) is only a fire drill.
+  - Boot show, then a short calibrating show, then READY.
+  - Buzzer keeps buzzing while a text or call goes out.
   - Real gas on A0, or flame on A2, raises the alarm with no Demo press.
   - Reset button (D7 joined to GND) goes back to safe.
   - The phone chip (SIM800L) only wakes when we send a warning. Not at boot.
@@ -60,6 +62,8 @@ const char* DEVICE_LABEL = "AeroGuard Kitchen";
 const bool PHONE_ALERTS = true;
 // Call rings this long, then hang up. SMS waits this long. Keep the pitch short.
 const unsigned long PHONE_BURST_MS = 3000;
+const unsigned long BOOT_MS = 2200;
+const unsigned long CAL_MS = 3200;
 
 // Flame analog drops when it sees fire light. Lower this if a lighter never trips.
 const int FLAME_DETECT_THRESHOLD = 400;
@@ -87,6 +91,9 @@ unsigned long liveReadyAt = 0;
 int lastGas = 0;
 int lastFlame = 0;
 unsigned long logAt = 0;
+int showPhase = 0;  // 0 boot, 1 calibrating, 2 running
+unsigned long showAt = 0;
+bool buzzOn = false;
 
 // Phone work is a short list of steps. One step, wait, next step.
 int phoneStep = 0;
@@ -132,10 +139,29 @@ const char* levelWord() {
   return "FIRE";
 }
 
+void silenceBuzzer() {
+  digitalWrite(PIN_BUZZER, LOW);
+  noTone(PIN_BUZZER);
+  buzzOn = false;
+}
+
 void setLights() {
   digitalWrite(PIN_GREEN, LOW);
   digitalWrite(PIN_YELLOW, LOW);
   digitalWrite(PIN_RED, LOW);
+
+  if (showPhase == 0) {
+    unsigned long t = millis() - showAt;
+    digitalWrite(PIN_GREEN, t > 200);
+    digitalWrite(PIN_YELLOW, t > 700);
+    digitalWrite(PIN_RED, t > 1200);
+    return;
+  }
+
+  if (showPhase == 1) {
+    digitalWrite(PIN_GREEN, (millis() / 250) % 2);
+    return;
+  }
 
   if (level == 0) {
     digitalWrite(PIN_GREEN, (millis() / 500) % 2);
@@ -150,38 +176,50 @@ void setLights() {
 }
 
 void setSound() {
-  if (phoneStep != 0 || level <= 1) {
-    noTone(PIN_BUZZER);
+  if (showPhase < 2 || level <= 1) {
+    silenceBuzzer();
     return;
   }
 
-  unsigned long wait = 800;
-  unsigned int pitch = 900;
-  if (level == 2) {
-    wait = 400;
-    pitch = 1200;
-  }
-  if (level == 3) {
-    wait = 180;
-    pitch = 1600;
-  }
-  if (level == 4) {
-    wait = 90;
-    pitch = 2000;
-  }
+  unsigned long wait = 400;
+  if (level == 3) wait = 160;
+  if (level == 4) wait = 80;
 
   if (millis() - beepAt >= wait) {
     beepAt = millis();
-    tone(PIN_BUZZER, pitch, wait / 2);
+    buzzOn = !buzzOn;
+    digitalWrite(PIN_BUZZER, buzzOn ? HIGH : LOW);
   }
 }
 
 void setScreen() {
-  if (millis() - lcdAt < 300) return;
+  if (millis() - lcdAt < 320) return;
   lcdAt = millis();
 
   char top[17];
   char bottom[17];
+
+  if (showPhase == 0) {
+    int frame = (int)(((millis() - showAt) / 400) % 4);
+    if (frame == 0) paint("AeroGuard-X1", "waking");
+    else if (frame == 1) paint("AeroGuard-X1", "waking.");
+    else if (frame == 2) paint("AeroGuard-X1", "waking..");
+    else paint("AeroGuard-X1", "waking...");
+    return;
+  }
+
+  if (showPhase == 1) {
+    unsigned long t = millis() - showAt;
+    int fill = (int)(t * 14 / CAL_MS);
+    if (fill < 1) fill = 1;
+    if (fill > 14) fill = 14;
+    bottom[0] = '[';
+    for (int i = 0; i < 14; i++) bottom[i + 1] = (i < fill) ? '=' : ' ';
+    bottom[15] = ']';
+    bottom[16] = 0;
+    paint("CALIBRATING", bottom);
+    return;
+  }
 
   if (level == 0) {
     snprintf(top, 17, "READY      SAFE");
@@ -201,6 +239,29 @@ void setScreen() {
     snprintf(bottom, 17, "LIVE  gas %4d", lastGas);
   }
   paint(top, bottom);
+}
+
+void pumpShow() {
+  if (showPhase == 0 && millis() - showAt >= BOOT_MS) {
+    showPhase = 1;
+    showAt = millis();
+    lcdAt = 0;
+    gasCalm = analogRead(PIN_GAS);
+    lastGas = gasCalm;
+  }
+  if (showPhase == 1 && millis() - showAt >= CAL_MS) {
+    showPhase = 2;
+    liveReadyAt = millis();
+    lcdAt = 0;
+  }
+}
+
+void skipShow() {
+  showPhase = 2;
+  liveReadyAt = millis();
+  lcdAt = 0;
+  digitalWrite(PIN_YELLOW, LOW);
+  digitalWrite(PIN_RED, LOW);
 }
 
 void setPhoneUi(const char* text) {
@@ -243,7 +304,7 @@ void hangUp() {
   phoneAlsoSms = false;
   phoneIsBackup = false;
   phoneUi[0] = 0;
-  noTone(PIN_BUZZER);
+  if (level <= 1) silenceBuzzer();
 }
 
 void startCallThenSms(const char* number, const char* text) {
@@ -279,7 +340,6 @@ void phoneDone() {
   phoneIsBackup = false;
   phoneUi[0] = 0;
   lcdAt = 0;
-  noTone(PIN_BUZZER);
 }
 
 void pumpPhone() {
@@ -288,11 +348,10 @@ void pumpPhone() {
   simListen();
   unsigned long now = millis();
 
-  // 1: open the talk wire, hush the beeper, say AT
+  // 1: open the talk wire, keep buzzing, say AT
   if (phoneStep == 1) {
-    noTone(PIN_BUZZER);
     sim.begin(9600);
-    delay(30);
+    delay(20);
     while (sim.available()) sim.read();
     simBufLen = 0;
     simSend("AT");
@@ -435,11 +494,12 @@ void raiseLevel(int next, bool fromDemo) {
     hangUp();
     backupDone = false;
     warnAt = 0;
-    noTone(PIN_BUZZER);
+    silenceBuzzer();
   }
 }
 
 void maybeWarnPhones() {
+  if (showPhase < 2) return;
   if (!PHONE_ALERTS) return;
   if (level < 2) return;
   if (lastWarned == level) return;
@@ -484,6 +544,7 @@ void readButtons() {
 
   // Press = pin just went from HIGH (open) to LOW (joined to GND).
   if (lastDemo == HIGH && demoNow == LOW) {
+    if (showPhase < 2) skipShow();
     int next = level + 1;
     if (next > 4) next = 0;
     raiseLevel(next, true);
@@ -495,7 +556,9 @@ void readButtons() {
     lastGas = gasCalm;
     liveHold = 0;
     liveHoldAt = millis();
-    liveReadyAt = millis() + 3000;
+    showPhase = 1;
+    showAt = millis();
+    liveReadyAt = millis() + CAL_MS;
     raiseLevel(0, false);
     delay(40);
   }
@@ -539,7 +602,7 @@ void readLiveSensors() {
   lastGas = readSmoothGas();
   lastFlame = analogRead(PIN_FLAME);
 
-  if (millis() < liveReadyAt) {
+  if (showPhase < 2 || millis() < liveReadyAt) {
     gasCalm = lastGas;
     liveHold = 0;
     liveHoldAt = millis();
@@ -589,31 +652,29 @@ void setup() {
   Serial.println(F("AeroGuard-X1 boot"));
   if (PHONE_ALERTS) sim.begin(9600);
 
-  digitalWrite(PIN_GREEN, HIGH);
-  digitalWrite(PIN_YELLOW, HIGH);
-  digitalWrite(PIN_RED, HIGH);
-
   Wire.begin();
   lcd.init();
   lcd.backlight();
-  paint("AeroGuard-X1", "boot...");
+  paint("AeroGuard-X1", "waking");
+
+  digitalWrite(PIN_BUZZER, HIGH);
+  delay(80);
+  digitalWrite(PIN_BUZZER, LOW);
 
   gasCalm = analogRead(PIN_GAS);
   lastGas = gasCalm;
   lastFlame = analogRead(PIN_FLAME);
   liveHold = 0;
   liveHoldAt = millis();
-  liveReadyAt = millis() + 3000;
+  showPhase = 0;
+  showAt = millis();
+  liveReadyAt = millis() + BOOT_MS + CAL_MS;
   lastDemo = digitalRead(PIN_DEMO);
   lastReset = digitalRead(PIN_RESET);
-
-  delay(400);
-  digitalWrite(PIN_YELLOW, LOW);
-  digitalWrite(PIN_RED, LOW);
-  paint("READY      SAFE", "gas     watch");
 }
 
 void loop() {
+  pumpShow();
   readButtons();
   if (phoneStep == 0) {
     readLiveSensors();

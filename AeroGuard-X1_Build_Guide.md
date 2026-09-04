@@ -388,7 +388,7 @@ Keep `PHONE_ALERTS` as **true** (cell on SIM VCC). Leave D10–D13 empty. There 
 1. Click **Upload** (the arrow).
 2. Wait until the IDE says **Done uploading**.
 3. **Tools → Serial Monitor.** Set the speed box to **9600**.
-4. The screen should jump to **READY SAFE** and **press DEMO D9**. Green light blinks. There is no waiting bar.
+4. The screen plays a short **waking** show, then **CALIBRATING** (a light bar). Then **READY SAFE**. Press **Demo** to skip. Green light blinks.
 
 Do not upload any other `.ino` file for this demo.
 

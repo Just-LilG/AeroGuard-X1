@@ -11,7 +11,7 @@ USB **data** cable. Board = **Arduino Uno**. Serial Monitor **9600**.
 ## Take this to the pitch
 
 1. Upload **only** `aeroguard_x1-1.ino`. Not the SIM-only test. Not the ESP32 file.
-2. Screen says **READY SAFE** and a **gas** number. Green light blinks.
+2. After a short **waking** show and **CALIBRATING** bar, the screen says **READY SAFE** and a **gas** number. Green light blinks. Press Demo during the show to skip it.
 3. **Demo** = D9 to GND. Each press: LOW (green) → MEDIUM (yellow + beep) → CRITICAL (red) → FIRE. **Reset** = D7 to GND.
 4. Real gas on the MQ nose (A0) can raise the same alarm with no Demo. Unlit lighter, far from the stove. Do not open the gas valve.
 5. Show the Vercel app on a phone. That app is a **poster for judges**. It does not talk to the box.
