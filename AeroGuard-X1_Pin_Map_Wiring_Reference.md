@@ -217,7 +217,7 @@ SIM TX to D5 is direct. The chip speaks at ~3.3V. The Uno can hear that.
 
 In the program, `PHONE_ALERTS` is **true**. You have the 3.7V cell. MEDIUM sends a **real text**. CRITICAL/FIRE place a **real call**.
 
-The network LED stays dark today (no VCC). Later: blinks fast while hunting, then **slow blink** when it has joined the network.
+With the cell on VCC and a **straight** GND, the network LED blinks fast while hunting, then **slow blink** when it has joined the network. Dark LED = no power, or a resistor sitting in the GND drain.
 
 ---
 
