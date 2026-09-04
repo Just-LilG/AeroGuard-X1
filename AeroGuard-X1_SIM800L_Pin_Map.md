@@ -1,6 +1,6 @@
 # Your red SIM800L Coreboard — pin map only
 
-**To test the chip alone** (no gas, no screen): upload [`sim800l_test/sim800l_test.ino`](sim800l_test/sim800l_test.ino). Serial Monitor **9600**. You want the word `OK`. Then type `t` for a test text, or `c` for a test call.
+**Open the picture page:** [`AeroGuard-X1_SIM800L_Pin_Map.html`](AeroGuard-X1_SIM800L_Pin_Map.html) (in a browser). Tap each hole to see where the wire goes.
 
 This matches the **red board** with the metal SIM tray and two rows of 6 holes.
 

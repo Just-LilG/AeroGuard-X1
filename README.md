@@ -2,44 +2,50 @@
 
 A small box that watches for **LPG leaks and fire**, then **calls and texts** the owner.
 
-**Start here:** [`AeroGuard-X1_Build_Guide.md`](AeroGuard-X1_Build_Guide.md)  
-SIM800L phone chip only: [`AeroGuard-X1_SIM800L_Pin_Map.md`](AeroGuard-X1_SIM800L_Pin_Map.md) · picture: [`AeroGuard-X1_SIM800L_Pin_Map.html`](AeroGuard-X1_SIM800L_Pin_Map.html) (open in a browser)  
-Pin-for-pin wiring for parts on the table: [`AeroGuard-X1_Pin_Map_Wiring_Reference.md`](AeroGuard-X1_Pin_Map_Wiring_Reference.md)  
-Visual walkthrough: [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html) (open in a browser)
+**The program you upload:** [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino)  
+USB **data** cable. Board = **Arduino Uno**. Serial Monitor **9600**.
 
-## What you assemble
+**Pictures:** [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html) · SIM board: [`AeroGuard-X1_SIM800L_Pin_Map.html`](AeroGuard-X1_SIM800L_Pin_Map.html)  
+**Wires:** [`AeroGuard-X1_Pin_Map_Wiring_Reference.md`](AeroGuard-X1_Pin_Map_Wiring_Reference.md) · full story: [`AeroGuard-X1_Build_Guide.md`](AeroGuard-X1_Build_Guide.md)
 
-**On the table today:** Arduino Uno (the brain) + MQ gas nose + flame eye + LCD + lights + buzzer + buttons + **SIM800L** + **3.7V cell** for SIM VCC + case.
+## Take this to the pitch
 
-**Still to buy:** **micro SD** module (leave D10–D13 empty). The **LM2596** can wait. Never a resistor. Never Uno 5V on SIM VCC.
+1. Upload **only** `aeroguard_x1-1.ino`. Not the SIM-only test. Not the ESP32 file.
+2. Screen says **READY SAFE** and a **gas** number. Green light blinks.
+3. **Demo** = D9 to GND. Each press: LOW (green) → MEDIUM (yellow + beep) → CRITICAL (red) → FIRE. **Reset** = D7 to GND.
+4. Real gas on the MQ nose (A0) can raise the same alarm with no Demo. Unlit lighter, far from the stove. Do not open the gas valve.
+5. Show the Vercel app on a phone. That app is a **poster for judges**. It does not talk to the box.
+6. Skip ESP32. Skip SD (leave D10–D13 empty). Skip LM2596. Cell plus → SIM **VCC**. Never Uno 5V on VCC. SIM **GND** is a **straight** wire — no 10k in that hole.
+7. If the SIM light **blinks**, MEDIUM can text and CRITICAL can call. If the light is **dark**, still show lights and Demo. Fix the phone chip later.
 
-Upload **only** [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) to the Uno for the full box. To test the phone chip **alone**, open [`sim800l_test/sim800l_test.ino`](sim800l_test/sim800l_test.ino) instead. USB **data** cable. Serial Monitor **9600**. SIM GND is a straight wire — no 10k in that hole. Wire the cell to SIM VCC. The SIM light must blink before a text or call can work.
+**Phones in the program**
+- Owner: `+233557164067`
+- Backup: `+233599494342`
 
-## Box and app
+## Same pin map (do not change)
 
-The **Vercel contest app** is a screen for judges. Pairing and status are simulated. It does not talk to the hardware.
-
-**Real alerts** are GSM SMS and calls from the SIM800L. You have a **3.7V cell** for SIM **VCC**. The LM2596 can wait. There is **no SD log** until that module is bought.
-
-| Stage | LED | Box |
-|-------|-----|-----|
-| LOW | Green | Quiet early warning |
-| MEDIUM | Yellow | Buzzer + SMS |
-| CRITICAL | Red | Alarm + **call + SMS** |
-| FIRE | Red | Alarm + **call + SMS** (fire-service SMS = later) |
-
-**Demo** pretends a leak (LOW → MEDIUM → CRITICAL → FIRE). **Real gas** on the MQ sensor does the same without Demo. **Reset** mutes, exits demo, and learns quiet air again. No motorized vent on the box — vents are an app story.
+| Uno | Goes to |
+|-----|---------|
+| A0 | Gas analog |
+| A2 | Flame analog |
+| A4 | LCD SDA |
+| A5 | LCD SCL |
+| D2 / D3 / D4 | Green / yellow / red |
+| D5 | SIM **TXD** straight |
+| D6 | SIM **RXD** through 10k (the extra 10k is a side pipe to the GND *rail*, not the only wire in SIM GND) |
+| D7 | Reset → GND |
+| D8 | Buzzer |
+| D9 | Demo → GND |
+| A1, A3, D10–D13 | Empty |
 
 ## Files
 
 | Path | Role |
 |------|------|
-| [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) | Program for the Uno |
-| [`AeroGuard-X1_Pin_Map_Wiring_Reference.md`](AeroGuard-X1_Pin_Map_Wiring_Reference.md) | Pin-for-pin wiring for today’s parts |
-| [`aeroguard_x1_case_all_in_one.stl`](aeroguard_x1_case_all_in_one.stl) | **All parts on one plate**, one print (needs a ~220×220 mm bed) |
-| [`aeroguard_x1_case_base.stl`](aeroguard_x1_case_base.stl) · [`aeroguard_x1_case_lid.stl`](aeroguard_x1_case_lid.stl) · [`aeroguard_x1_sensor_mount.stl`](aeroguard_x1_sensor_mount.stl) · [`aeroguard_x1_button_cap.stl`](aeroguard_x1_button_cap.stl) | Separate files (for smaller printers). Print the button cap **twice**. |
-| [`aeroguard_x1_case.scad`](aeroguard_x1_case.scad) | Editable source for the case (change sizes, re-export STL) |
+| [`aeroguard_x1-1.ino`](aeroguard_x1-1.ino) | **Upload this** to the Uno |
+| [`AeroGuard-X1_SIM800L_Pin_Map.html`](AeroGuard-X1_SIM800L_Pin_Map.html) | Picture of the red phone chip |
 | [`companion/`](companion/) | Contest phone UI |
+| [`aeroguard_x1_case_all_in_one.stl`](aeroguard_x1_case_all_in_one.stl) | Case, one print |
 
 ```bash
 cd companion

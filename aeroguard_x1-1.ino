@@ -184,7 +184,7 @@ void setScreen() {
 
   if (level == 0) {
     snprintf(top, 17, "READY      SAFE");
-    snprintf(bottom, 17, "gas %4d  watch", lastGas);
+    snprintf(bottom, 17, "gas %4d  D9", lastGas);
     paint(top, bottom);
     return;
   }

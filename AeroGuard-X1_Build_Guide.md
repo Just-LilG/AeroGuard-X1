@@ -437,7 +437,7 @@ Speak in this order. Short. Show the box in your hands.
 1. **Problem.** LPG is in homes, hostels, and chop bars. If it leaks at night, people smell it late — or not at all.
 2. **Who pays first.** Lead with **hostel wardens / multi-tenant housing**. Chop bars and family kitchens are the next wave.
 3. **Show the product.** Cased unit. Green / yellow / red. One brain: the Arduino Uno. One phone chip: the SIM800L. This is the kit.
-4. **Live demo.** Press **Demo**: LOW (green, quiet) → MEDIUM (yellow, beep, **text**) → CRITICAL (red, **the phone rings**). Press **Reset** to clear. The SIM is powered by a **3.7V cell** (18650 or old phone battery). The LM2596 and SD log can wait.
+4. **Live demo.** Press **Demo**: LOW (green, quiet) → MEDIUM (yellow, beep) → CRITICAL (red, loud). Press **Reset** to clear. If the SIM light is blinking, MEDIUM can **text** and CRITICAL can **ring**. If the light is dark, the lights and beeper still tell the story — the phone chip can wait. SIM **VCC** from a **3.7V cell**. SIM **GND** is a straight wire. The LM2596 and SD log can wait.
 5. **App story.** Open the Vercel contest app on a phone. Pairing and status are **simulated** for judges. Smart vents live in the app. Real calls still come from the SIM in the box.
 6. **Cost + market.** Be honest about parts cost. Who buys, who installs, who gets the SMS.
 7. **Tough questions, ready answers.**
