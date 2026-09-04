@@ -2,13 +2,14 @@
 
 Phone-first web app for the contest pitch: **Mi Home–style device home** with **light/dark liquid-glass** UI.
 
-## Connectivity story
+## How this fits the box
 
 | Layer | Role |
 |-------|------|
-| **ESP32 WiFi** | Remote status + vent commands on the home network (`esp32_aeroguard_bridge.ino`) |
-| **GSM** | SMS / call when you are away (hardware) |
-| **Contest UI** | Discovery / live link can still be simulated until the app points at the ESP32 `/status` URL |
+| **This contest UI** | Simulated discovery and status. The Vercel site does **not** talk to the hardware. |
+| **GSM on the box** | Real SMS and calls from the **SIM800L** (phone chip) on the **Arduino Uno**. |
+
+Judges tap the app. Real alerts still come from the SIM in the case.
 
 ## What you get
 

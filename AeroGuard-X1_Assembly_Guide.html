@@ -32,28 +32,50 @@
   .hazard li { margin: 8px 0 8px 18px; color: var(--soft); font-size: 14px; }
   h2.sec { font-family: var(--font-c); text-transform: uppercase; font-size: 26px; margin: 40px 0 8px; }
   .kicker { font-family: var(--font-m); font-size: 11px; color: var(--stamp); letter-spacing: 0.1em; text-transform: uppercase; }
-  .desc { color: var(--soft); font-size: 14px; margin-bottom: 20px; max-width: 60ch; }
-  table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-bottom: 28px; }
-  th, td { border-bottom: 1px dashed var(--line); padding: 9px 8px; text-align: left; }
+  .desc { color: var(--soft); font-size: 14px; margin-bottom: 20px; max-width: 62ch; }
+  .table-wrap { overflow-x: auto; margin-bottom: 28px; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th, td { border-bottom: 1px dashed var(--line); padding: 9px 8px; text-align: left; vertical-align: top; }
   th { font-family: var(--font-m); font-size: 11px; text-transform: uppercase; color: var(--soft); }
-  .pin { font-family: var(--font-m); font-weight: 700; background: var(--ink); color: var(--paper); padding: 2px 8px; }
+  .pin { font-family: var(--font-m); font-weight: 700; background: var(--ink); color: var(--paper); padding: 2px 8px; white-space: nowrap; }
+  .pin.empty { background: var(--soft); }
   .card { background: #F5F0E4; border: 1.5px solid var(--ink); margin: 18px 0; padding: 18px 20px; }
   .card h3 { font-family: var(--font-c); text-transform: uppercase; font-size: 17px; }
   .card .meta { font-family: var(--font-m); font-size: 11px; color: var(--soft); margin: 4px 0 10px; }
-  .card p { color: var(--soft); font-size: 14px; }
-  .warn { margin-top: 10px; border-left: 3px solid var(--stamp); padding: 6px 10px; font-size: 12.5px; color: var(--soft); background: rgba(158,43,37,0.05); }
+  .card p { color: var(--soft); font-size: 14px; margin: 0 0 10px; }
+  .card p:last-child { margin-bottom: 0; }
+  .card ol, .card ul { color: var(--soft); font-size: 14px; margin: 0 0 10px 18px; }
+  .card li { margin: 6px 0; }
+  .card pre { font-family: var(--font-m); font-size: 12px; background: #EDE6D6; border: 1px dashed var(--line); padding: 10px 12px; overflow-x: auto; color: var(--ink); margin: 8px 0 12px; }
+  .warn { margin-top: 10px; border-left: 3px solid var(--stamp); padding: 8px 10px; font-size: 12.5px; color: var(--soft); background: rgba(158,43,37,0.05); }
+  .ok { margin-top: 10px; border-left: 3px solid var(--green); padding: 8px 10px; font-size: 12.5px; color: var(--soft); background: rgba(63,107,69,0.08); }
   .check { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  @media (max-width: 640px) { .check { grid-template-columns: 1fr; } }
   .item { display: flex; gap: 10px; padding: 12px; border: 1.5px solid var(--ink); background: #F5F0E4; cursor: pointer; font-size: 13.5px; }
   .item.done { border-color: var(--green); background: rgba(63,107,69,0.12); text-decoration: line-through; color: var(--soft); }
   .box { width: 16px; height: 16px; border: 1.5px solid var(--ink); flex-shrink: 0; }
   .item.done .box { background: var(--green); border-color: var(--green); }
   footer { margin-top: 48px; padding-top: 20px; border-top: 4px double var(--ink); text-align: center; font-family: var(--font-m); font-size: 10px; color: var(--soft); letter-spacing: 0.08em; text-transform: uppercase; }
+  footer .later { display: block; margin-top: 10px; letter-spacing: 0.04em; text-transform: none; font-size: 11px; max-width: 62ch; margin-left: auto; margin-right: auto; }
   .stages { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 24px; }
   .stages span { font-family: var(--font-m); font-size: 11px; padding: 6px 10px; border: 1.5px solid var(--ink); }
   .stages .g { border-color: var(--green); color: var(--green); }
   .stages .y { border-color: var(--yellow); color: #8a7020; }
   .stages .r { border-color: var(--red); color: var(--red); }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0 28px; }
+  .pair .card { margin: 0; }
+  .wire td:first-child { font-family: var(--font-m); font-size: 12px; white-space: nowrap; }
+  @media (max-width: 640px) {
+    .wrap { padding: 0 16px 48px; }
+    header { padding: 32px 0 22px; }
+    .strip { padding: 10px 16px; font-size: 11px; flex-wrap: wrap; }
+    .specs div { min-width: 42%; border-bottom: 1.5px solid var(--ink); }
+    .specs div:nth-child(2n) { border-right: none; }
+    .specs div:nth-last-child(-n+2) { border-bottom: none; }
+    .check, .pair { grid-template-columns: 1fr; }
+    .card { padding: 16px; }
+    table { font-size: 12.5px; }
+    .pin { padding: 2px 6px; }
+  }
 </style>
 </head>
 <body>
@@ -61,10 +83,10 @@
 <div class="wrap">
   <header>
     <h1>AeroGuard-X1<span>Assembly Manual — LPG Leak + Fire Early Warning</span></h1>
-    <p class="lede">Wire and case the competition product: one gas zone, flame sense, green/yellow/red stages, demo button for simulated leaks, real GSM alerts. Smart vents live in the app — not a servo on this box.</p>
+    <p class="lede">This is the kit you assemble. Wire the brain (Arduino Uno), gas nose, flame eye, screen, three lights, beeper, two buttons, the <strong>SIM800L</strong> phone chip, and your <strong>3.7V cell</strong> on SIM VCC. You do <strong>not</strong> have the LM2596. You do <strong>not</strong> need it. Never a resistor. Never Uno 5V on VCC. Leave D10–D13 empty (no SD). The contest phone app on Vercel is a pretend UI for judges. It does not talk to this box.</p>
     <div class="specs">
       <div><strong>11</strong><span>Build steps</span></div>
-      <div><strong>01</strong><span>Gas zone (v1)</span></div>
+      <div><strong>01</strong><span>Gas zone</span></div>
       <div><strong>02</strong><span>Buttons</span></div>
       <div><strong>05</strong><span>Risk stages</span></div>
     </div>
@@ -76,63 +98,291 @@
     <div class="hazard">
       <h2>Read before power-on</h2>
       <ul>
-        <li>SIM800L needs its own ~4V high-current supply — never the Uno 5V pin.</li>
-        <li>Level-shift Uno TX → SIM800L RX with a voltage divider.</li>
-        <li>Common ground for every module including battery and SIM.</li>
-        <li>Set real phone numbers in firmware before any call/SMS demo.</li>
+        <li>You do <strong>not</strong> have the SD card module. Leave D10–D13 empty.</li>
+        <li>You <strong>have</strong> a 3.7V cell. Feed SIM <strong>VCC</strong> from that cell. You do <strong>not</strong> have the LM2596 and you do not need it. Never Uno 5V or 3.3V. A USB power bank is 5V — that is for the Uno, not SIM VCC. A resistor cannot replace the cell.</li>
+        <li>Protect the chip’s listen pin: Uno D6 must go through resistors, never a bare 5V wire. You do not have a 20kΩ — use two 10kΩ in a line as 20k, or a 10k+10k pair (see the SIM step).</li>
+        <li>Join every ground. Uno, battery, SIM GND, sensors — one shared drain.</li>
+        <li>Put real phone numbers in the program before any live call or SMS demo.</li>
+        <li>Leave Uno pins A1 and A3 empty.</li>
       </ul>
     </div>
   </header>
 
+  <p class="kicker">Product</p>
+  <h2 class="sec">Box and app</h2>
+  <p class="desc">Two pieces. Different jobs. Like a farm pump that actually moves water, and a poster that shows the irrigation plan.</p>
+  <div class="pair">
+    <div class="card">
+      <h3>The box</h3>
+      <div class="meta">Hardware · GSM</div>
+      <p>Sniffs gas. Watches for flame. Lights. Beeps. The SIM800L sends <strong>real SMS</strong> and places <strong>real calls</strong> when VCC has a 3.7V cell. No LM2596 required this week. No SD log until that board is bought.</p>
+    </div>
+    <div class="card">
+      <h3>The contest app</h3>
+      <div class="meta">Vercel website</div>
+      <p>Looks like a phone app so judges can tap pairing and status. That part is <strong>simulated</strong>. The website cannot reach the box on your table.</p>
+    </div>
+  </div>
+
+  <p class="kicker">Buy</p>
+  <h2 class="sec">Shopping list</h2>
+  <p class="desc">Search shops by the module name. Full written notes live in <code>AeroGuard-X1_Build_Guide.md</code>. Pin sheet: <code>AeroGuard-X1_Pin_Map_Wiring_Reference.md</code>.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Module name</th><th>What it is</th><th>Today</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Arduino Uno R3</td><td>The brain. Official or CH340 clone.</td><td>Have</td></tr>
+        <tr><td>2</td><td>MQ-5 (or MQ-2) gas module</td><td>The nose. Prefer MQ-5 for LPG.</td><td>Have</td></tr>
+        <tr><td>3</td><td>KY-026 IR flame module</td><td>The eye. Use analog A0 on the module.</td><td>Have</td></tr>
+        <tr><td>4</td><td>LCD 1602 I2C (PCF8574)</td><td>16×2 screen. Four wires.</td><td>Have</td></tr>
+        <tr><td>5</td><td>5mm LEDs G/Y/R + 220Ω</td><td>Stage lights.</td><td>Have</td></tr>
+        <tr><td>6</td><td>Active buzzer (KY-012)</td><td>The beeper.</td><td>Have</td></tr>
+        <tr><td>7</td><td>Two tactile buttons</td><td>Demo + Reset.</td><td>Have</td></tr>
+        <tr><td>8</td><td>SIM800L V2.0 + antenna</td><td>Real SMS and calls. Power from your 3.7V cell.</td><td>Have</td></tr>
+        <tr><td>9</td><td>LM2596 buck converter</td><td>Optional. A 3.7V cell already feeds the SIM.</td><td><strong>Buy later — not required for calls</strong></td></tr>
+        <tr><td>10</td><td>Micro SD SPI module + FAT32 card</td><td>Event log. Not fire-proof.</td><td><strong>Buy later</strong></td></tr>
+        <tr><td>11</td><td>18650 / 3.7V cell (USB bank optional)</td><td>Cell plus → SIM VCC. USB 5V → Uno only.</td><td>Have</td></tr>
+        <tr><td>12</td><td>Breadboard + Dupont wires</td><td>Plug-in wiring grid.</td><td>Have</td></tr>
+        <tr><td>13</td><td>10kΩ + 20kΩ resistors</td><td>D6 divider into SIM RX.</td><td>No 20k — use 10k stand-ins</td></tr>
+        <tr><td>14</td><td>Nano-SIM with airtime</td><td>Must fit the SIM800L slot.</td><td>Have</td></tr>
+        <tr><td>15</td><td>Printed case from this repo</td><td>126×90×36 mm. Lid + base + MQ clip.</td><td>Have</td></tr>
+      </tbody>
+    </table>
+  </div>
+
   <p class="kicker">Reference</p>
   <h2 class="sec">Pin map</h2>
-  <p class="desc">Matches <code>aeroguard_x1-1.ino</code>. A1/A3 = ESP32 WiFi bridge UART.</p>
-  <table>
-    <thead><tr><th>Pin</th><th>Connection</th><th>Notes</th></tr></thead>
-    <tbody>
-      <tr><td><span class="pin">A0</span></td><td>Gas sensor</td><td>MQ-2 / MQ-5</td></tr>
-      <tr><td><span class="pin">A1</span></td><td>ESP32 TX → Uno RX</td><td>App UART</td></tr>
-      <tr><td><span class="pin">A2</span></td><td>Flame sensor</td><td>Calibrate threshold</td></tr>
-      <tr><td><span class="pin">A3</span></td><td>Uno TX → ESP32 RX</td><td>Level-shift to 3.3V</td></tr>
-      <tr><td><span class="pin">A4/A5</span></td><td>LCD SDA / SCL</td><td>I2C</td></tr>
-      <tr><td><span class="pin">D2</span></td><td>Green LED</td><td>LOW</td></tr>
-      <tr><td><span class="pin">D3</span></td><td>Yellow LED</td><td>MEDIUM</td></tr>
-      <tr><td><span class="pin">D4</span></td><td>Red LED</td><td>CRITICAL / FIRE</td></tr>
-      <tr><td><span class="pin">D5/D6</span></td><td>SIM800L</td><td>D6 via divider</td></tr>
-      <tr><td><span class="pin">D7</span></td><td>Reset button</td><td>Mute + recalibrate</td></tr>
-      <tr><td><span class="pin">D8</span></td><td>Buzzer</td><td></td></tr>
-      <tr><td><span class="pin">D9</span></td><td>Demo button</td><td>Simulate leak stages</td></tr>
-      <tr><td><span class="pin">D10–13</span></td><td>SD card SPI</td><td>Fixed SPI pins</td></tr>
-    </tbody>
-  </table>
+  <p class="desc">Matches <code>aeroguard_x1-1.ino</code>. A1 and A3 stay empty. D10–D13 stay empty (no SD board).</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Pin</th><th>Connection</th><th>Wire today?</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pin">A0</span></td><td>Gas sensor analog</td><td>Yes</td></tr>
+        <tr><td><span class="pin empty">A1</span></td><td>Leave empty</td><td>No</td></tr>
+        <tr><td><span class="pin">A2</span></td><td>Flame sensor analog</td><td>Yes</td></tr>
+        <tr><td><span class="pin empty">A3</span></td><td>Leave empty</td><td>No</td></tr>
+        <tr><td><span class="pin">A4 / A5</span></td><td>LCD SDA / SCL</td><td>Yes</td></tr>
+        <tr><td><span class="pin">D2</span></td><td>Green LED</td><td>Yes</td></tr>
+        <tr><td><span class="pin">D3</span></td><td>Yellow LED</td><td>Yes</td></tr>
+        <tr><td><span class="pin">D4</span></td><td>Red LED</td><td>Yes</td></tr>
+        <tr><td><span class="pin">D5</span></td><td>SIM800L TX</td><td>Yes</td></tr>
+        <tr><td><span class="pin">D6</span></td><td>SIM800L RX via 10k+20k</td><td>Yes</td></tr>
+        <tr><td><span class="pin">D7</span></td><td>Reset button</td><td>Yes</td></tr>
+        <tr><td><span class="pin">D8</span></td><td>Buzzer</td><td>Yes</td></tr>
+        <tr><td><span class="pin">D9</span></td><td>Demo button</td><td>Yes</td></tr>
+        <tr><td><span class="pin empty">D10–D13</span></td><td>SD SPI later</td><td>No — no SD module</td></tr>
+        <tr><td><span class="pin">5V / GND</span></td><td>Small modules</td><td>Yes — not SIM VCC</td></tr>
+        <tr><td><span class="pin">~4V</span></td><td>SIM800L VCC from a 3.7V cell</td><td>Yes — never Uno 5V</td></tr>
+      </tbody>
+    </table>
+  </div>
 
   <p class="kicker">Build</p>
   <h2 class="sec">Steps</h2>
+  <p class="desc">Unplug USB while you move wires. Lights and screen run from USB. Skip the LM2596 and skip the SD module. For calls, add a 3.7V cell to SIM VCC.</p>
 
-  <div class="card"><h3>01 — Power rails</h3><div class="meta">5V · GND · separate 4V</div><p>Breadboard 5V/GND from Uno. Keep SIM800L on a separate regulated ~4V rail with shared ground only.</p></div>
-  <div class="card"><h3>02 — Gas sensor</h3><div class="meta">A0 · 5V · GND</div><p>One MQ sensor for kitchen/cylinder area. Warm-up a few minutes on first power is normal.</p></div>
-  <div class="card"><h3>03 — Flame sensor</h3><div class="meta">A2</div><p>Analog out to A2. Test briefly with a lighter (no gas nearby) and note Serial readings.</p></div>
-  <div class="card"><h3>04 — LCD</h3><div class="meta">A4 SDA · A5 SCL</div><p>If blank, I2C-scan and set address in code (<code>0x27</code> or <code>0x3F</code>).</p></div>
-  <div class="card"><h3>05 — Status LEDs</h3><div class="meta">D2 green · D3 yellow · D4 red</div><p>Anode via 220Ω to pin, cathode to GND. Green = LOW, yellow = MEDIUM, red = CRITICAL/FIRE.</p></div>
-  <div class="card"><h3>06 — Buzzer</h3><div class="meta">D8</div><p>Positive to D8, negative to GND.</p></div>
-  <div class="card"><h3>07 — Buttons</h3><div class="meta">D7 reset · D9 demo</div><p>Each button: one leg to pin, other to GND (internal pull-ups). Label the lid: <strong>RESET</strong> and <strong>DEMO</strong>.</p></div>
-  <div class="card"><h3>08 — SD module</h3><div class="meta">D10–D13</div><p>Local incident history for demos and landlords — not marketed as fire-proof storage.</p></div>
-  <div class="card"><h3>09 — SIM800L</h3><div class="meta">4V · D5 · D6</div><p>TX→D5, RX←D6 via divider. Active SIM with credit. Slow blink ≈ registered.</p><div class="warn"><strong>Demo:</strong> CRITICAL/FIRE will place a real call — warn the owner phone holder.</div></div>
-  <div class="card"><h3>10 — ESP32 WiFi (app / remote)</h3><div class="meta">A1 / A3 · ESP32 DevKit</div><p>Wire ESP32 UART2 (GPIO16 RX / GPIO17 TX) to Uno A3/A1 with a level shift into the ESP32 RX. Flash <code>esp32_aeroguard_bridge.ino</code>, set WiFi, then open <code>/status</code> on the phone. Firmware already mirrors <code>STATUS</code> / <code>APP_CMD:VENT_OPEN</code> to this link.</p></div>
-  <div class="card"><h3>11 — Case + verify</h3><div class="meta">Print · upload · Serial 9600</div><p>Print the <strong>v2 compact case</strong> (126×90×36 mm) from <code>aeroguard_x1_case.scad</code> — rounded shell with <strong>AeroGuard</strong> engraved on the lid/front and mounts for Uno, ESP32, SIM, SD, and 4V buck. Upload sketches. Press DEMO: LOW → MEDIUM → CRITICAL → FIRE. RESET clears and recalibrates.</p></div>
+  <div class="card" id="step-power">
+    <h3>01 — Power rails</h3>
+    <div class="meta">5V for small parts · 3.7V cell for the phone chip · one GND</div>
+    <p>The Uno 5V pin is a tap for the nose, eye, screen, lights, beeper, and buttons. The SIM800L is thirsty. A rechargeable cell is already about 3.7 volts — that is the right pressure. You do <strong>not</strong> need the LM2596 this week.</p>
+    <ol>
+      <li>Red jumper: Uno <span class="pin">5V</span> → breadboard + rail.</li>
+      <li>Black jumper: Uno <span class="pin">GND</span> → breadboard − rail.</li>
+      <li>Cell plus → SIM VCC. Cell minus → the same − rail. 18650 bump is plus. Old phone battery uses the + and − pads.</li>
+      <li>Do not put SIM VCC on Uno 5V or 3.3V. Do not use a resistor. Do not use a 5V USB / boost hole on VCC.</li>
+    </ol>
+    <div class="warn"><strong>Tape the cell.</strong> Do not let plus and minus touch. Skip a puffy or hot cell. <code>PHONE_ALERTS</code> is already <strong>true</strong> — connect the cell before you Demo to MEDIUM.</div>
+  </div>
+
+  <div class="card" id="step-gas">
+    <h3>02 — Gas sensor</h3>
+    <div class="meta">MQ-5 or MQ-2 · Uno A0 · 5V · GND</div>
+    <p>This module is the nose. A heater inside warms up. The first minutes can smell “hot electronics.” That is normal, like a kettle that smells of metal before the water boils.</p>
+    <div class="table-wrap">
+      <table class="wire">
+        <thead><tr><th>Module pin</th><th>Goes to</th></tr></thead>
+        <tbody>
+          <tr><td>VCC</td><td>5V rail</td></tr>
+          <tr><td>GND</td><td>GND rail</td></tr>
+          <tr><td>A0 / AO (analog)</td><td>Uno <span class="pin">A0</span></td></tr>
+          <tr><td>D0 / DO (digital)</td><td>Leave unconnected</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Clip it in the printed MQ mount later so air from the case grill can reach it. One zone for this kit.</p>
+  </div>
+
+  <div class="card" id="step-flame">
+    <h3>03 — Flame sensor</h3>
+    <div class="meta">KY-026 · analog to Uno A2</div>
+    <p>This is an eye for flame light, not a room thermometer. Aim the dark sensor toward where a flame would show through the case window.</p>
+    <div class="table-wrap">
+      <table class="wire">
+        <thead><tr><th>Module pin</th><th>Goes to</th></tr></thead>
+        <tbody>
+          <tr><td>VCC</td><td>5V</td></tr>
+          <tr><td>GND</td><td>GND</td></tr>
+          <tr><td>A0 analog</td><td>Uno <span class="pin">A2</span></td></tr>
+          <tr><td>D0</td><td>Leave unconnected</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="ok">After the program is on the Uno, flick a lighter far from any gas. Watch the number in Serial Monitor (9600). If FIRE never trips, change <code>FLAME_DETECT_THRESHOLD</code> in the sketch a little.</div>
+  </div>
+
+  <div class="card" id="step-lcd">
+    <h3>04 — LCD screen</h3>
+    <div class="meta">1602 I2C · A4 SDA · A5 SCL</div>
+    <p>A 16×2 character screen. The backpack on the back talks I2C — a two-wire chat. On the Uno those two wires are always A4 and A5.</p>
+    <div class="table-wrap">
+      <table class="wire">
+        <thead><tr><th>LCD pin</th><th>Goes to</th></tr></thead>
+        <tbody>
+          <tr><td>VCC</td><td>5V</td></tr>
+          <tr><td>GND</td><td>GND</td></tr>
+          <tr><td>SDA</td><td>Uno <span class="pin">A4</span></td></tr>
+          <tr><td>SCL</td><td>Uno <span class="pin">A5</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Blank screen? Turn the contrast screw. Check the backlight jumper. Address is usually <code>0x27</code> or <code>0x3F</code>. The program starts at <code>0x27</code>.</p>
+  </div>
+
+  <div class="card" id="step-leds">
+    <h3>05 — Status LEDs</h3>
+    <div class="meta">D2 green · D3 yellow · D4 red · 220Ω each</div>
+    <p>Three stage lamps. Green = LOW (quiet early warning). Yellow = MEDIUM. Red = CRITICAL or FIRE.</p>
+    <ol>
+      <li>Bare 5mm LED: long leg is plus, short leg is minus.</li>
+      <li>Plus → 220Ω resistor → Uno pin. Minus → GND. The resistor is a speed bump so the lamp does not burn.</li>
+      <li>Green to <span class="pin">D2</span>. Yellow to <span class="pin">D3</span>. Red to <span class="pin">D4</span>.</li>
+    </ol>
+    <p>If you bought a 3-pin LED module, follow S / + / − printed on that board. Signal still goes to D2 / D3 / D4.</p>
+  </div>
+
+  <div class="card" id="step-buzzer">
+    <h3>06 — Buzzer</h3>
+    <div class="meta">D8 · active beeper</div>
+    <p>The alarm. An active buzzer makes its own tone when the pin is driven.</p>
+    <ul>
+      <li>+ or S → Uno <span class="pin">D8</span></li>
+      <li>− → GND</li>
+    </ul>
+    <p>Three-pin modules: S to D8, − to GND, + to 5V only if the board asks for it. MEDIUM = short beeps. CRITICAL / FIRE = continuous.</p>
+  </div>
+
+  <div class="card" id="step-buttons">
+    <h3>07 — Buttons</h3>
+    <div class="meta">D7 Reset · D9 Demo · other legs to GND</div>
+    <p>The program already uses an internal pull-up. The pin sits high until you press. Press ties it to ground (low). Do not wire these buttons to 5V.</p>
+    <div class="table-wrap">
+      <table class="wire">
+        <thead><tr><th>Button</th><th>One leg</th><th>Other leg</th></tr></thead>
+        <tbody>
+          <tr><td>Reset (mute, exit demo, recalibrate)</td><td><span class="pin">D7</span></td><td>GND</td></tr>
+          <tr><td>Demo (pretend leak stages)</td><td><span class="pin">D9</span></td><td>GND</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Label the lid <strong>RESET</strong> and <strong>DEMO</strong> so you do not mix them in front of judges.</p>
+  </div>
+
+  <div class="card" id="step-sd">
+    <h3>08 — SD module — skip today</h3>
+    <div class="meta">Buy later · leave D10–D13 empty</div>
+    <p>You do not have the SD board. Leave <strong>D10–D13</strong> empty. This program does not talk to an SD card yet. The box still runs. Calls use a 3.7V cell on SIM VCC, not the LM2596.</p>
+    <p>When you buy it: CS → D10, MOSI → D11, MISO → D12, SCK → D13. Format the card FAT32. SD logging is not in this program yet.</p>
+  </div>
+
+  <div class="card" id="step-sim">
+    <h3>09 — SIM800L phone chip — 3.7V cell on VCC</h3>
+    <div class="meta">Cell plus → VCC · D5 TX · D6 via divider · antenna · nano-SIM</div>
+    <p>Picture of this board: open <a href="AeroGuard-X1_SIM800L_Pin_Map.html"><code>AeroGuard-X1_SIM800L_Pin_Map.html</code></a> and tap each hole.</p>
+    <div class="table-wrap">
+      <table class="wire">
+        <thead><tr><th>SIM800L</th><th>Goes to</th></tr></thead>
+        <tbody>
+          <tr><td>VCC</td><td>Cell plus — never Uno 5V or 3.3V</td></tr>
+          <tr><td>GND</td><td>Cell minus + Uno GND</td></tr>
+          <tr><td>TX</td><td>Uno <span class="pin">D5</span> (direct)</td></tr>
+          <tr><td>RX</td><td>Mid-point of the D6 divider</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Divider — you do <strong>not</strong> have a 20kΩ. Two 10kΩ in a line equal 20k (use that to ground). One more 10k from D6 to the middle. If you only have two 10k total, use 10k up and 10k down (~2.5V). SIM RX comes off the middle. Never a bare D6 wire.</p>
+<pre>Uno D6  --- 10kΩ ---+--- SIM800L RX
+                    |
+              10k+10k (or one 10k)
+                    |
+                   GND</pre>
+    <p>Many boards blink fast while hunting, then <strong>slow blink</strong> when they have joined the network. Dark LED usually means VCC is still empty.</p>
+    <div class="warn"><strong>After the cell is on:</strong> CRITICAL and FIRE place a <strong>real call</strong>, then a real SMS. Warn the person who holds the owner phone. <code>PHONE_ALERTS</code> is already <strong>true</strong>.</div>
+  </div>
+
+  <div class="card" id="step-case">
+    <h3>10 — Case</h3>
+    <div class="meta">126 × 90 × 36 mm · OpenSCAD → STL</div>
+    <p>Open <code>aeroguard_x1_case.scad</code> in OpenSCAD (free 3D-shape software). Leave <code>part = "all_export"</code>. Press F6. Export STL. Print base, lid, and the MQ sensor clip (PLA or PETG, about 0.2 mm layers).</p>
+    <ol>
+      <li>Seat the Uno on the standoffs. USB faces the side hole.</li>
+      <li>Seat the SIM board on its platform. Leave the SD platform and the 4V buck platform empty.</li>
+      <li>Leave the extra empty shelf empty.</li>
+      <li>LCD in the lid window. LEDs in G / Y / R. Buttons in DEMO and RESET. Buzzer in its hole.</li>
+      <li>Gas sensor in the MQ clip at the grill. Flame sensor toward the side window.</li>
+      <li>Antenna out the front slot. Four lid screws.</li>
+    </ol>
+  </div>
+
+  <div class="card" id="step-upload">
+    <h3>11 — Phone numbers and upload</h3>
+    <div class="meta">aeroguard_x1-1.ino · Arduino IDE · USB data cable · Serial 9600</div>
+    <p>You load <strong>one</strong> program: <code>aeroguard_x1-1.ino</code> onto the Arduino Uno.</p>
+    <ol>
+      <li>Install Arduino IDE (the desktop app from Arduino).</li>
+      <li>Plug a <strong>data</strong> USB cable (charge-only cables look the same and will not upload).</li>
+      <li>Tools → Board → <strong>Arduino Uno</strong>. Tools → Port → the port that appears with the cable in.</li>
+      <li>Library Manager: install <strong>LiquidCrystal I2C</strong>. SD and SoftwareSerial are already built in.</li>
+      <li>Set <code>OWNER_CONTACT</code> and <code>SECONDARY_CONTACT</code> like <code>+23324…</code>. Set <code>DEVICE_LABEL</code> to the place name.</li>
+      <li>Keep <code>PHONE_ALERTS</code> as <strong>true</strong> (cell on SIM VCC). Leave D10–D13 empty.</li>
+      <li>Click Upload. Open Serial Monitor at <strong>9600</strong>.</li>
+    </ol>
+    <div class="ok">The screen plays a short <strong>waking</strong> show, then <strong>CALIBRATING</strong>, then <strong>READY SAFE</strong>. Press Demo to skip. Green light blinks. The beeper keeps going while a text or call is sent.</div>
+  </div>
+
+  <p class="kicker">Prove it</p>
+  <h2 class="sec">How to test</h2>
+  <p class="desc">Table demo. No open gas. After the 3.7V cell is on VCC, tell the owner-phone person a test call may come. No SD log yet.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Check</th><th>Do this</th><th>You should see</th></tr></thead>
+      <tbody>
+        <tr><td>Boot</td><td>USB on. Cell on SIM VCC.</td><td>Waking show, then CALIBRATING, then READY SAFE. Green blinks.</td></tr>
+        <tr><td>Live gas</td><td>Reset first. Unlit lighter 10 cm from the gas nose. Do not open the stove.</td><td>Gas number climbs. LIVE alarm without Demo.</td></tr>
+        <tr><td>Demo 1</td><td>Press Demo once</td><td>Green. LCD LOW. Quiet.</td></tr>
+        <tr><td>Demo 2</td><td>Press Demo again</td><td>Yellow. Short beeps. Owner SMS.</td></tr>
+        <tr><td>Demo 3</td><td>Press Demo again</td><td>Red. Loud alarm. Phone rings, then SMS.</td></tr>
+        <tr><td>Demo 4</td><td>Press Demo again</td><td>Red. LCD FIRE. Call + SMS.</td></tr>
+        <tr><td>Reset</td><td>Press Reset</td><td>Alarm off. Calibrate again. SAFE.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="warn">MEDIUM sends a real text. CRITICAL and FIRE place a real call. Do not surprise a sleeping family member. Do not dial the fire service from a test.</div>
 
   <p class="kicker">Before you present</p>
   <h2 class="sec">Checklist</h2>
   <p class="desc">Tap to mark done during rehearsal.</p>
   <div class="check" id="checklist"></div>
 
-  <footer>AeroGuard-X1 · Product assembly · Vents via app · Fire-service SMS = Phase 2</footer>
+  <footer>
+    AeroGuard-X1 · Product assembly · Real alerts = GSM on the box · Vents via app · Fire-service SMS = Phase 2
+    <span class="later">Later (not this kit): a WiFi-board sketch named esp32_aeroguard_bridge.ino sits in the repo. Skip it for the pitch. Do not buy it now.</span>
+  </footer>
 </div>
 <script>
   const seq = [
     { l: "SYSTEM: SAFE", d: "baseline holding", c: "#2B2620" },
-    { l: "SYSTEM: LOW", d: "green LED · early warning", c: "#3F6B45" },
-    { l: "SYSTEM: MEDIUM", d: "yellow · SMS + app vent intent", c: "#C4A035" },
+    { l: "SYSTEM: LOW", d: "green LED · quiet early warning", c: "#3F6B45" },
+    { l: "SYSTEM: MEDIUM", d: "yellow · SMS + beeps", c: "#C4A035" },
     { l: "SYSTEM: CRITICAL", d: "red · real call + SMS", c: "#A8341F" },
     { l: "SYSTEM: FIRE", d: "flame path · evacuate", c: "#7A1B1B" },
   ];
@@ -149,14 +399,18 @@
   setInterval(tick, 2800);
 
   const items = [
-    "Phone numbers set in firmware",
-    "Demo button cycles LOW→MED→CRIT→FIRE",
+    "SIM800L VCC from 3.7V cell (18650 or phone battery); D5/D6 wired",
+    "Owner and backup numbers set in the sketch",
+    "PHONE_ALERTS true · D10–D13 empty (no SD)",
+    "D10–D13 left empty (no SD module)",
+    "A1 and A3 left empty",
+    "USB data cable · Uno board · Serial 9600",
+    "Demo cycles LOW → MEDIUM (SMS) → CRITICAL (call)",
     "Reset exits demo and recalibrates",
-    "MEDIUM sends owner SMS",
-    "CRITICAL places real call",
     "LEDs are green / yellow / red",
+    "LCD shows stage and place label",
     "No servo — vents explained as app",
-    "Case fitted and buttons labeled",
+    "Case fitted · DEMO and RESET labeled",
   ];
   const el = document.getElementById("checklist");
   items.forEach(t => {

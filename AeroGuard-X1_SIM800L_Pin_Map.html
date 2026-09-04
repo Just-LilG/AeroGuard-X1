@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AeroGuard-X1 — SIM800L pin map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Space+Mono:wght@400;700&family=Archivo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #EDE6D6; --ink: #2B2620; --soft: #5C5142; --line: #C9BC9E;
+    --green: #3F6B45; --yellow: #C4A035; --red: #A8341F; --stamp: #9E2B25;
+    --pcb: #B42318; --pcb-dark: #7A140E; --gold: #D4B36A; --metal: #C5C8CC;
+    --font-d: 'Archivo', sans-serif; --font-c: 'Oswald', sans-serif; --font-m: 'Space Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-d); line-height: 1.55; }
+  .strip { background: var(--green); color: var(--paper); padding: 10px 24px; font-family: var(--font-m); font-size: 12px; letter-spacing: 0.08em; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 0 24px 64px; }
+  header { padding: 40px 0 24px; border-bottom: 4px double var(--ink); }
+  h1 { font-family: var(--font-c); text-transform: uppercase; font-size: clamp(28px, 6vw, 48px); line-height: 1; }
+  h1 span { display: block; font-family: var(--font-m); font-size: 0.28em; color: var(--stamp); margin-top: 10px; letter-spacing: 0.12em; }
+  .lede { margin-top: 14px; color: var(--soft); max-width: 62ch; }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0 8px; }
+  .legend span { font-family: var(--font-m); font-size: 11px; padding: 6px 10px; border: 1.5px solid var(--ink); }
+  .legend .use { background: rgba(63,107,69,0.15); border-color: var(--green); color: var(--green); }
+  .legend .skip { background: #E7E1D4; color: var(--soft); }
+  .legend .never { background: rgba(158,43,37,0.1); border-color: var(--stamp); color: var(--stamp); }
+  h2.sec { font-family: var(--font-c); text-transform: uppercase; font-size: 24px; margin: 36px 0 8px; }
+  .kicker { font-family: var(--font-m); font-size: 11px; color: var(--stamp); letter-spacing: 0.1em; text-transform: uppercase; }
+  .desc { color: var(--soft); font-size: 14px; margin-bottom: 16px; max-width: 62ch; }
+  .stage { margin: 22px 0; padding: 18px; border: 1.5px solid var(--ink); background: #F5F0E4; }
+  .board-wrap { overflow-x: auto; padding: 8px 0 4px; }
+  .board {
+    width: min(100%, 720px); margin: 0 auto; background:
+      linear-gradient(180deg, #C42A1C 0%, var(--pcb) 40%, var(--pcb-dark) 100%);
+    border: 3px solid #4A0D08; border-radius: 10px; padding: 18px 16px 20px;
+    box-shadow: 0 10px 0 #3A0A07, 0 18px 28px rgba(43,38,32,0.18);
+    position: relative;
+  }
+  .board-title { font-family: var(--font-m); font-size: 10px; color: #F7D2C8; letter-spacing: 0.16em; text-transform: uppercase; text-align: right; margin-bottom: 10px; }
+  .row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  .hole {
+    appearance: none; border: 2px solid #2A0906; background: #1A1A1A; color: #F5F0E4;
+    min-height: 64px; border-radius: 8px; cursor: pointer; font-family: var(--font-m);
+    font-size: 11px; letter-spacing: 0.04em; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 4px; position: relative;
+  }
+  .hole .dot-pin { width: 12px; height: 12px; border-radius: 50%; background: var(--gold); box-shadow: inset 0 0 0 3px #1A1A1A; }
+  .hole.use { outline: 2px solid #8FCF8A; background: #163016; }
+  .hole.skip { opacity: 0.55; }
+  .hole.active { transform: translateY(-2px); outline: 3px solid #F5E6A8; }
+  .hole small { font-size: 9px; text-transform: uppercase; opacity: 0.8; }
+  .middle { margin: 14px 0; display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px; align-items: stretch; }
+  .can { background: linear-gradient(180deg, #D5D8DC, #9AA0A6); border: 2px solid #6D737A; border-radius: 6px; min-height: 88px; display: flex; align-items: center; justify-content: center; font-family: var(--font-m); font-size: 11px; color: #333; letter-spacing: 0.08em; text-transform: uppercase; box-shadow: inset 0 2px 0 #fff6, inset 0 -3px 0 #0002; }
+  .tray { background: #C9CDD2; border: 2px solid #6A6F75; border-radius: 6px; min-height: 88px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+  .sim { width: 54%; height: 48px; background: #2A2A2A; border-radius: 4px; border: 1px solid #111; position: relative; }
+  .sim:after { content: ""; position: absolute; right: 6px; top: 6px; width: 10px; height: 10px; background: #444; clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%); }
+  .tray span { font-family: var(--font-m); font-size: 10px; color: #333; letter-spacing: 0.08em; text-transform: uppercase; }
+  .hint { margin-top: 12px; font-size: 13px; color: #F7D2C8; text-align: center; }
+  .detail { margin-top: 16px; min-height: 84px; border-left: 4px solid var(--green); background: #EFE8D8; padding: 12px 14px; }
+  .detail.skip { border-color: var(--soft); }
+  .detail.never { border-color: var(--stamp); }
+  .detail h3 { font-family: var(--font-c); text-transform: uppercase; font-size: 18px; }
+  .detail p { color: var(--soft); font-size: 14px; margin-top: 4px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0 8px; }
+  .card.bad { border-color: var(--stamp); background: rgba(158,43,37,0.06); }
+  .card.good { border-color: var(--green); background: rgba(63,107,69,0.08); }
+  .steps { color: var(--soft); font-size: 14px; margin: 8px 0 0 18px; }
+  .steps li { margin: 8px 0; }
+  .card { background: #F5F0E4; border: 1.5px solid var(--ink); padding: 16px 18px; }
+  .card h3 { font-family: var(--font-c); text-transform: uppercase; font-size: 16px; }
+  .card p, .card li { color: var(--soft); font-size: 14px; }
+  .card ul { margin: 8px 0 0 18px; }
+  .card li { margin: 6px 0; }
+  pre { font-family: var(--font-m); font-size: 12px; background: #EDE6D6; border: 1px dashed var(--line); padding: 12px; overflow-x: auto; margin-top: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { border-bottom: 1px dashed var(--line); padding: 9px 6px; text-align: left; vertical-align: top; }
+  th { font-family: var(--font-m); font-size: 11px; text-transform: uppercase; color: var(--soft); }
+  .pin { font-family: var(--font-m); font-weight: 700; background: var(--ink); color: var(--paper); padding: 2px 8px; white-space: nowrap; }
+  .warn { margin-top: 12px; border-left: 3px solid var(--stamp); padding: 8px 10px; font-size: 13px; color: var(--soft); background: rgba(158,43,37,0.05); }
+  .ok { margin-top: 12px; border-left: 3px solid var(--green); padding: 8px 10px; font-size: 13px; color: var(--soft); background: rgba(63,107,69,0.08); }
+  footer { margin-top: 40px; padding-top: 18px; border-top: 4px double var(--ink); text-align: center; font-family: var(--font-m); font-size: 10px; color: var(--soft); letter-spacing: 0.08em; text-transform: uppercase; }
+  a { color: var(--stamp); }
+  @media (max-width: 700px) {
+    .wrap { padding: 0 16px 48px; }
+    .pair, .middle { grid-template-columns: 1fr; }
+    .hole { min-height: 58px; font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="strip"><div class="dot"></div><div>SIM800L MAP — 4 HOLES ONLY</div><div style="opacity:.7">VCC · GND · RXD · TXD</div></div>
+<div class="wrap">
+  <header>
+    <h1>Red SIM800L map<span>Picture page — tap a hole to see where the wire goes</span></h1>
+    <p class="lede">This is the mini phone chip in the box. Think of the red board as a small tap stand. You only open <strong>four taps</strong>. The other eight stay closed. Click a hole below. Green = wire it. Grey = leave empty.</p>
+    <div class="legend">
+      <span class="use">Green hole = wire today</span>
+      <span class="skip">Grey hole = leave empty</span>
+      <span class="never">Never Uno 5V on VCC</span>
+    </div>
+  </header>
+
+  <p class="kicker">Look at the board this way</p>
+  <h2 class="sec">Your red board</h2>
+  <p class="desc">SIM tray in the middle. Writing “SIM800L Coreboard” on the right. Top row is the only row you wire.</p>
+
+  <div class="stage">
+    <div class="board-wrap">
+      <div class="board" aria-label="SIM800L board">
+        <div class="board-title">SIM800L Coreboard · top row</div>
+        <div class="row" id="topRow"></div>
+        <div class="middle">
+          <div class="can">Metal can<br>phone chip inside</div>
+          <div class="tray"><div class="sim"></div><span>Nano-SIM tray</span></div>
+        </div>
+        <div class="board-title" style="margin: 4px 0 8px;">Bottom row · leave empty</div>
+        <div class="row" id="botRow"></div>
+        <p class="hint">Antenna is on the other side of this board — not the NET hole.</p>
+      </div>
+    </div>
+    <div class="detail" id="detail">
+      <h3>Tap a hole</h3>
+      <p>Start with VCC, GND, TXD, then RXD. RST stays empty.</p>
+    </div>
+  </div>
+
+  <p class="kicker">Where each used hole goes</p>
+  <h2 class="sec">The four wires</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Hole</th><th>Goes to</th><th>How</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pin">VCC</span></td><td>Cell <strong>plus</strong></td><td>18650 bump, or phone-battery +. Never Uno 5V or 3.3V.</td></tr>
+        <tr><td><span class="pin">GND</span></td><td>Cell minus + Uno GND</td><td><strong>Straight wire. No resistor.</strong></td></tr>
+        <tr><td><span class="pin">TXD</span></td><td>Uno <span class="pin">D5</span></td><td>Straight jumper. Chip talks, brain hears.</td></tr>
+        <tr><td><span class="pin">RXD</span></td><td>Uno <span class="pin">D6</span></td><td>Through 10k resistors. Not a bare wire.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="kicker">If the light died</p>
+  <h2 class="sec">The GND resistor is starving the chip</h2>
+  <p class="desc">The 10k to ground is only a tiny side pipe on the <strong>RXD talk wire</strong>. It is not part of the power drain. If you put that resistor in the SIM <strong>GND</strong> hole as the only ground, the pump cannot drink. The light goes off. No blink. No text. No call.</p>
+  <div class="pair">
+    <div class="card bad">
+      <h3>Wrong — light dies</h3>
+      <p>Resistor sitting in the fat drain.</p>
+<pre>Cell minus --- 10kΩ --- SIM GND     ← never
+Uno GND    --- 10kΩ --- SIM GND     ← never
+Cell plus  --- 10kΩ --- SIM VCC     ← never</pre>
+    </div>
+    <div class="card good">
+      <h3>Right — light can blink</h3>
+      <p>Fat drain is a straight black wire. Resistors only touch D6 / RXD.</p>
+<pre>Cell minus -------- SIM GND
+Uno GND    -------- SIM GND
+                    (no resistor)
+
+Uno D6 --- 10k ---+--- SIM RXD
+                  |
+                10k
+                  |
+              GND rail</pre>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Do this in order. Do not skip.</h3>
+    <ol class="steps">
+      <li><strong>Unplug both 10k resistors.</strong> Unplug D5 and D6 too. Leave RST empty.</li>
+      <li>Only two power wires, both <strong>straight</strong>: cell plus → SIM <strong>VCC</strong>. Cell minus + Uno GND → SIM <strong>GND</strong>.</li>
+      <li>Antenna on. SIM seated. The light should come back: fast blink, then maybe slow blink. If it stays dark, the cell is empty, backwards, or VCC/GND are swapped.</li>
+      <li>Then add <strong>TXD → D5</strong> straight. No resistor.</li>
+      <li>Last: the quiet-down pair on <strong>RXD only</strong>. One 10k from Uno D6 to SIM RXD. One 10k from that same RXD joint to the breadboard GND rail (the fat drain), <strong>not</strong> as the only wire in the SIM GND hole.</li>
+    </ol>
+    <div class="ok">When the light blinks again, Demo twice to MEDIUM. The screen should say <code>texting owner</code> (no wait-network pause).</div>
+  </div>
+
+  <p class="kicker">Leave these closed</p>
+  <h2 class="sec">Empty holes</h2>
+  <div class="card">
+    <ul>
+      <li><strong>NET</strong> — not the antenna. Leave empty.</li>
+      <li><strong>RST</strong> — leave empty. Unplug any wire here.</li>
+      <li><strong>RING, DTR, MIC, SPK</strong> — no mic, no speaker. The box texts and calls by itself.</li>
+    </ul>
+    <p style="margin-top:10px">Slide the nano-SIM into the silver tray. Gold pads toward the board. Cut corner matches. Network light: fast blink = hunting. <strong>Slow blink</strong> = on the network.</p>
+  </div>
+
+  <p class="ok">Same pin map as the program. Owner <strong>+233557164067</strong>. Backup <strong>+233599494342</strong>.</p>
+  <footer>
+    AeroGuard-X1 · open this file in a browser ·
+    <a href="AeroGuard-X1_Assembly_Guide.html">assembly manual</a>
+  </footer>
+</div>
+<script>
+  const pins = {
+    top: [
+      { id: 'NET', use: false, title: 'NET', body: 'Leave empty. This is not the antenna. The antenna screws on the other side of the board.' },
+      { id: 'VCC', use: true, never: true, title: 'VCC — cell plus', body: 'Wire cell PLUS here. 18650 bump, or the + pad on a phone battery. Never Uno 5V. Never Uno 3.3V. A resistor cannot replace the cell.' },
+      { id: 'RST', use: false, title: 'RST', body: 'Leave empty. If a purple or extra wire is here, unplug it.' },
+      { id: 'RXD', use: true, title: 'RXD — Uno D6', body: 'Brain talks, chip hears. Wire from Uno D6 through 10k resistors, then to this hole. Not a bare wire.' },
+      { id: 'TXD', use: true, title: 'TXD — Uno D5', body: 'Chip talks, brain hears. Straight jumper from this hole to Uno D5. No resistor.' },
+      { id: 'GND', use: true, title: 'GND — fat drain, no resistor', body: 'Straight black wire from SIM GND to cell minus and Uno GND. Never put a 10k in this wire. If you do, the light dies and the chip cannot call.' },
+    ],
+    bot: [
+      { id: 'RING', use: false, title: 'RING', body: 'Leave empty. The box does not need a “phone is ringing” pin.' },
+      { id: 'DTR', use: false, title: 'DTR', body: 'Leave empty. Extra control. Not used.' },
+      { id: 'MICP', use: false, title: 'MICP', body: 'Leave empty. No microphone.' },
+      { id: 'MICN', use: false, title: 'MICN', body: 'Leave empty. No microphone.' },
+      { id: 'SPKP', use: false, title: 'SPKP', body: 'Leave empty. No speaker. The chip still calls and texts.' },
+      { id: 'SPKN', use: false, title: 'SPKN', body: 'Leave empty. No speaker.' }
+    ]
+  };
+
+  const detail = document.getElementById('detail');
+
+  function render(rowId, list) {
+    const row = document.getElementById(rowId);
+    list.forEach((pin, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'hole ' + (pin.use ? 'use' : 'skip');
+      btn.type = 'button';
+      btn.innerHTML = '<span class="dot-pin"></span>' + pin.id + '<small>' + (pin.use ? 'wire' : 'empty') + '</small>';
+      btn.addEventListener('click', () => select(btn, pin));
+      row.appendChild(btn);
+      if (rowId === 'topRow' && i === 1) select(btn, pin);
+    });
+  }
+
+  function select(btn, pin) {
+    document.querySelectorAll('.hole').forEach(h => h.classList.remove('active'));
+    btn.classList.add('active');
+    detail.className = 'detail' + (pin.never ? ' never' : pin.use ? '' : ' skip');
+    detail.innerHTML = '<h3>' + pin.title + '</h3><p>' + pin.body + '</p>';
+  }
+
+  render('topRow', pins.top);
+  render('botRow', pins.bot);
+</script>
+</body>
+</html>

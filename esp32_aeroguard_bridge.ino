@@ -1,6 +1,9 @@
 /*
   ============================================================
-  AEROGUARD-X1 — ESP32 WiFi bridge
+  AEROGUARD-X1 — ESP32 WiFi bridge (optional / Phase 2)
+  Not part of the contest demo packing list. Skip this board
+  for the pitch kit. The Uno + GSM + Vercel app is the demo.
+
   Board: ESP32 DevKit (or compatible)
 
   Role:

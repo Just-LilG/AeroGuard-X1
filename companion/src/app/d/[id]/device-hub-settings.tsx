@@ -98,7 +98,7 @@ export function DeviceTab({
             onChange={(e) => setBackup(e.target.value)}
           />
           <p className="mt-1.5 text-[12px] text-muted-foreground">
-            SMS only after 3 minutes if the owner has not cleared the alert.
+            SMS after the owner is warned (MEDIUM, CRITICAL, or FIRE).
           </p>
         </div>
         <Button
@@ -112,10 +112,10 @@ export function DeviceTab({
       </div>
 
       <div className="glass rounded-[1.35rem] px-4 py-1">
-        <InfoRow icon={Radio} label="Link" value="ESP32 WiFi (remote)" />
+        <InfoRow icon={Radio} label="Link" value="Contest app (simulated)" />
         <InfoRow icon={Phone} label="GSM" value="SIM800L alerts" />
         <InfoRow icon={Flame} label="Sensors" value="Gas + flame" />
-        <InfoRow icon={Check} label="Firmware" value="Uno + ESP32 bridge" last />
+        <InfoRow icon={Check} label="Firmware" value="Arduino Uno" last />
       </div>
 
       {!confirmRemove ? (

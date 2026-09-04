@@ -79,7 +79,7 @@ export function StatusTab({
         />
         <Metric
           label="Backup SMS"
-          value="After 3 min"
+          value="After owner"
           hint={device.backupPhone || "No number"}
         />
       </div>

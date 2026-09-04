@@ -129,7 +129,7 @@ export default function HomePage() {
               <ul className="mt-2 space-y-2 text-[12px] leading-relaxed text-muted-foreground">
                 <li>Each card is one AeroGuard — open it for status, vents, and phones.</li>
                 <li>MEDIUM texts the owner; CRITICAL / FIRE also calls.</li>
-                <li>Backup gets SMS only after 3 minutes if nobody clears.</li>
+                <li>Backup gets an SMS after the owner is warned.</li>
               </ul>
             </section>
 
@@ -233,7 +233,7 @@ export default function HomePage() {
             </section>
 
             <p className="pt-2 text-center font-mono text-[10px] text-muted-foreground">
-              Contest demo · ESP32 WiFi remote · GSM on the box
+              Contest demo · simulated app · real GSM on the box
             </p>
           </>
         )}

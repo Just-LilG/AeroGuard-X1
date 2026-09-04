@@ -1,319 +1,746 @@
 /*
-  AEROGUARD-X1 — Arduino Uno firmware with ESP32 WiFi bridge on A1/A3
+  AeroGuard-X1 — written from scratch. Same pin map.
+
+  What this box does:
+  - Green = safe / low. Yellow = medium. Red = critical / fire.
+  - Demo button (D9 joined to GND) is only a fire drill.
+  - Boot show, then a short calibrating show, then READY.
+  - Buzzer keeps buzzing while a text or call goes out.
+  - "calling..." / "texting..." show for 3 seconds, then hide.
+    The call still rings and the text still goes out.
+  - Real gas on A0, or flame on A2, raises the alarm with no Demo press.
+  - Reset button (D7 joined to GND) goes back to safe.
+  - The phone chip (SIM800L) only wakes when we send a warning. Not at boot.
+
+  Screen: 4 wires. GND, VCC, SDA, SCL.
+    GND → GND     VCC → 5V     SDA → A4     SCL → A5
+
+  Pins (do not change):
+    A0  gas analog
+    A1  empty
+    A2  flame analog
+    A3  empty
+    A4  LCD SDA
+    A5  LCD SCL
+    D2  green LED
+    D3  yellow LED
+    D4  red LED
+    D5  SIM TXD (straight wire)
+    D6  SIM RXD (through 10k resistors)
+    D7  Reset → GND
+    D8  buzzer
+    D9  Demo → GND
+    D10–D13 empty
+
+  SIM VCC from a 3.7V cell only. Never Uno 5V.
 */
 
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <SoftwareSerial.h>
-#include <SPI.h>
-#include <SD.h>
+#include <string.h>
 
+// ---- same pin map ----
 const int PIN_GAS = A0;
-const int PIN_APP_RX = A1;  // Uno RX <- ESP32 TX
 const int PIN_FLAME = A2;
-const int PIN_APP_TX = A3;  // Uno TX -> ESP32 RX
-const int PIN_LED_GREEN = 2;
-const int PIN_LED_YELLOW = 3;
-const int PIN_LED_RED = 4;
-const int PIN_SIM_RX = 5;
-const int PIN_SIM_TX = 6;
-const int PIN_BTN_RESET = 7;
+const int PIN_GREEN = 2;
+const int PIN_YELLOW = 3;
+const int PIN_RED = 4;
+const int PIN_SIM_RX = 5;   // Uno listens. Wire to SIM TXD.
+const int PIN_SIM_TX = 6;   // Uno talks. Wire to SIM RXD through 10k.
+const int PIN_RESET = 7;
 const int PIN_BUZZER = 8;
-const int PIN_BTN_DEMO = 9;
-const int PIN_SD_CS = 10;
+const int PIN_DEMO = 9;
 
+// 16 letters × 2 rows. If the screen is blank, try 0x3F instead of 0x27.
 LiquidCrystal_I2C lcd(0x27, 16, 2);
-SoftwareSerial simSerial(PIN_SIM_RX, PIN_SIM_TX);
-SoftwareSerial appSerial(PIN_APP_RX, PIN_APP_TX);  // ESP32 WiFi bridge
-const char* OWNER_CONTACT = "+233XXXXXXXXX";
-const char* SECONDARY_CONTACT = "+233YYYYYYYYY";
+SoftwareSerial sim(PIN_SIM_RX, PIN_SIM_TX);
+
+const char* OWNER_CONTACT = "+233557164067";
+const char* SECONDARY_CONTACT = "+233599494342";
 const char* DEVICE_LABEL = "AeroGuard Kitchen";
 
-const unsigned long CALIBRATION_TIME_MS = 45000;
-const unsigned long CALIBRATION_SAMPLE_MS = 500;
-const float THRESHOLD_LOW = 20.0;
-const float THRESHOLD_MEDIUM = 40.0;
-const float THRESHOLD_CRITICAL = 70.0;
-const unsigned long CONFIRM_WINDOW_MS = 8000;
-const unsigned long RESPONSE_WINDOW_MS = 180000;
-const int FLAME_DETECT_THRESHOLD = 400;
-const unsigned long BTN_DEBOUNCE_MS = 400;
+// true = send real texts/calls. Set false if the 3.7V cell is unplugged.
+const bool PHONE_ALERTS = true;
+// SMS wait. Keep texts short.
+const unsigned long SMS_BURST_MS = 3000;
+// A real call needs longer than 3s. The other phone has not even started ringing yet at 3s.
+const unsigned long CALL_RING_MS = 15000;
+// LCD "calling..." / "texting..." animation. Hide after this. Do not hang up.
+const unsigned long PHONE_UI_MS = 3000;
+const unsigned long BOOT_MS = 2200;
+const unsigned long CAL_MS = 3200;
 
-enum RiskLevel { SAFE = 0, LOW = 1, MEDIUM = 2, CRITICAL = 3, FIRE = 4 };
-float gasBaseline = 0;
-float gasReading = 0;
-float gasPrevious = 0;
-RiskLevel currentLevel = SAFE;
-RiskLevel pendingLevel = SAFE;
-unsigned long thresholdCrossedAt = 0;
+// Flame analog drops when it sees fire light. Lower this if a lighter never trips.
+const int FLAME_DETECT_THRESHOLD = 400;
+// How far the gas number must climb above quiet air.
+const int GAS_LOW_ABOVE = 40;
+const int GAS_MED_ABOVE = 90;
+const int GAS_CRIT_ABOVE = 160;
+
+// 0=safe  1=low  2=medium  3=critical  4=fire
+int level = 0;
 bool demoMode = false;
-int demoStage = 0;
-bool ownerNotified = false;
-bool secondaryNotified = false;
-unsigned long criticalSince = 0;
-bool sdReady = false;
-unsigned long lastLcdSwitch = 0;
-bool lcdAltView = false;
+
+int gasCalm = 0;
+int lastDemo = HIGH;
+int lastReset = HIGH;
+
+unsigned long lcdAt = 0;
+unsigned long beepAt = 0;
+unsigned long warnAt = 0;
+int lastWarned = -1;
+
+int liveHold = 0;
+unsigned long liveHoldAt = 0;
+unsigned long liveReadyAt = 0;
+int lastGas = 0;
+int lastFlame = 0;
+unsigned long logAt = 0;
+int showPhase = 0;  // 0 boot, 1 calibrating, 2 running
+unsigned long showAt = 0;
+bool buzzOn = false;
+
+// Phone work is a short list of steps. One step, wait, next step.
+int phoneStep = 0;
+unsigned long phoneAt = 0;
+char phoneTo[20];
+char phoneText[80];
+char phoneUi[17];
+unsigned long phoneUiAt = 0;
+bool phoneUiStayHidden = false;
+bool phoneAlsoSms = false;
+bool phoneIsBackup = false;
+bool backupDone = false;
+int phoneTries = 0;
+
+char simBuf[48];
+byte simBufLen = 0;
+bool simOK = false;
+bool simErr = false;
+bool simPrompt = false;
+
+void padLine(const char* text) {
+  int n = 0;
+  while (text[n] && n < 16) {
+    lcd.print(text[n]);
+    n++;
+  }
+  while (n < 16) {
+    lcd.print(' ');
+    n++;
+  }
+}
+
+void paint(const char* top, const char* bottom) {
+  lcd.setCursor(0, 0);
+  padLine(top);
+  lcd.setCursor(0, 1);
+  padLine(bottom);
+}
+
+const char* levelWord() {
+  if (level == 0) return "SAFE";
+  if (level == 1) return "LOW";
+  if (level == 2) return "MEDIUM";
+  if (level == 3) return "CRITICAL";
+  return "FIRE";
+}
+
+void silenceBuzzer() {
+  digitalWrite(PIN_BUZZER, LOW);
+  noTone(PIN_BUZZER);
+  buzzOn = false;
+}
+
+void setLights() {
+  digitalWrite(PIN_GREEN, LOW);
+  digitalWrite(PIN_YELLOW, LOW);
+  digitalWrite(PIN_RED, LOW);
+
+  if (showPhase == 0) {
+    unsigned long t = millis() - showAt;
+    digitalWrite(PIN_GREEN, t > 200);
+    digitalWrite(PIN_YELLOW, t > 700);
+    digitalWrite(PIN_RED, t > 1200);
+    return;
+  }
+
+  if (showPhase == 1) {
+    digitalWrite(PIN_GREEN, (millis() / 250) % 2);
+    return;
+  }
+
+  if (level == 0) {
+    digitalWrite(PIN_GREEN, (millis() / 500) % 2);
+  } else if (level == 1) {
+    digitalWrite(PIN_GREEN, HIGH);
+  } else if (level == 2) {
+    digitalWrite(PIN_YELLOW, HIGH);
+  } else {
+    digitalWrite(PIN_RED, HIGH);
+    digitalWrite(PIN_YELLOW, (millis() / 200) % 2);
+  }
+}
+
+void setSound() {
+  if (showPhase < 2 || level <= 1) {
+    silenceBuzzer();
+    return;
+  }
+
+  unsigned long wait = 400;
+  if (level == 3) wait = 160;
+  if (level == 4) wait = 80;
+
+  if (millis() - beepAt >= wait) {
+    beepAt = millis();
+    buzzOn = !buzzOn;
+    digitalWrite(PIN_BUZZER, buzzOn ? HIGH : LOW);
+  }
+}
+
+void setScreen() {
+  hidePhoneUiIfDue();
+  if (millis() - lcdAt < 320) return;
+  lcdAt = millis();
+
+  char top[17];
+  char bottom[17];
+
+  if (showPhase == 0) {
+    int frame = (int)(((millis() - showAt) / 400) % 4);
+    if (frame == 0) paint("AeroGuard-X1", "waking");
+    else if (frame == 1) paint("AeroGuard-X1", "waking.");
+    else if (frame == 2) paint("AeroGuard-X1", "waking..");
+    else paint("AeroGuard-X1", "waking...");
+    return;
+  }
+
+  if (showPhase == 1) {
+    unsigned long t = millis() - showAt;
+    int fill = (int)(t * 14 / CAL_MS);
+    if (fill < 1) fill = 1;
+    if (fill > 14) fill = 14;
+    bottom[0] = '[';
+    for (int i = 0; i < 14; i++) bottom[i + 1] = (i < fill) ? '=' : ' ';
+    bottom[15] = ']';
+    bottom[16] = 0;
+    paint("CALIBRATING", bottom);
+    return;
+  }
+
+  if (level == 0) {
+    snprintf(top, 17, "READY      SAFE");
+    snprintf(bottom, 17, "gas %4d  D9", lastGas);
+    paint(top, bottom);
+    return;
+  }
+
+  snprintf(top, 17, "ALARM  %-8s", levelWord());
+  if (phoneUi[0] && !phoneUiStayHidden) {
+    bool bounce =
+      (strcmp(phoneUi, "calling") == 0) ||
+      (strcmp(phoneUi, "texting") == 0) ||
+      (strcmp(phoneUi, "text backup") == 0);
+    char line[17];
+    int n = 0;
+    while (phoneUi[n] && n < 16) {
+      line[n] = phoneUi[n];
+      n++;
+    }
+    if (bounce) {
+      if (n > 13) n = 13;
+      int dots = (int)(((millis() - phoneUiAt) / 400) % 4);
+      for (int d = 0; d < dots && n < 16; d++) {
+        line[n++] = '.';
+      }
+    }
+    line[n] = 0;
+    paint(top, line);
+    return;
+  }
+  if (demoMode) {
+    snprintf(bottom, 17, "DEMO  gas %4d", lastGas);
+  } else {
+    snprintf(bottom, 17, "LIVE  gas %4d", lastGas);
+  }
+  paint(top, bottom);
+}
+
+void pumpShow() {
+  if (showPhase == 0 && millis() - showAt >= BOOT_MS) {
+    showPhase = 1;
+    showAt = millis();
+    lcdAt = 0;
+    gasCalm = analogRead(PIN_GAS);
+    lastGas = gasCalm;
+  }
+  if (showPhase == 1 && millis() - showAt >= CAL_MS) {
+    showPhase = 2;
+    liveReadyAt = millis();
+    lcdAt = 0;
+  }
+}
+
+void skipShow() {
+  showPhase = 2;
+  liveReadyAt = millis();
+  lcdAt = 0;
+  digitalWrite(PIN_YELLOW, LOW);
+  digitalWrite(PIN_RED, LOW);
+}
+
+void setPhoneUi(const char* text) {
+  // Once the 3s show has hidden, stay on the alarm screen for this job.
+  if (phoneUiStayHidden) return;
+  strncpy(phoneUi, text, 16);
+  phoneUi[16] = 0;
+  phoneUiAt = millis();
+  lcdAt = 0;
+}
+
+void hidePhoneUiIfDue() {
+  if (phoneUiStayHidden) return;
+  if (!phoneUi[0]) return;
+  if (millis() - phoneUiAt < PHONE_UI_MS) return;
+  phoneUi[0] = 0;
+  phoneUiStayHidden = true;
+  lcdAt = 0;
+}
+
+void clearPhoneUi() {
+  phoneUi[0] = 0;
+  phoneUiStayHidden = false;
+  lcdAt = 0;
+}
+
+void simListen() {
+  while (sim.available()) {
+    char c = (char)sim.read();
+    Serial.write(c);
+    if (c == '>') simPrompt = true;
+    if (c == '\r' || c == '\n') {
+      if (simBufLen > 0) {
+        simBuf[simBufLen] = 0;
+        if (strstr(simBuf, "OK")) simOK = true;
+        if (strstr(simBuf, "ERROR")) simErr = true;
+        if (strstr(simBuf, "NO CARRIER")) simErr = true;
+        if (strstr(simBuf, "NO DIALTONE")) simErr = true;
+        if (strstr(simBuf, "BUSY")) simErr = true;
+      }
+      simBufLen = 0;
+    } else if (simBufLen < 46) {
+      simBuf[simBufLen++] = c;
+    }
+  }
+}
+
+void simSend(const char* cmd) {
+  simOK = false;
+  simErr = false;
+  simPrompt = false;
+  Serial.print(F(">> "));
+  Serial.println(cmd);
+  sim.println(cmd);
+  phoneAt = millis();
+}
+
+void hangUp() {
+  if (PHONE_ALERTS) sim.println("ATH");
+  phoneStep = 0;
+  phoneAlsoSms = false;
+  phoneIsBackup = false;
+  clearPhoneUi();
+  if (level <= 1) silenceBuzzer();
+}
+
+void startCallThenSms(const char* number, const char* text) {
+  if (!PHONE_ALERTS) return;
+  strncpy(phoneTo, number, 19);
+  phoneTo[19] = 0;
+  strncpy(phoneText, text, 79);
+  phoneText[79] = 0;
+  phoneAlsoSms = true;
+  phoneIsBackup = false;
+  phoneTries = 0;
+  phoneStep = 1;
+  phoneAt = millis();
+  phoneUiStayHidden = false;
+  phoneUi[0] = 0;
+}
+
+void startSmsOnly(const char* number, const char* text) {
+  if (!PHONE_ALERTS) return;
+  strncpy(phoneTo, number, 19);
+  phoneTo[19] = 0;
+  strncpy(phoneText, text, 79);
+  phoneText[79] = 0;
+  phoneAlsoSms = false;
+  phoneTries = 0;
+  phoneStep = 1;
+  phoneAt = millis();
+  phoneUiStayHidden = false;
+  phoneUi[0] = 0;
+}
+
+void phoneDone() {
+  phoneStep = 0;
+  phoneAlsoSms = false;
+  phoneIsBackup = false;
+  clearPhoneUi();
+}
+
+void pumpPhone() {
+  if (!PHONE_ALERTS || phoneStep == 0) return;
+
+  hidePhoneUiIfDue();
+  simListen();
+  unsigned long now = millis();
+
+  // 1: open the talk wire, keep buzzing, say AT
+  if (phoneStep == 1) {
+    sim.begin(9600);
+    delay(20);
+    while (sim.available()) sim.read();
+    simBufLen = 0;
+    simSend("AT");
+    phoneTries = 1;
+    phoneStep = 2;
+    return;
+  }
+
+  // 2: keep saying AT until the chip answers OK (auto-baud)
+  if (phoneStep == 2) {
+    if (simOK) {
+      simSend("ATE0");
+      phoneStep = 3;
+      return;
+    }
+    if (now - phoneAt > 800) {
+      phoneTries++;
+      if (phoneTries > 12) {
+        Serial.println(F("SIM: no AT. Check cell VCC, GND, D5=TXD, D6=RXD."));
+        phoneUiStayHidden = false;
+        setPhoneUi("no SIM talk");
+        phoneStep = 0;
+        phoneAlsoSms = false;
+        phoneIsBackup = false;
+        return;
+      }
+      simSend("AT");
+    }
+    return;
+  }
+
+  // 3: echo off
+  if (phoneStep == 3) {
+    if (simOK || now - phoneAt > 800) {
+      simSend("AT+CFUN=1");
+      phoneStep = 4;
+    }
+    return;
+  }
+
+  // 4: radio on, then call or text right away (no network wait)
+  if (phoneStep == 4) {
+    if (simOK || now - phoneAt > 1500) {
+      if (phoneAlsoSms) {
+        setPhoneUi("calling");
+        sim.print("ATD");
+        sim.print(phoneTo);
+        sim.println(";");
+        Serial.print(F(">> ATD"));
+        Serial.print(phoneTo);
+        Serial.println(F(";"));
+        phoneAt = now;
+        phoneStep = 6;
+      } else {
+        setPhoneUi(phoneIsBackup ? "text backup" : "texting");
+        simSend("AT+CMGF=1");
+        phoneStep = 8;
+      }
+    }
+    return;
+  }
+
+  // 6: keep ringing long enough for the other phone to start
+  if (phoneStep == 6) {
+    if (simErr) {
+      Serial.println(F("SIM: call failed"));
+      phoneUiStayHidden = false;
+      setPhoneUi("call failed");
+      simSend("ATH");
+      phoneStep = 7;
+      return;
+    }
+    if (now - phoneAt > CALL_RING_MS) {
+      simSend("ATH");
+      phoneStep = 7;
+    }
+    return;
+  }
+
+  // 7: after hang up, send the text
+  if (phoneStep == 7) {
+    if (simOK || now - phoneAt > 1200) {
+      if (phoneAlsoSms) {
+        phoneAlsoSms = false;
+        // Keep the LCD on the alarm screen. The text still goes out.
+        simSend("AT+CMGF=1");
+        phoneStep = 8;
+      } else {
+        phoneDone();
+      }
+    }
+    return;
+  }
+
+  // 8: text mode
+  if (phoneStep == 8) {
+    if (simOK || now - phoneAt > 1200) {
+      simOK = false;
+      simPrompt = false;
+      Serial.print(F(">> AT+CMGS=\""));
+      Serial.print(phoneTo);
+      Serial.println('"');
+      sim.print("AT+CMGS=\"");
+      sim.print(phoneTo);
+      sim.println('"');
+      phoneAt = now;
+      phoneStep = 9;
+    }
+    return;
+  }
+
+  // 9: wait for the > prompt, then pour the words and Ctrl+Z
+  if (phoneStep == 9) {
+    if (simPrompt || now - phoneAt > SMS_BURST_MS) {
+      Serial.println(F(">> (sms body)"));
+      sim.print(phoneText);
+      sim.write(26);
+      phoneAt = now;
+      phoneStep = 10;
+    }
+    return;
+  }
+
+  // 10: wait for the chip to say the text went out
+  if (phoneStep == 10) {
+    if (simOK || now - phoneAt > SMS_BURST_MS) {
+      Serial.println(simOK ? F("SIM: SMS sent") : F("SIM: SMS timeout"));
+      phoneDone();
+    }
+  }
+}
+
+void raiseLevel(int next, bool fromDemo) {
+  if (next < 0) next = 0;
+  if (next > 4) next = 4;
+  if (next == level && fromDemo == demoMode) return;
+
+  level = next;
+  demoMode = fromDemo;
+  lcdAt = 0;
+  lastWarned = -1;
+
+  Serial.print(F("Level "));
+  Serial.print(levelWord());
+  if (fromDemo) Serial.println(F(" (DEMO)"));
+  else Serial.println(F(" (LIVE)"));
+
+  if (level == 0) {
+    hangUp();
+    backupDone = false;
+    warnAt = 0;
+    silenceBuzzer();
+  }
+}
+
+void maybeWarnPhones() {
+  if (showPhase < 2) return;
+  if (!PHONE_ALERTS) return;
+  if (level < 2) return;
+  if (lastWarned == level) return;
+  lastWarned = level;
+  warnAt = millis();
+  phoneIsBackup = false;
+
+  char text[80];
+  if (level == 2) {
+    snprintf(text, 80, "AeroGuard MEDIUM gas at %s", DEVICE_LABEL);
+    startSmsOnly(OWNER_CONTACT, text);
+  } else if (level == 3) {
+    snprintf(text, 80, "AeroGuard CRITICAL at %s. Leave now.", DEVICE_LABEL);
+    startCallThenSms(OWNER_CONTACT, text);
+    backupDone = false;
+  } else {
+    snprintf(text, 80, "AeroGuard FIRE and gas at %s", DEVICE_LABEL);
+    startCallThenSms(OWNER_CONTACT, text);
+    backupDone = false;
+  }
+}
+
+void maybeBackupSms() {
+  if (!PHONE_ALERTS) return;
+  if (backupDone) return;
+  if (level < 2) return;
+  if (warnAt == 0) return;
+  if (phoneStep != 0) return;
+
+  char text[80];
+  snprintf(text, 80, "BACKUP: AeroGuard %s at %s", levelWord(), DEVICE_LABEL);
+  phoneIsBackup = true;
+  startSmsOnly(SECONDARY_CONTACT, text);
+  backupDone = true;
+}
+
+void readButtons() {
+  int demoNow = digitalRead(PIN_DEMO);
+  int resetNow = digitalRead(PIN_RESET);
+
+  // Press = pin just went from HIGH (open) to LOW (joined to GND).
+  if (lastDemo == HIGH && demoNow == LOW) {
+    if (showPhase < 2) skipShow();
+    int next = level + 1;
+    if (next > 4) next = 0;
+    raiseLevel(next, true);
+    delay(40);
+  }
+
+  if (lastReset == HIGH && resetNow == LOW) {
+    gasCalm = analogRead(PIN_GAS);
+    lastGas = gasCalm;
+    liveHold = 0;
+    liveHoldAt = millis();
+    showPhase = 1;
+    showAt = millis();
+    liveReadyAt = millis() + CAL_MS;
+    raiseLevel(0, false);
+    delay(40);
+  }
+
+  lastDemo = demoNow;
+  lastReset = resetNow;
+}
+
+int readSmoothGas() {
+  long sum = 0;
+  for (int i = 0; i < 8; i++) sum += analogRead(PIN_GAS);
+  return (int)(sum / 8);
+}
+
+void followQuietAir(int gas) {
+  // The nose can drift while it warms. Follow slow drift.
+  // A leak jumps up, so we do not chase a big climb.
+  if (gas < gasCalm) {
+    gasCalm = (gasCalm * 7 + gas) / 8;
+  } else if ((gas - gasCalm) < 15) {
+    gasCalm = (gasCalm * 31 + gas) / 32;
+  }
+}
+
+int liveLevelFromSensors(int gas, int flame) {
+  bool fire = flame < FLAME_DETECT_THRESHOLD;
+  int climb = gas - gasCalm;
+  if (climb < 0) climb = 0;
+
+  int fromGas = 0;
+  if (climb > GAS_CRIT_ABOVE) fromGas = 3;
+  else if (climb > GAS_MED_ABOVE) fromGas = 2;
+  else if (climb > GAS_LOW_ABOVE) fromGas = 1;
+
+  if (fire && fromGas >= 1) return 4;
+  if (fire) return 3;
+  return fromGas;
+}
+
+void readLiveSensors() {
+  lastGas = readSmoothGas();
+  lastFlame = analogRead(PIN_FLAME);
+
+  if (showPhase < 2 || millis() < liveReadyAt) {
+    gasCalm = lastGas;
+    liveHold = 0;
+    liveHoldAt = millis();
+    return;
+  }
+
+  if (level == 0 && !demoMode) followQuietAir(lastGas);
+
+  int next = liveLevelFromSensors(lastGas, lastFlame);
+  if (next != liveHold) {
+    liveHold = next;
+    liveHoldAt = millis();
+  }
+
+  unsigned long need = (next >= 3) ? 800 : 1000;
+  if (millis() - liveHoldAt < need) return;
+
+  // Demo is only a drill. Real gas or flame can still raise the alarm.
+  if (demoMode) {
+    if (next > level) raiseLevel(next, false);
+    return;
+  }
+
+  if (next != level) raiseLevel(next, false);
+}
+
+void maybeLogGas() {
+  if (millis() - logAt < 1000) return;
+  logAt = millis();
+  Serial.print(F("gas="));
+  Serial.print(lastGas);
+  Serial.print(F(" calm="));
+  Serial.print(gasCalm);
+  Serial.print(F(" flame="));
+  Serial.println(lastFlame);
+}
 
 void setup() {
-  Serial.begin(9600);
-  pinMode(PIN_LED_GREEN, OUTPUT);
-  pinMode(PIN_LED_YELLOW, OUTPUT);
-  pinMode(PIN_LED_RED, OUTPUT);
+  pinMode(PIN_GREEN, OUTPUT);
+  pinMode(PIN_YELLOW, OUTPUT);
+  pinMode(PIN_RED, OUTPUT);
   pinMode(PIN_BUZZER, OUTPUT);
-  pinMode(PIN_BTN_RESET, INPUT_PULLUP);
-  pinMode(PIN_BTN_DEMO, INPUT_PULLUP);
-  pinMode(PIN_FLAME, INPUT);
+  pinMode(PIN_DEMO, INPUT_PULLUP);
+  pinMode(PIN_RESET, INPUT_PULLUP);
+
+  Serial.begin(9600);
+  Serial.println(F("AeroGuard-X1 boot"));
+  if (PHONE_ALERTS) sim.begin(9600);
+
+  Wire.begin();
   lcd.init();
   lcd.backlight();
-  lcd.setCursor(0, 0);
-  lcd.print("AeroGuard-X1");
-  lcd.setCursor(0, 1);
-  lcd.print("Starting...");
-  Serial.println(F("=== AeroGuard-X1 v1 ==="));
-  if (SD.begin(PIN_SD_CS)) { sdReady = true; logEvent("SYSTEM", "boot"); }
-  simSerial.begin(9600);
-  delay(2000);
-  initGSM();
-  appSerial.begin(9600);  // ESP32 bridge
-  calibrateGas();
-  setLevel(SAFE, true);
-  lcd.clear();
-  Serial.println(F("Ready. Demo btn = simulate leak."));
+  paint("AeroGuard-X1", "waking");
+
+  digitalWrite(PIN_BUZZER, HIGH);
+  delay(80);
+  digitalWrite(PIN_BUZZER, LOW);
+
+  gasCalm = analogRead(PIN_GAS);
+  lastGas = gasCalm;
+  lastFlame = analogRead(PIN_FLAME);
+  liveHold = 0;
+  liveHoldAt = millis();
+  showPhase = 0;
+  showAt = millis();
+  liveReadyAt = millis() + BOOT_MS + CAL_MS;
+  lastDemo = digitalRead(PIN_DEMO);
+  lastReset = digitalRead(PIN_RESET);
 }
 
 void loop() {
-  handleDemoButton();
-  handleResetButton();
-  pollAppBridge();
-  if (!demoMode) readSensorsAndEvaluate();
-  updateOutputs();
-  updateLCD();
-  handleSecondarySmsTimer();
-  emitAppStatus();
-  delay(200);
-}
-
-void handleDemoButton() {
-  static unsigned long last = 0;
-  if (digitalRead(PIN_BTN_DEMO) != LOW) return;
-  if (millis() - last < BTN_DEBOUNCE_MS) return;
-  last = millis();
-  demoMode = true;
-  demoStage++;
-  if (demoStage > 4) demoStage = 1;
-  RiskLevel staged = SAFE;
-  if (demoStage == 1) staged = LOW;
-  else if (demoStage == 2) staged = MEDIUM;
-  else if (demoStage == 3) staged = CRITICAL;
-  else if (demoStage == 4) staged = FIRE;
-  logEvent("DEMO", levelName(staged));
-  setLevel(staged, false);
-}
-
-void handleResetButton() {
-  static unsigned long last = 0;
-  if (digitalRead(PIN_BTN_RESET) != LOW) return;
-  if (millis() - last < BTN_DEBOUNCE_MS) return;
-  last = millis();
-  noTone(PIN_BUZZER);
-  demoMode = false;
-  demoStage = 0;
-  ownerNotified = false;
-  secondaryNotified = false;
-  logEvent("SYSTEM", "reset");
-  calibrateGas();
-  setLevel(SAFE, true);
-}
-
-void calibrateGas() {
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Calibrating...");
-  long total = 0;
-  int samples = 0;
-  unsigned long start = millis();
-  while (millis() - start < CALIBRATION_TIME_MS) {
-    total += analogRead(PIN_GAS);
-    samples++;
-    delay(CALIBRATION_SAMPLE_MS);
+  pumpShow();
+  readButtons();
+  if (phoneStep == 0) {
+    readLiveSensors();
+    maybeLogGas();
   }
-  gasBaseline = (float)total / samples;
-  gasReading = gasBaseline;
-  gasPrevious = gasBaseline;
-}
-
-void readSensorsAndEvaluate() {
-  gasPrevious = gasReading;
-  gasReading = analogRead(PIN_GAS);
-  float deviation = ((gasReading - gasBaseline) / gasBaseline) * 100.0;
-  if (deviation < 0) deviation = 0;
-  RiskLevel instant = SAFE;
-  if (deviation >= THRESHOLD_CRITICAL) instant = CRITICAL;
-  else if (deviation >= THRESHOLD_MEDIUM) instant = MEDIUM;
-  else if (deviation >= THRESHOLD_LOW) instant = LOW;
-  bool flame = (analogRead(PIN_FLAME) < FLAME_DETECT_THRESHOLD);
-  if (flame && instant != SAFE) { setLevel(FIRE, false); return; }
-  if (instant != pendingLevel) { pendingLevel = instant; thresholdCrossedAt = millis(); }
-  if (instant != currentLevel && millis() - thresholdCrossedAt >= CONFIRM_WINDOW_MS)
-    setLevel(instant, false);
-}
-
-void setLevel(RiskLevel level, bool silent) {
-  if (level == currentLevel && !silent) return;
-  RiskLevel previous = currentLevel;
-  currentLevel = level;
-  pendingLevel = level;
-  if (!silent) {
-    if (level == MEDIUM && previous < MEDIUM) notifyMedium();
-    else if (level == CRITICAL && previous < CRITICAL) notifyCritical();
-    else if (level == FIRE && previous != FIRE) notifyFire();
-  }
-  if (level == SAFE) { ownerNotified = false; secondaryNotified = false; }
-}
-
-void notifyMedium() {
-  char msg[120];
-  snprintf(msg, sizeof(msg), "AeroGuard MEDIUM at %s", DEVICE_LABEL);
-  sendSMS(OWNER_CONTACT, msg);
-  appPrintln(F("APP_CMD:VENT_OPEN"));
-  logEvent("ALERT", "MEDIUM");
-}
-
-void notifyCritical() {
-  char msg[120];
-  snprintf(msg, sizeof(msg), "AeroGuard CRITICAL at %s", DEVICE_LABEL);
-  callNumber(OWNER_CONTACT);
-  delay(1500);
-  sendSMS(OWNER_CONTACT, msg);
-  appPrintln(F("APP_CMD:VENT_OPEN"));
-  ownerNotified = true; secondaryNotified = false; criticalSince = millis();
-  logEvent("ALERT", "CRITICAL");
-}
-
-void notifyFire() {
-  char msg[120];
-  snprintf(msg, sizeof(msg), "AeroGuard FIRE at %s", DEVICE_LABEL);
-  callNumber(OWNER_CONTACT);
-  delay(1500);
-  sendSMS(OWNER_CONTACT, msg);
-  appPrintln(F("APP_CMD:VENT_OPEN"));
-  ownerNotified = true; secondaryNotified = false; criticalSince = millis();
-  logEvent("ALERT", "FIRE");
-}
-
-void handleSecondarySmsTimer() {
-  bool stillHigh = (currentLevel == CRITICAL || currentLevel == FIRE);
-  if (!ownerNotified || secondaryNotified || !stillHigh) return;
-  if (millis() - criticalSince < RESPONSE_WINDOW_MS) return;
-  char msg[120];
-  snprintf(msg, sizeof(msg), "AeroGuard backup: %s still %s", DEVICE_LABEL, levelName(currentLevel));
-  sendSMS(SECONDARY_CONTACT, msg);
-  secondaryNotified = true;
-}
-
-void updateOutputs() {
-  digitalWrite(PIN_LED_GREEN, currentLevel == LOW);
-  digitalWrite(PIN_LED_YELLOW, currentLevel == MEDIUM);
-  digitalWrite(PIN_LED_RED, currentLevel == CRITICAL || currentLevel == FIRE);
-  switch (currentLevel) {
-    case SAFE: case LOW: noTone(PIN_BUZZER); break;
-    case MEDIUM: tone(PIN_BUZZER, 1000, 180); break;
-    case CRITICAL: case FIRE: tone(PIN_BUZZER, 1600); break;
-  }
-}
-
-void updateLCD() {
-  if (millis() - lastLcdSwitch < 2000) return;
-  lastLcdSwitch = millis();
-  lcdAltView = !lcdAltView;
-  lcd.clear();
-  if (currentLevel == FIRE) {
-    lcd.setCursor(0, 0); lcd.print("FIRE RISK");
-    lcd.setCursor(0, 1); lcd.print(demoMode ? "DEMO MODE" : "EVACUATE");
-    return;
-  }
-  if (!lcdAltView) {
-    lcd.setCursor(0, 0); lcd.print(demoMode ? "DEMO " : "LIVE "); lcd.print(levelName(currentLevel));
-    lcd.setCursor(0, 1); lcd.print(DEVICE_LABEL);
-  } else {
-    lcd.setCursor(0, 0); lcd.print("Gas:"); lcd.print((int)gasReading);
-    lcd.setCursor(0, 1); lcd.print("Base:"); lcd.print((int)gasBaseline);
-  }
-}
-
-const char* levelName(RiskLevel lvl) {
-  switch (lvl) {
-    case SAFE: return "SAFE"; case LOW: return "LOW"; case MEDIUM: return "MEDIUM";
-    case CRITICAL: return "CRITICAL"; case FIRE: return "FIRE";
-  }
-  return "?";
-}
-
-void appPrint(const __FlashStringHelper* s) { Serial.print(s); appSerial.print(s); }
-void appPrint(const char* s) { Serial.print(s); appSerial.print(s); }
-void appPrint(int n) { Serial.print(n); appSerial.print(n); }
-void appPrintln(const __FlashStringHelper* s) { Serial.println(s); appSerial.println(s); }
-void appPrintln() { Serial.println(); appSerial.println(); }
-
-void emitAppStatus() {
-  static unsigned long last = 0;
-  if (millis() - last < 1000) return;
-  last = millis();
-  appPrint(F("STATUS level="));
-  appPrint(levelName(currentLevel));
-  appPrint(F(" demo="));
-  appPrint(demoMode ? 1 : 0);
-  appPrint(F(" gas="));
-  appPrint((int)gasReading);
-  appPrint(F(" vent=APP"));
-  appPrintln();
-}
-
-void pollAppBridge() {
-  static char buf[48];
-  static byte idx = 0;
-  while (appSerial.available()) {
-    char c = (char)appSerial.read();
-    if (c == '\r') continue;
-    if (c == '\n') {
-      buf[idx] = 0; idx = 0;
-      if (strncmp(buf, "APP_CMD:", 8) == 0) {
-        Serial.print(F("ESP32 cmd: ")); Serial.println(buf); logEvent("APP", buf);
-      }
-      continue;
-    }
-    if (idx < sizeof(buf) - 1) buf[idx++] = c;
-  }
-}
-
-void initGSM() {
-  simSerial.listen();
-  simSerial.println("AT"); delay(800);
-  simSerial.println("AT+CMGF=1"); delay(800);
-  appSerial.listen();
-}
-
-void sendSMS(const char* number, const char* message) {
-  simSerial.listen();
-  simSerial.print("AT+CMGF=1"); simSerial.write('\r'); delay(400);
-  simSerial.print("AT+CMGS="); simSerial.write('"');
-  simSerial.print(number); simSerial.write('"'); simSerial.println(); delay(400);
-  simSerial.print(message); delay(400); simSerial.write(26); delay(2500);
-  appSerial.listen();
-}
-
-void callNumber(const char* number) {
-  simSerial.listen();
-  simSerial.print("ATD"); simSerial.print(number); simSerial.println(";");
-  delay(18000); simSerial.println("ATH"); delay(800);
-  appSerial.listen();
-}
-
-void logEvent(const char* tag, const char* message) {
-  if (!sdReady) return;
-  File f = SD.open("gaslog.txt", FILE_WRITE);
-  if (!f) return;
-  f.print(millis()); f.print(F(" | ")); f.print(tag); f.print(F(" | ")); f.println(message);
-  f.close();
+  setLights();
+  setSound();
+  maybeWarnPhones();
+  maybeBackupSms();
+  pumpPhone();
+  setScreen();
 }

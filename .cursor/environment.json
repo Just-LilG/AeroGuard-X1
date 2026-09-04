@@ -1,0 +1,16 @@
+{
+  "name": "AeroGuard-X1",
+  "install": "cd companion && npm install",
+  "terminals": [
+    {
+      "name": "companion-dev",
+      "command": "cd companion && npm run dev -- --hostname 127.0.0.1 --port 43123"
+    }
+  ],
+  "ports": [
+    {
+      "name": "companion",
+      "port": 43123
+    }
+  ]
+}
