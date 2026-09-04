@@ -6,6 +6,8 @@
   - Demo button (D9 joined to GND) is only a fire drill.
   - Boot show, then a short calibrating show, then READY.
   - Buzzer keeps buzzing while a text or call goes out.
+  - "calling..." / "texting..." show for 3 seconds, then hide.
+    The call still rings and the text still goes out.
   - Real gas on A0, or flame on A2, raises the alarm with no Demo press.
   - Reset button (D7 joined to GND) goes back to safe.
   - The phone chip (SIM800L) only wakes when we send a warning. Not at boot.
@@ -64,7 +66,7 @@ const bool PHONE_ALERTS = true;
 const unsigned long SMS_BURST_MS = 3000;
 // A real call needs longer than 3s. The other phone has not even started ringing yet at 3s.
 const unsigned long CALL_RING_MS = 15000;
-// Show "calling now" / "texting" for this long, then hide. Call and SMS keep going.
+// LCD "calling..." / "texting..." animation. Hide after this. Do not hang up.
 const unsigned long PHONE_UI_MS = 3000;
 const unsigned long BOOT_MS = 2200;
 const unsigned long CAL_MS = 3200;
@@ -106,6 +108,7 @@ char phoneTo[20];
 char phoneText[80];
 char phoneUi[17];
 unsigned long phoneUiAt = 0;
+bool phoneUiStayHidden = false;
 bool phoneAlsoSms = false;
 bool phoneIsBackup = false;
 bool backupDone = false;
@@ -198,6 +201,7 @@ void setSound() {
 }
 
 void setScreen() {
+  hidePhoneUiIfDue();
   if (millis() - lcdAt < 320) return;
   lcdAt = millis();
 
@@ -234,8 +238,26 @@ void setScreen() {
   }
 
   snprintf(top, 17, "ALARM  %-8s", levelWord());
-  if (phoneStep != 0 && phoneUi[0]) {
-    paint(top, phoneUi);
+  if (phoneUi[0] && !phoneUiStayHidden) {
+    bool bounce =
+      (strcmp(phoneUi, "calling") == 0) ||
+      (strcmp(phoneUi, "texting") == 0) ||
+      (strcmp(phoneUi, "text backup") == 0);
+    char line[17];
+    int n = 0;
+    while (phoneUi[n] && n < 16) {
+      line[n] = phoneUi[n];
+      n++;
+    }
+    if (bounce) {
+      if (n > 13) n = 13;
+      int dots = (int)(((millis() - phoneUiAt) / 400) % 4);
+      for (int d = 0; d < dots && n < 16; d++) {
+        line[n++] = '.';
+      }
+    }
+    line[n] = 0;
+    paint(top, line);
     return;
   }
   if (demoMode) {
@@ -270,6 +292,8 @@ void skipShow() {
 }
 
 void setPhoneUi(const char* text) {
+  // Once the 3s show has hidden, stay on the alarm screen for this job.
+  if (phoneUiStayHidden) return;
   strncpy(phoneUi, text, 16);
   phoneUi[16] = 0;
   phoneUiAt = millis();
@@ -277,9 +301,17 @@ void setPhoneUi(const char* text) {
 }
 
 void hidePhoneUiIfDue() {
+  if (phoneUiStayHidden) return;
   if (!phoneUi[0]) return;
   if (millis() - phoneUiAt < PHONE_UI_MS) return;
   phoneUi[0] = 0;
+  phoneUiStayHidden = true;
+  lcdAt = 0;
+}
+
+void clearPhoneUi() {
+  phoneUi[0] = 0;
+  phoneUiStayHidden = false;
   lcdAt = 0;
 }
 
@@ -319,7 +351,7 @@ void hangUp() {
   phoneStep = 0;
   phoneAlsoSms = false;
   phoneIsBackup = false;
-  phoneUi[0] = 0;
+  clearPhoneUi();
   if (level <= 1) silenceBuzzer();
 }
 
@@ -334,7 +366,8 @@ void startCallThenSms(const char* number, const char* text) {
   phoneTries = 0;
   phoneStep = 1;
   phoneAt = millis();
-  setPhoneUi("phone waking");
+  phoneUiStayHidden = false;
+  phoneUi[0] = 0;
 }
 
 void startSmsOnly(const char* number, const char* text) {
@@ -347,15 +380,15 @@ void startSmsOnly(const char* number, const char* text) {
   phoneTries = 0;
   phoneStep = 1;
   phoneAt = millis();
-  setPhoneUi(phoneIsBackup ? "text backup" : "phone waking");
+  phoneUiStayHidden = false;
+  phoneUi[0] = 0;
 }
 
 void phoneDone() {
   phoneStep = 0;
   phoneAlsoSms = false;
   phoneIsBackup = false;
-  phoneUi[0] = 0;
-  lcdAt = 0;
+  clearPhoneUi();
 }
 
 void pumpPhone() {
@@ -388,8 +421,11 @@ void pumpPhone() {
       phoneTries++;
       if (phoneTries > 12) {
         Serial.println(F("SIM: no AT. Check cell VCC, GND, D5=TXD, D6=RXD."));
+        phoneUiStayHidden = false;
         setPhoneUi("no SIM talk");
-        phoneDone();
+        phoneStep = 0;
+        phoneAlsoSms = false;
+        phoneIsBackup = false;
         return;
       }
       simSend("AT");
@@ -410,7 +446,7 @@ void pumpPhone() {
   if (phoneStep == 4) {
     if (simOK || now - phoneAt > 1500) {
       if (phoneAlsoSms) {
-        setPhoneUi("calling now");
+        setPhoneUi("calling");
         sim.print("ATD");
         sim.print(phoneTo);
         sim.println(";");
@@ -420,7 +456,7 @@ void pumpPhone() {
         phoneAt = now;
         phoneStep = 6;
       } else {
-        setPhoneUi(phoneIsBackup ? "text backup" : "texting owner");
+        setPhoneUi(phoneIsBackup ? "text backup" : "texting");
         simSend("AT+CMGF=1");
         phoneStep = 8;
       }
@@ -432,6 +468,7 @@ void pumpPhone() {
   if (phoneStep == 6) {
     if (simErr) {
       Serial.println(F("SIM: call failed"));
+      phoneUiStayHidden = false;
       setPhoneUi("call failed");
       simSend("ATH");
       phoneStep = 7;
@@ -449,7 +486,7 @@ void pumpPhone() {
     if (simOK || now - phoneAt > 1200) {
       if (phoneAlsoSms) {
         phoneAlsoSms = false;
-        setPhoneUi("texting owner");
+        // Keep the LCD on the alarm screen. The text still goes out.
         simSend("AT+CMGF=1");
         phoneStep = 8;
       } else {
@@ -484,7 +521,6 @@ void pumpPhone() {
       sim.write(26);
       phoneAt = now;
       phoneStep = 10;
-      setPhoneUi("sms sending");
     }
     return;
   }
@@ -493,7 +529,6 @@ void pumpPhone() {
   if (phoneStep == 10) {
     if (simOK || now - phoneAt > SMS_BURST_MS) {
       Serial.println(simOK ? F("SIM: SMS sent") : F("SIM: SMS timeout"));
-      setPhoneUi(simOK ? "sms sent" : "sms timeout");
       phoneDone();
     }
   }
@@ -704,8 +739,8 @@ void loop() {
   }
   setLights();
   setSound();
-  setScreen();
   maybeWarnPhones();
   maybeBackupSms();
   pumpPhone();
+  setScreen();
 }
