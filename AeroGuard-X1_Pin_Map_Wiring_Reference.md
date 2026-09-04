@@ -173,6 +173,8 @@ Label the lid **RESET** and **DEMO**.
 
 ## 7. SIM800L phone chip → D5 / D6 (VCC later)
 
+Picture of this board: open [`AeroGuard-X1_SIM800L_Pin_Map.html`](AeroGuard-X1_SIM800L_Pin_Map.html) and tap each hole.
+
 The mini phone. Antenna on. Nano-SIM in the slot (gold pads down, cut corner matching the drawing).
 
 You **do not have** the LM2596. You **do not need it**. **VCC** comes from a **3.7V cell**. Never Uno 5V. Never Uno 3.3V.
@@ -209,7 +211,7 @@ Uno D6  --- 10kΩ ---+--- SIM800L RX
                    GND
 ```
 
-A 22kΩ from a shop can stand in for 20k. The SIM RX wire always comes off the **middle**.
+A 22kΩ from a shop can stand in for 20k. The SIM RX wire always comes off the **middle**. That GND at the bottom of the sketch is the **breadboard drain rail**, next to the fat ground already going to SIM **GND**. Do **not** replace the SIM GND power wire with a 10k. If the SIM light goes off when you add that resistor, unplug it and put SIM GND back on a straight wire.
 
 SIM TX to D5 is direct. The chip speaks at ~3.3V. The Uno can hear that.
 

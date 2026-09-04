@@ -65,6 +65,10 @@
   .detail h3 { font-family: var(--font-c); text-transform: uppercase; font-size: 18px; }
   .detail p { color: var(--soft); font-size: 14px; margin-top: 4px; }
   .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0 8px; }
+  .card.bad { border-color: var(--stamp); background: rgba(158,43,37,0.06); }
+  .card.good { border-color: var(--green); background: rgba(63,107,69,0.08); }
+  .steps { color: var(--soft); font-size: 14px; margin: 8px 0 0 18px; }
+  .steps li { margin: 8px 0; }
   .card { background: #F5F0E4; border: 1.5px solid var(--ink); padding: 16px 18px; }
   .card h3 { font-family: var(--font-c); text-transform: uppercase; font-size: 16px; }
   .card p, .card li { color: var(--soft); font-size: 14px; }
@@ -130,31 +134,48 @@
       <thead><tr><th>Hole</th><th>Goes to</th><th>How</th></tr></thead>
       <tbody>
         <tr><td><span class="pin">VCC</span></td><td>Cell <strong>plus</strong></td><td>18650 bump, or phone-battery +. Never Uno 5V or 3.3V.</td></tr>
-        <tr><td><span class="pin">GND</span></td><td>Cell minus + Uno GND</td><td>One shared drain.</td></tr>
+        <tr><td><span class="pin">GND</span></td><td>Cell minus + Uno GND</td><td><strong>Straight wire. No resistor.</strong></td></tr>
         <tr><td><span class="pin">TXD</span></td><td>Uno <span class="pin">D5</span></td><td>Straight jumper. Chip talks, brain hears.</td></tr>
         <tr><td><span class="pin">RXD</span></td><td>Uno <span class="pin">D6</span></td><td>Through 10k resistors. Not a bare wire.</td></tr>
       </tbody>
     </table>
   </div>
 
+  <p class="kicker">If the light died</p>
+  <h2 class="sec">The GND resistor is starving the chip</h2>
+  <p class="desc">The 10k to ground is only a tiny side pipe on the <strong>RXD talk wire</strong>. It is not part of the power drain. If you put that resistor in the SIM <strong>GND</strong> hole as the only ground, the pump cannot drink. The light goes off. No blink. No text. No call.</p>
   <div class="pair">
-    <div class="card">
-      <h3>Power</h3>
-      <p>The Uno drinks 5V from USB. The mini phone drinks from the cell, like a thirsty pump that the thin Uno taps cannot feed.</p>
-<pre>Cell PLUS (+)  ----  SIM VCC
-Cell MINUS (−) ----  SIM GND + Uno GND</pre>
-      <div class="warn"><strong>A resistor cannot replace the cell.</strong> The 10k parts are only for the D6 talk wire.</div>
+    <div class="card bad">
+      <h3>Wrong — light dies</h3>
+      <p>Resistor sitting in the fat drain.</p>
+<pre>Cell minus --- 10kΩ --- SIM GND     ← never
+Uno GND    --- 10kΩ --- SIM GND     ← never
+Cell plus  --- 10kΩ --- SIM VCC     ← never</pre>
     </div>
-    <div class="card">
-      <h3>Quiet-down wire (RXD)</h3>
-      <p>You have no 20kΩ. Two 10kΩ is enough. The SIM RX wire comes off the middle.</p>
-<pre>Uno D6  --- 10kΩ ---+--- SIM RXD
-                    |
-                  10kΩ
-                    |
-                   GND</pre>
-      <div class="ok">TXD to D5 is a straight wire. No resistors on that one.</div>
+    <div class="card good">
+      <h3>Right — light can blink</h3>
+      <p>Fat drain is a straight black wire. Resistors only touch D6 / RXD.</p>
+<pre>Cell minus -------- SIM GND
+Uno GND    -------- SIM GND
+                    (no resistor)
+
+Uno D6 --- 10k ---+--- SIM RXD
+                  |
+                10k
+                  |
+              GND rail</pre>
     </div>
+  </div>
+  <div class="card">
+    <h3>Do this in order. Do not skip.</h3>
+    <ol class="steps">
+      <li><strong>Unplug both 10k resistors.</strong> Unplug D5 and D6 too. Leave RST empty.</li>
+      <li>Only two power wires, both <strong>straight</strong>: cell plus → SIM <strong>VCC</strong>. Cell minus + Uno GND → SIM <strong>GND</strong>.</li>
+      <li>Antenna on. SIM seated. The light should come back: fast blink, then maybe slow blink. If it stays dark, the cell is empty, backwards, or VCC/GND are swapped.</li>
+      <li>Then add <strong>TXD → D5</strong> straight. No resistor.</li>
+      <li>Last: the quiet-down pair on <strong>RXD only</strong>. One 10k from Uno D6 to SIM RXD. One 10k from that same RXD joint to the breadboard GND rail (the fat drain), <strong>not</strong> as the only wire in the SIM GND hole.</li>
+    </ol>
+    <div class="ok">When the light blinks again, Demo twice to MEDIUM and watch the screen: <code>wait network</code> then <code>texting owner</code>.</div>
   </div>
 
   <p class="kicker">Leave these closed</p>
@@ -182,7 +203,7 @@ Cell MINUS (−) ----  SIM GND + Uno GND</pre>
       { id: 'RST', use: false, title: 'RST', body: 'Leave empty. If a purple or extra wire is here, unplug it.' },
       { id: 'RXD', use: true, title: 'RXD — Uno D6', body: 'Brain talks, chip hears. Wire from Uno D6 through 10k resistors, then to this hole. Not a bare wire.' },
       { id: 'TXD', use: true, title: 'TXD — Uno D5', body: 'Chip talks, brain hears. Straight jumper from this hole to Uno D5. No resistor.' },
-      { id: 'GND', use: true, title: 'GND — the drain', body: 'Join cell minus, SIM GND, and Uno GND. One shared drain for every pipe.' }
+      { id: 'GND', use: true, title: 'GND — fat drain, no resistor', body: 'Straight black wire from SIM GND to cell minus and Uno GND. Never put a 10k in this wire. If you do, the light dies and the chip cannot call.' },
     ],
     bot: [
       { id: 'RING', use: false, title: 'RING', body: 'Leave empty. The box does not need a “phone is ringing” pin.' },

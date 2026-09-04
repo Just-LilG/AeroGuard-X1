@@ -67,7 +67,12 @@ The Uno is the brain. It drinks **5V** from USB. It cannot feed the SIM800L.
 |------|-------------------------------|
 | Sensors, LCD, lights, buzzer | Uno **5V** |
 | SIM800L **VCC** | **3.7V cell plus** (18650 or old phone battery) |
-| All grounds | Join together (Uno GND + cell minus + SIM GND) |
+| All grounds | Join together (Uno GND + cell minus + SIM GND) **with straight wires** |
+
+**SIM GND is a fat drain. No resistor in that wire.**  
+If the SIM light goes **off** when you add a “GND resistor,” that resistor is sitting in the power drain. Unplug it. Join SIM GND, cell minus, and Uno GND with a bare jumper.
+
+The 10k to ground belongs **only** on the D6 / RXD talk joint, as a tiny side pipe. Not in the SIM **GND** hole as the only ground. Not on **VCC**.
 
 **Do not** put SIM **VCC** on Uno 5V. **Do not** put it on Uno 3.3V. Both will fail or hurt the chip. The phone chip gulps a lot of current when it calls, like a pump kicking on.
 
