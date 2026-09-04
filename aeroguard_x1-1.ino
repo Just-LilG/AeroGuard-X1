@@ -34,6 +34,7 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <SoftwareSerial.h>
+#include <string.h>
 
 // ---- same pin map ----
 const int PIN_GAS = A0;
@@ -90,8 +91,18 @@ int phoneStep = 0;
 unsigned long phoneAt = 0;
 char phoneTo[20];
 char phoneText[80];
+char phoneUi[17];
 bool phoneAlsoSms = false;
+bool phoneIsBackup = false;
 bool backupDone = false;
+int phoneTries = 0;
+
+char simBuf[48];
+byte simBufLen = 0;
+bool simOK = false;
+bool simErr = false;
+bool simPrompt = false;
+bool simNet = false;
 
 void padLine(const char* text) {
   int n = 0;
@@ -138,7 +149,7 @@ void setLights() {
 }
 
 void setSound() {
-  if (level <= 1) {
+  if (phoneStep != 0 || level <= 1) {
     noTone(PIN_BUZZER);
     return;
   }
@@ -179,6 +190,10 @@ void setScreen() {
   }
 
   snprintf(top, 17, "ALARM  %-8s", levelWord());
+  if (phoneStep != 0 && phoneUi[0]) {
+    paint(top, phoneUi);
+    return;
+  }
   if (demoMode) {
     snprintf(bottom, 17, "DEMO  gas %4d", lastGas);
   } else {
@@ -187,10 +202,51 @@ void setScreen() {
   paint(top, bottom);
 }
 
+void setPhoneUi(const char* text) {
+  strncpy(phoneUi, text, 16);
+  phoneUi[16] = 0;
+  lcdAt = 0;
+}
+
+void simListen() {
+  while (sim.available()) {
+    char c = (char)sim.read();
+    Serial.write(c);
+    if (c == '>') simPrompt = true;
+    if (c == '\r' || c == '\n') {
+      if (simBufLen > 0) {
+        simBuf[simBufLen] = 0;
+        if (strstr(simBuf, "OK")) simOK = true;
+        if (strstr(simBuf, "ERROR")) simErr = true;
+        if (strstr(simBuf, "0,1") || strstr(simBuf, "0,5") ||
+            strstr(simBuf, "1,1") || strstr(simBuf, "1,5")) {
+          if (strstr(simBuf, "+CREG")) simNet = true;
+        }
+      }
+      simBufLen = 0;
+    } else if (simBufLen < 46) {
+      simBuf[simBufLen++] = c;
+    }
+  }
+}
+
+void simSend(const char* cmd) {
+  simOK = false;
+  simErr = false;
+  simPrompt = false;
+  Serial.print(F(">> "));
+  Serial.println(cmd);
+  sim.println(cmd);
+  phoneAt = millis();
+}
+
 void hangUp() {
   if (PHONE_ALERTS) sim.println("ATH");
   phoneStep = 0;
   phoneAlsoSms = false;
+  phoneIsBackup = false;
+  phoneUi[0] = 0;
+  noTone(PIN_BUZZER);
 }
 
 void startCallThenSms(const char* number, const char* text) {
@@ -200,8 +256,12 @@ void startCallThenSms(const char* number, const char* text) {
   strncpy(phoneText, text, 79);
   phoneText[79] = 0;
   phoneAlsoSms = true;
+  phoneIsBackup = false;
+  phoneTries = 0;
+  simNet = false;
   phoneStep = 1;
   phoneAt = millis();
+  setPhoneUi("phone waking");
 }
 
 void startSmsOnly(const char* number, const char* text) {
@@ -211,68 +271,183 @@ void startSmsOnly(const char* number, const char* text) {
   strncpy(phoneText, text, 79);
   phoneText[79] = 0;
   phoneAlsoSms = false;
-  phoneStep = 9;  // wake the port, then SMS
+  phoneTries = 0;
+  simNet = false;
+  phoneStep = 1;
   phoneAt = millis();
+  setPhoneUi(phoneIsBackup ? "text backup" : "phone waking");
+}
+
+void phoneDone() {
+  phoneStep = 0;
+  phoneAlsoSms = false;
+  phoneIsBackup = false;
+  phoneUi[0] = 0;
+  lcdAt = 0;
+  noTone(PIN_BUZZER);
 }
 
 void pumpPhone() {
   if (!PHONE_ALERTS || phoneStep == 0) return;
 
+  simListen();
   unsigned long now = millis();
 
+  // 1: open the talk wire, hush the beeper, say AT
   if (phoneStep == 1) {
+    noTone(PIN_BUZZER);
     sim.begin(9600);
-    sim.println("AT");
+    delay(30);
+    while (sim.available()) sim.read();
+    simBufLen = 0;
+    simSend("AT");
+    phoneTries = 1;
     phoneStep = 2;
-    phoneAt = now;
     return;
   }
 
-  if (phoneStep == 2 && now - phoneAt > 400) {
-    sim.print("ATD");
-    sim.print(phoneTo);
-    sim.println(";");
-    phoneStep = 3;
-    phoneAt = now;
+  // 2: keep saying AT until the chip answers OK (auto-baud)
+  if (phoneStep == 2) {
+    if (simOK) {
+      simSend("ATE0");
+      phoneStep = 3;
+      return;
+    }
+    if (now - phoneAt > 800) {
+      phoneTries++;
+      if (phoneTries > 12) {
+        Serial.println(F("SIM: no AT. Check cell VCC, GND, D5=TXD, D6=RXD."));
+        setPhoneUi("no SIM talk");
+        phoneDone();
+        return;
+      }
+      simSend("AT");
+    }
     return;
   }
 
-  if (phoneStep == 3 && now - phoneAt > 18000) {
-    sim.println("ATH");
-    phoneStep = phoneAlsoSms ? 10 : 0;
-    phoneAt = now;
+  // 3: echo off
+  if (phoneStep == 3) {
+    if (simOK || now - phoneAt > 800) {
+      simSend("AT+CFUN=1");
+      phoneStep = 4;
+    }
     return;
   }
 
+  // 4: radio on, then ask if we joined a network
+  if (phoneStep == 4) {
+    if (simOK || now - phoneAt > 1500) {
+      setPhoneUi("wait network");
+      simNet = false;
+      simSend("AT+CREG?");
+      phoneTries = 0;
+      phoneStep = 5;
+    }
+    return;
+  }
+
+  // 5: wait until the network light would be a slow blink
+  if (phoneStep == 5) {
+    if (simNet) {
+      Serial.println(F("SIM: on network"));
+      if (phoneAlsoSms) {
+        setPhoneUi("calling now");
+        sim.print("ATD");
+        sim.print(phoneTo);
+        sim.println(";");
+        Serial.print(F(">> ATD"));
+        Serial.print(phoneTo);
+        Serial.println(F(";"));
+        phoneAt = now;
+        phoneStep = 6;
+      } else {
+        setPhoneUi(phoneIsBackup ? "text backup" : "texting owner");
+        simSend("AT+CMGF=1");
+        phoneStep = 8;
+      }
+      return;
+    }
+    if (now - phoneAt > 2000) {
+      phoneTries++;
+      if (phoneTries > 20) {
+        Serial.println(F("SIM: no network. Slow blink missing? 2G SIM? airtime?"));
+        setPhoneUi("no network");
+        phoneDone();
+        return;
+      }
+      simSend("AT+CREG?");
+    }
+    return;
+  }
+
+  // 6: let it ring about 15 seconds
+  if (phoneStep == 6) {
+    if (now - phoneAt > 15000) {
+      simSend("ATH");
+      phoneStep = 7;
+    }
+    return;
+  }
+
+  // 7: after hang up, send the text
+  if (phoneStep == 7) {
+    if (simOK || now - phoneAt > 1200) {
+      if (phoneAlsoSms) {
+        phoneAlsoSms = false;
+        setPhoneUi("texting owner");
+        simSend("AT+CMGF=1");
+        phoneStep = 8;
+      } else {
+        phoneDone();
+      }
+    }
+    return;
+  }
+
+  // 8: text mode
+  if (phoneStep == 8) {
+    if (simOK || now - phoneAt > 1200) {
+      simOK = false;
+      simPrompt = false;
+      Serial.print(F(">> AT+CMGS=\""));
+      Serial.print(phoneTo);
+      Serial.println('"');
+      sim.print("AT+CMGS=\"");
+      sim.print(phoneTo);
+      sim.println('"');
+      phoneAt = now;
+      phoneStep = 9;
+    }
+    return;
+  }
+
+  // 9: wait for the > prompt, then pour the words and Ctrl+Z
   if (phoneStep == 9) {
-    sim.begin(9600);
-    sim.println("AT");
-    phoneStep = 10;
-    phoneAt = now;
+    if (simPrompt) {
+      Serial.println(F(">> (sms body)"));
+      sim.print(phoneText);
+      sim.write(26);
+      phoneAt = now;
+      phoneStep = 10;
+      setPhoneUi("sms sending");
+      return;
+    }
+    if (simErr || now - phoneAt > 8000) {
+      Serial.println(F("SIM: no SMS prompt"));
+      setPhoneUi("sms failed");
+      phoneDone();
+    }
     return;
   }
 
-  if (phoneStep == 10 && now - phoneAt > 400) {
-    sim.println("AT+CMGF=1");
-    phoneStep = 11;
-    phoneAt = now;
-    return;
-  }
-
-  if (phoneStep == 11 && now - phoneAt > 400) {
-    sim.print("AT+CMGS=\"");
-    sim.print(phoneTo);
-    sim.println("\"");
-    phoneStep = 12;
-    phoneAt = now;
-    return;
-  }
-
-  if (phoneStep == 12 && now - phoneAt > 400) {
-    sim.print(phoneText);
-    sim.write(26);
-    phoneStep = 0;
-    phoneAlsoSms = false;
+  // 10: wait for the chip to say the text went out
+  if (phoneStep == 10) {
+    if (simOK || now - phoneAt > 20000) {
+      Serial.println(simOK ? F("SIM: SMS sent") : F("SIM: SMS timeout"));
+      setPhoneUi(simOK ? "sms sent" : "sms timeout");
+      phoneDone();
+    }
   }
 }
 
@@ -305,6 +480,7 @@ void maybeWarnPhones() {
   if (lastWarned == level) return;
   lastWarned = level;
   warnAt = millis();
+  phoneIsBackup = false;
 
   char text[80];
   if (level == 2) {
@@ -332,6 +508,7 @@ void maybeBackupSms() {
 
   char text[80];
   snprintf(text, 80, "BACKUP: AeroGuard %s at %s", levelWord(), DEVICE_LABEL);
+  phoneIsBackup = true;
   startSmsOnly(SECONDARY_CONTACT, text);
   backupDone = true;
 }
@@ -473,8 +650,10 @@ void setup() {
 
 void loop() {
   readButtons();
-  readLiveSensors();
-  maybeLogGas();
+  if (phoneStep == 0) {
+    readLiveSensors();
+    maybeLogGas();
+  }
   setLights();
   setSound();
   setScreen();
