@@ -64,6 +64,8 @@ const bool PHONE_ALERTS = true;
 const unsigned long SMS_BURST_MS = 3000;
 // A real call needs longer than 3s. The other phone has not even started ringing yet at 3s.
 const unsigned long CALL_RING_MS = 15000;
+// Show "calling now" / "texting" for this long, then hide. Call and SMS keep going.
+const unsigned long PHONE_UI_MS = 3000;
 const unsigned long BOOT_MS = 2200;
 const unsigned long CAL_MS = 3200;
 
@@ -103,6 +105,7 @@ unsigned long phoneAt = 0;
 char phoneTo[20];
 char phoneText[80];
 char phoneUi[17];
+unsigned long phoneUiAt = 0;
 bool phoneAlsoSms = false;
 bool phoneIsBackup = false;
 bool backupDone = false;
@@ -269,6 +272,14 @@ void skipShow() {
 void setPhoneUi(const char* text) {
   strncpy(phoneUi, text, 16);
   phoneUi[16] = 0;
+  phoneUiAt = millis();
+  lcdAt = 0;
+}
+
+void hidePhoneUiIfDue() {
+  if (!phoneUi[0]) return;
+  if (millis() - phoneUiAt < PHONE_UI_MS) return;
+  phoneUi[0] = 0;
   lcdAt = 0;
 }
 
@@ -350,6 +361,7 @@ void phoneDone() {
 void pumpPhone() {
   if (!PHONE_ALERTS || phoneStep == 0) return;
 
+  hidePhoneUiIfDue();
   simListen();
   unsigned long now = millis();
 
