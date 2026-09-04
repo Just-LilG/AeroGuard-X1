@@ -409,7 +409,7 @@ Do this on a table. No open gas. Tell the owner-phone person a test call may com
 | Reset | Press **Reset** | Alarm off. Back to SAFE. |
 
 - MEDIUM sends a **real text**.
-- CRITICAL and FIRE place a **real call** (rings about **3 seconds**, then hangs up) and a **real text**.
+- CRITICAL and FIRE place a **real call** (rings about **15 seconds**, then hangs up) and a **real text**. You must press Demo until the screen says **CRITICAL** (red). MEDIUM only texts. A 3-second hang-up is too short — the other phone has not started ringing yet.
 - Do not surprise a sleeping family member. Do not spam the fire service.
 
 If SMS or call never arrives, look at the **screen words** and the **network light**:

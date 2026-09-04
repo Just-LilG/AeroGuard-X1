@@ -60,8 +60,10 @@ const char* DEVICE_LABEL = "AeroGuard Kitchen";
 
 // true = send real texts/calls. Set false if the 3.7V cell is unplugged.
 const bool PHONE_ALERTS = true;
-// Call rings this long, then hang up. SMS waits this long. Keep the pitch short.
-const unsigned long PHONE_BURST_MS = 3000;
+// SMS wait. Keep texts short.
+const unsigned long SMS_BURST_MS = 3000;
+// A real call needs longer than 3s. The other phone has not even started ringing yet at 3s.
+const unsigned long CALL_RING_MS = 15000;
 const unsigned long BOOT_MS = 2200;
 const unsigned long CAL_MS = 3200;
 
@@ -280,6 +282,9 @@ void simListen() {
         simBuf[simBufLen] = 0;
         if (strstr(simBuf, "OK")) simOK = true;
         if (strstr(simBuf, "ERROR")) simErr = true;
+        if (strstr(simBuf, "NO CARRIER")) simErr = true;
+        if (strstr(simBuf, "NO DIALTONE")) simErr = true;
+        if (strstr(simBuf, "BUSY")) simErr = true;
       }
       simBufLen = 0;
     } else if (simBufLen < 46) {
@@ -411,9 +416,16 @@ void pumpPhone() {
     return;
   }
 
-  // 6: ring about 3 seconds, then hang up
+  // 6: keep ringing long enough for the other phone to start
   if (phoneStep == 6) {
-    if (now - phoneAt > PHONE_BURST_MS) {
+    if (simErr) {
+      Serial.println(F("SIM: call failed"));
+      setPhoneUi("call failed");
+      simSend("ATH");
+      phoneStep = 7;
+      return;
+    }
+    if (now - phoneAt > CALL_RING_MS) {
       simSend("ATH");
       phoneStep = 7;
     }
@@ -454,7 +466,7 @@ void pumpPhone() {
 
   // 9: wait for the > prompt, then pour the words and Ctrl+Z
   if (phoneStep == 9) {
-    if (simPrompt || now - phoneAt > PHONE_BURST_MS) {
+    if (simPrompt || now - phoneAt > SMS_BURST_MS) {
       Serial.println(F(">> (sms body)"));
       sim.print(phoneText);
       sim.write(26);
@@ -467,7 +479,7 @@ void pumpPhone() {
 
   // 10: wait for the chip to say the text went out
   if (phoneStep == 10) {
-    if (simOK || now - phoneAt > PHONE_BURST_MS) {
+    if (simOK || now - phoneAt > SMS_BURST_MS) {
       Serial.println(simOK ? F("SIM: SMS sent") : F("SIM: SMS timeout"));
       setPhoneUi(simOK ? "sms sent" : "sms timeout");
       phoneDone();
@@ -528,8 +540,6 @@ void maybeBackupSms() {
   if (level < 2) return;
   if (warnAt == 0) return;
   if (phoneStep != 0) return;
-  // Wait until the owner text/call is done, then text the backup.
-  if (millis() - warnAt < PHONE_BURST_MS) return;
 
   char text[80];
   snprintf(text, 80, "BACKUP: AeroGuard %s at %s", levelWord(), DEVICE_LABEL);
