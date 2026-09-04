@@ -102,7 +102,6 @@ byte simBufLen = 0;
 bool simOK = false;
 bool simErr = false;
 bool simPrompt = false;
-bool simNet = false;
 
 void padLine(const char* text) {
   int n = 0;
@@ -218,10 +217,6 @@ void simListen() {
         simBuf[simBufLen] = 0;
         if (strstr(simBuf, "OK")) simOK = true;
         if (strstr(simBuf, "ERROR")) simErr = true;
-        if (strstr(simBuf, "0,1") || strstr(simBuf, "0,5") ||
-            strstr(simBuf, "1,1") || strstr(simBuf, "1,5")) {
-          if (strstr(simBuf, "+CREG")) simNet = true;
-        }
       }
       simBufLen = 0;
     } else if (simBufLen < 46) {
@@ -258,7 +253,6 @@ void startCallThenSms(const char* number, const char* text) {
   phoneAlsoSms = true;
   phoneIsBackup = false;
   phoneTries = 0;
-  simNet = false;
   phoneStep = 1;
   phoneAt = millis();
   setPhoneUi("phone waking");
@@ -272,7 +266,6 @@ void startSmsOnly(const char* number, const char* text) {
   phoneText[79] = 0;
   phoneAlsoSms = false;
   phoneTries = 0;
-  simNet = false;
   phoneStep = 1;
   phoneAt = millis();
   setPhoneUi(phoneIsBackup ? "text backup" : "phone waking");
@@ -335,22 +328,9 @@ void pumpPhone() {
     return;
   }
 
-  // 4: radio on, then ask if we joined a network
+  // 4: radio on, then call or text right away (no network wait)
   if (phoneStep == 4) {
     if (simOK || now - phoneAt > 1500) {
-      setPhoneUi("wait network");
-      simNet = false;
-      simSend("AT+CREG?");
-      phoneTries = 0;
-      phoneStep = 5;
-    }
-    return;
-  }
-
-  // 5: wait until the network light would be a slow blink
-  if (phoneStep == 5) {
-    if (simNet) {
-      Serial.println(F("SIM: on network"));
       if (phoneAlsoSms) {
         setPhoneUi("calling now");
         sim.print("ATD");
@@ -366,17 +346,6 @@ void pumpPhone() {
         simSend("AT+CMGF=1");
         phoneStep = 8;
       }
-      return;
-    }
-    if (now - phoneAt > 2000) {
-      phoneTries++;
-      if (phoneTries > 20) {
-        Serial.println(F("SIM: no network. Slow blink missing? 2G SIM? airtime?"));
-        setPhoneUi("no network");
-        phoneDone();
-        return;
-      }
-      simSend("AT+CREG?");
     }
     return;
   }

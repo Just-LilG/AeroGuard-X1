@@ -418,8 +418,6 @@ If SMS or call never arrives, look at the **screen words** and the **network lig
 |----------------|---------|------------|
 | Stays SAFE or LOW | Phone is not asked to send yet | Demo twice, to **MEDIUM** (yellow) |
 | `phone waking` then `no SIM talk` | Chip did not hear AT | Cell on **VCC**, shared **GND**, TXD→D5, RXD←D6 through 10k. Not Uno 5V on VCC. |
-| `wait network` then `no network` | Chip is on but not on a mast | Antenna on. SIM seated, PIN off, airtime. Light should go **slow blink**. SIM800L is **2G** only. |
-| `texting owner` / `sms sent` | Box sent it | If the phone is still empty, check the number and that SMS is not blocked on the SIM |
 | Fast blink forever | Still hunting | Move nearer a window. Try another 2G SIM. Cell may be sagging — use a charged 18650. |
 
 Do not surprise a sleeping family member. Do not spam the fire service.
