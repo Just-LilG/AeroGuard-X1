@@ -7,7 +7,7 @@ You **have** the **SIM800L** and a **3.7V cell**.
 You **do not have** the **LM2596**. You do **not** need it — feed SIM **VCC** from that cell.  
 You **do not have** the **SD card module**. Leave **D10–D13** empty.
 
-The full shopping story is in [`AeroGuard-X1_Build_Guide.md`](AeroGuard-X1_Build_Guide.md). Pictures: [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html).
+The full shopping story is in [`AeroGuard-X1_Build_Guide.md`](AeroGuard-X1_Build_Guide.md). Pictures: [`AeroGuard-X1_Assembly_Guide.html`](AeroGuard-X1_Assembly_Guide.html). SIM800L picture map: [`AeroGuard-X1_SIM800L_Pin_Map.html`](AeroGuard-X1_SIM800L_Pin_Map.html).
 
 ---
 

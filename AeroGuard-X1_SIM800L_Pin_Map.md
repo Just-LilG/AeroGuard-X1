@@ -1,5 +1,7 @@
 # Your red SIM800L Coreboard — pin map only
 
+**Open the picture page:** [`AeroGuard-X1_SIM800L_Pin_Map.html`](AeroGuard-X1_SIM800L_Pin_Map.html) (in a browser). Tap each hole to see where the wire goes.
+
 This matches the **red board** with the metal SIM tray and two rows of 6 holes.
 
 You will use **4 holes** once a 3.7V cell is on: **VCC, GND, RXD, TXD**. Leave the other 8 empty.

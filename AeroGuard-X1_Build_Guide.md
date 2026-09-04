@@ -59,7 +59,7 @@ You **have** the **SIM800L** phone chip (#8) and a **battery** (#11). You **do n
 
 **You do not need the LM2596.** Feed SIM **VCC** from your **3.7V cell** — see [§3.1](#31-get-calls-working-this-week-no-lm2596). Never a resistor. Never Uno 5V. If the battery is only a USB power bank (a brick with a USB hole), that 5V is for the Uno, not for SIM VCC. The cell we mean is the fat tube (18650) or a flat phone pack.
 
-**SIM800L-only pin map:** [`AeroGuard-X1_SIM800L_Pin_Map.md`](AeroGuard-X1_SIM800L_Pin_Map.md). You **do not have a 20kΩ** — use 10k stand-ins for the D6 divider. Leave **D10–D13** empty.
+**SIM800L-only pin map:** [`AeroGuard-X1_SIM800L_Pin_Map.md`](AeroGuard-X1_SIM800L_Pin_Map.md) · picture: [`AeroGuard-X1_SIM800L_Pin_Map.html`](AeroGuard-X1_SIM800L_Pin_Map.html). You **do not have a 20kΩ** — use 10k stand-ins for the D6 divider. Leave **D10–D13** empty.
 
 Full pin tables: [`AeroGuard-X1_Pin_Map_Wiring_Reference.md`](AeroGuard-X1_Pin_Map_Wiring_Reference.md).
 
